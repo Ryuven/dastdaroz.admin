@@ -1,124 +1,492 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-<meta name="mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<title>dastdaroz — Вход в систему</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800;900&family=Inter:wght@300;400;500;600;700&display=swap"/>
-<style>
-:root{
-  --acc:#1a9e4a;--acc2:#22c55e;
-  --accd:rgba(26,158,74,.15);
-  --red:#ef4444;--amber:#f59e0b;
-  --tx:#f0f0f0;--tx2:#888888;--tx3:#444444;
-  --b:#2e2e2e;
-  --s2:#1a1a1a;--s3:#222222;
-  --r:16px;
-  --fd:'Unbounded',sans-serif;--fs:'Inter',system-ui,sans-serif;
-  --ease:cubic-bezier(.32,0,.18,1);--tf:.13s;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{height:100%;-webkit-text-size-adjust:100%}
-body{
-  background:#0f0f0f;color:var(--tx);font-family:var(--fs);
-  min-height:100svh;-webkit-font-smoothing:antialiased;
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-  padding:52px 24px 32px;
-}
-#fb-bar,#ldot-1,#ldot-2,#status-bar{display:none!important}
-.wrap{width:100%;max-width:380px;display:flex;flex-direction:column;animation:fadeUp .28s var(--ease) both}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.logo{display:flex;justify-content:center;margin-bottom:36px}
-.logo img{height:46px;width:auto;object-fit:contain}
-.hd{text-align:center;margin-bottom:24px}
-.form-title{font-family:var(--fd);font-weight:900;font-size:1.45rem;color:var(--tx);letter-spacing:-.04em;line-height:1.15;margin-bottom:10px}
-.form-sub{font-size:.82rem;color:var(--tx2);line-height:1.6;max-width:300px;margin:0 auto}
-.alert{display:none;align-items:flex-start;gap:8px;padding:10px 13px;margin-bottom:12px;border-radius:12px;font-size:.75rem;color:var(--tx2);line-height:1.5;border:1px solid}
-.alert.show{display:flex}
-.alert.err{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.2)}
-.alert strong{display:block;font-size:.7rem;font-weight:700;margin-bottom:2px;color:var(--red)}
-.field{position:relative;margin-bottom:10px}
-.field-err{font-size:.64rem;color:var(--red);margin-top:5px;display:none}
-.field-err.show{display:block}
-.inp{width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:var(--r);color:var(--tx);font-family:var(--fs);font-size:.93rem;font-weight:400;padding:17px 18px;outline:none;transition:border-color var(--tf),box-shadow var(--tf)}
-.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--accd)}
-.inp.has-eye{padding-right:52px}
-.inp.err{border-color:rgba(239,68,68,.5);animation:shake .3s ease}
-.inp::placeholder{color:var(--tx3)}
-@keyframes shake{0%,100%{transform:translateX(0)}22%,66%{transform:translateX(-5px)}44%,88%{transform:translateX(5px)}}
-.phone-field{display:flex;align-items:center;border:1.5px solid var(--b);border-radius:var(--r);background:var(--s2);overflow:hidden;transition:border-color var(--tf),box-shadow var(--tf)}
-.phone-field.err{border-color:rgba(239,68,68,.5)}
-.phone-field:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px var(--accd)}
-.phone-prefix{display:flex;align-items:center;gap:7px;padding:17px 4px 17px 18px;background:transparent;border:none;font-family:var(--fs);font-weight:600;font-size:.93rem;color:var(--tx);flex-shrink:0;cursor:pointer;user-select:none;transition:opacity var(--tf)}
-.phone-prefix:hover{opacity:.65}
-.phone-flag{width:22px;height:15px;border-radius:3px;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,255,255,.1);object-fit:cover;display:block}
-.phone-prefix-arrow{font-size:.52rem;color:var(--tx3);margin-left:1px}
-.phone-input{flex:1;min-width:0;border:none;background:none;outline:none;color:var(--tx);font-family:var(--fs);font-size:.93rem;font-weight:500;padding:17px 18px 17px 10px;letter-spacing:.04em}
-.phone-input::placeholder{color:var(--tx3);font-weight:400}
-.eye{position:absolute;right:0;top:0;width:52px;height:100%;background:none;border:none;cursor:pointer;color:var(--tx3);display:flex;align-items:center;justify-content:center;transition:color var(--tf)}
-.eye:hover{color:var(--tx2)}
-.phone-chip{display:flex;align-items:center;gap:10px;border:1.5px solid var(--b);border-radius:var(--r);padding:11px 14px;margin-bottom:10px;background:var(--s2)}
-.phone-chip-ico{width:28px;height:28px;border-radius:8px;flex-shrink:0;background:var(--s3);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;color:var(--tx2)}
-.phone-chip-num{flex:1;font-family:var(--fs);font-weight:700;font-size:.85rem;color:var(--tx);letter-spacing:.02em}
-.phone-chip-edit{background:var(--s3);border:none;cursor:pointer;color:var(--tx2);font-size:.68rem;font-weight:700;font-family:var(--fs);padding:5px 9px;border-radius:8px;display:flex;align-items:center;gap:3px;transition:opacity var(--tf)}
-.phone-chip-edit:hover{opacity:.7}
-.opt-row{display:flex;justify-content:flex-end;margin-bottom:8px}
-.forgot{font-size:.73rem;color:var(--tx2);background:none;border:none;cursor:pointer;font-family:var(--fs);padding:0;transition:color var(--tf);text-decoration:none}
-.forgot:hover{color:var(--tx)}
-.btn-submit{width:100%;padding:18px;background:var(--acc);border:none;border-radius:var(--r);color:#fff;font-family:var(--fd);font-weight:900;font-size:.95rem;letter-spacing:.01em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s,transform .15s}
-.btn-submit:hover:not(:disabled){opacity:.88}
-.btn-submit:active:not(:disabled){transform:scale(.98)}
-.btn-submit:disabled{background:var(--s3);color:var(--tx3);cursor:not-allowed}
-.btn-submit.loading .btn-txt{opacity:.4}
-.spinner{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin .7s linear infinite;display:none;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-.btn-submit.loading .spinner{display:block}
-.cp-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s var(--ease)}
-.cp-overlay.open{opacity:1;pointer-events:all}
-.cp-modal{width:min(480px,100vw);max-height:82svh;background:#1c1c1e;border-radius:22px 22px 0 0;display:flex;flex-direction:column;transform:translateY(40px);transition:transform .24s var(--ease);overflow:hidden}
-.cp-overlay.open .cp-modal{transform:translateY(0)}
-.cp-handle{width:32px;height:3px;border-radius:99px;background:var(--b);margin:10px auto 0;flex-shrink:0}
-.cp-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;flex-shrink:0;border-bottom:1px solid var(--b)}
-.cp-title{font-family:var(--fd);font-weight:900;font-size:.9rem;color:var(--tx);letter-spacing:-.02em}
-.cp-close{width:28px;height:28px;border-radius:50%;background:var(--s3);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--tx2);font-size:.85rem;transition:background var(--tf)}
-.cp-close:hover{background:var(--b)}
-.cp-search-wrap{padding:10px 14px 8px;flex-shrink:0}
-.cp-search{width:100%;padding:10px 12px 10px 36px;border-radius:10px;border:1.5px solid var(--b);background:var(--s3);color:var(--tx);font-family:var(--fs);font-size:.82rem;outline:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='M21 21l-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center;transition:border-color var(--tf)}
-.cp-search:focus{border-color:var(--acc)}
-.cp-search::placeholder{color:var(--tx3)}
-.cp-list{overflow-y:auto;flex:1;padding:4px 8px 18px}
-.cp-item{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:background var(--tf);border:none;background:none;width:100%;text-align:left}
-.cp-item:hover{background:var(--s3)}
-.cp-item.selected{background:var(--accd)}
-.cp-item-flag{width:30px;height:20px;border-radius:3px;object-fit:cover;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
-.cp-item-name{flex:1;font-size:.8rem;color:var(--tx);font-weight:500}
-.cp-item-dial{font-size:.75rem;color:var(--tx2);font-weight:600}
-.cp-empty{text-align:center;padding:28px 0;font-size:.78rem;color:var(--tx3)}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <title>dastdaroz — Вход в систему</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800;900&family=Inter:wght@300;400;500;600;700&display=swap"/>
+
+  <style>
+    /* ── CSS Variables ─────────────────────────────────────────── */
+    :root {
+      --acc:  #1a9e4a;
+      --acc2: #22c55e;
+      --accd: rgba(26, 158, 74, .15);
+      --red:  #ef4444;
+      --tx:   #f0f0f0;
+      --tx2:  #888888;
+      --tx3:  #444444;
+      --b:    #2e2e2e;
+      --s2:   #1a1a1a;
+      --s3:   #222222;
+      --r:    16px;
+      --fd:   'Unbounded', sans-serif;
+      --fs:   'Inter', system-ui, sans-serif;
+      --ease: cubic-bezier(.32, 0, .18, 1);
+      --tf:   .13s;
+    }
+
+    /* ── Reset ─────────────────────────────────────────────────── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html {
+      height: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+    body {
+      background: #0f0f0f;
+      color: var(--tx);
+      font-family: var(--fs);
+      min-height: 100svh;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 52px 24px 32px;
+    }
+
+    /* ── Hidden system elements ────────────────────────────────── */
+    #fb-bar, #ldot-1, #ldot-2, #status-bar { display: none !important; }
+
+    /* ── Layout ────────────────────────────────────────────────── */
+    .wrap {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      animation: fadeUp .28s var(--ease) both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── Logo ──────────────────────────────────────────────────── */
+    .logo {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 36px;
+    }
+    .logo img {
+      height: 46px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    /* ── Header ────────────────────────────────────────────────── */
+    .hd { text-align: center; margin-bottom: 24px; }
+    .form-title {
+      font-family: var(--fd);
+      font-weight: 900;
+      font-size: 1.45rem;
+      color: var(--tx);
+      letter-spacing: -.04em;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .form-sub {
+      font-size: .82rem;
+      color: var(--tx2);
+      line-height: 1.6;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    /* ── Alert ─────────────────────────────────────────────────── */
+    .alert {
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 13px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      font-size: .75rem;
+      color: var(--tx2);
+      line-height: 1.5;
+      border: 1px solid;
+    }
+    .alert.show { display: flex; }
+    .alert.err  { background: rgba(239, 68, 68, .07); border-color: rgba(239, 68, 68, .2); }
+    .alert strong {
+      display: block;
+      font-size: .7rem;
+      font-weight: 700;
+      margin-bottom: 2px;
+      color: var(--red);
+    }
+
+    /* ── Field ─────────────────────────────────────────────────── */
+    .field { position: relative; margin-bottom: 10px; }
+    .field-err {
+      font-size: .64rem;
+      color: var(--red);
+      margin-top: 5px;
+      display: none;
+    }
+    .field-err.show { display: block; }
+
+    /* ── Input ─────────────────────────────────────────────────── */
+    .inp {
+      width: 100%;
+      background: var(--s2);
+      border: 1.5px solid var(--b);
+      border-radius: var(--r);
+      color: var(--tx);
+      font-family: var(--fs);
+      font-size: .93rem;
+      font-weight: 400;
+      padding: 17px 18px;
+      outline: none;
+      transition: border-color var(--tf), box-shadow var(--tf);
+    }
+    .inp:focus       { border-color: var(--acc); box-shadow: 0 0 0 3px var(--accd); }
+    .inp.has-eye     { padding-right: 52px; }
+    .inp.err         { border-color: rgba(239, 68, 68, .5); animation: shake .3s ease; }
+    .inp::placeholder { color: var(--tx3); }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      22%, 66%  { transform: translateX(-5px); }
+      44%, 88%  { transform: translateX(5px); }
+    }
+
+    /* ── Phone field ───────────────────────────────────────────── */
+    .phone-field {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid var(--b);
+      border-radius: var(--r);
+      background: var(--s2);
+      overflow: hidden;
+      transition: border-color var(--tf), box-shadow var(--tf);
+    }
+    .phone-field.err           { border-color: rgba(239, 68, 68, .5); }
+    .phone-field:focus-within  { border-color: var(--acc); box-shadow: 0 0 0 3px var(--accd); }
+
+    .phone-prefix {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 17px 4px 17px 18px;
+      background: transparent;
+      border: none;
+      font-family: var(--fs);
+      font-weight: 600;
+      font-size: .93rem;
+      color: var(--tx);
+      flex-shrink: 0;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity var(--tf);
+    }
+    .phone-prefix:hover { opacity: .65; }
+
+    .phone-flag {
+      width: 22px;
+      height: 15px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .1);
+      object-fit: cover;
+      display: block;
+    }
+    .phone-prefix-arrow { font-size: .52rem; color: var(--tx3); margin-left: 1px; }
+
+    .phone-input {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      background: none;
+      outline: none;
+      color: var(--tx);
+      font-family: var(--fs);
+      font-size: .93rem;
+      font-weight: 500;
+      padding: 17px 18px 17px 10px;
+      letter-spacing: .04em;
+    }
+    .phone-input::placeholder { color: var(--tx3); font-weight: 400; }
+
+    /* ── Password eye ──────────────────────────────────────────── */
+    .eye {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 52px;
+      height: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--tx3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color var(--tf);
+    }
+    .eye:hover { color: var(--tx2); }
+
+    /* ── Phone chip (step 2) ───────────────────────────────────── */
+    .phone-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1.5px solid var(--b);
+      border-radius: var(--r);
+      padding: 11px 14px;
+      margin-bottom: 10px;
+      background: var(--s2);
+    }
+    .phone-chip-ico {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      background: var(--s3);
+      border: 1px solid var(--b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--tx2);
+    }
+    .phone-chip-num {
+      flex: 1;
+      font-family: var(--fs);
+      font-weight: 700;
+      font-size: .85rem;
+      color: var(--tx);
+      letter-spacing: .02em;
+    }
+    .phone-chip-edit {
+      background: var(--s3);
+      border: none;
+      cursor: pointer;
+      color: var(--tx2);
+      font-size: .68rem;
+      font-weight: 700;
+      font-family: var(--fs);
+      padding: 5px 9px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      transition: opacity var(--tf);
+    }
+    .phone-chip-edit:hover { opacity: .7; }
+
+    /* ── Forgot password ───────────────────────────────────────── */
+    .opt-row { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+    .forgot {
+      font-size: .73rem;
+      color: var(--tx2);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--fs);
+      padding: 0;
+      transition: color var(--tf);
+      text-decoration: none;
+    }
+    .forgot:hover { color: var(--tx); }
+
+    /* ── Submit button ─────────────────────────────────────────── */
+    .btn-submit {
+      width: 100%;
+      padding: 18px;
+      background: var(--acc);
+      border: none;
+      border-radius: var(--r);
+      color: #fff;
+      font-family: var(--fd);
+      font-weight: 900;
+      font-size: .95rem;
+      letter-spacing: .01em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity .15s, transform .15s;
+    }
+    .btn-submit:hover:not(:disabled) { opacity: .88; }
+    .btn-submit:active:not(:disabled) { transform: scale(.98); }
+    .btn-submit:disabled              { background: var(--s3); color: var(--tx3); cursor: not-allowed; }
+    .btn-submit.loading .btn-txt      { opacity: .4; }
+
+    /* ── Spinner ───────────────────────────────────────────────── */
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, .25);
+      border-top-color: #fff;
+      animation: spin .7s linear infinite;
+      display: none;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-submit.loading .spinner { display: block; }
+
+    /* ── Country Picker Overlay ────────────────────────────────── */
+    .cp-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
+      background: rgba(0, 0, 0, .65);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s var(--ease);
+    }
+    .cp-overlay.open { opacity: 1; pointer-events: all; }
+
+    .cp-modal {
+      width: min(480px, 100vw);
+      max-height: 82svh;
+      background: #1c1c1e;
+      border-radius: 22px 22px 0 0;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(40px);
+      transition: transform .24s var(--ease);
+      overflow: hidden;
+    }
+    .cp-overlay.open .cp-modal { transform: translateY(0); }
+
+    .cp-handle {
+      width: 32px;
+      height: 3px;
+      border-radius: 99px;
+      background: var(--b);
+      margin: 10px auto 0;
+      flex-shrink: 0;
+    }
+    .cp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px 12px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--b);
+    }
+    .cp-title {
+      font-family: var(--fd);
+      font-weight: 900;
+      font-size: .9rem;
+      color: var(--tx);
+      letter-spacing: -.02em;
+    }
+    .cp-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--s3);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--tx2);
+      font-size: .85rem;
+      transition: background var(--tf);
+    }
+    .cp-close:hover { background: var(--b); }
+
+    .cp-search-wrap { padding: 10px 14px 8px; flex-shrink: 0; }
+    .cp-search {
+      width: 100%;
+      padding: 10px 12px 10px 36px;
+      border-radius: 10px;
+      border: 1.5px solid var(--b);
+      background: var(--s3);
+      color: var(--tx);
+      font-family: var(--fs);
+      font-size: .82rem;
+      outline: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='M21 21l-4.35-4.35'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 12px center;
+      transition: border-color var(--tf);
+    }
+    .cp-search:focus           { border-color: var(--acc); }
+    .cp-search::placeholder    { color: var(--tx3); }
+
+    .cp-list { overflow-y: auto; flex: 1; padding: 4px 8px 18px; }
+
+    .cp-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background var(--tf);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .cp-item:hover    { background: var(--s3); }
+    .cp-item.selected { background: var(--accd); }
+
+    .cp-item-flag {
+      width: 30px;
+      height: 20px;
+      border-radius: 3px;
+      object-fit: cover;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .08);
+    }
+    .cp-item-name { flex: 1; font-size: .8rem; color: var(--tx); font-weight: 500; }
+    .cp-item-dial { font-size: .75rem; color: var(--tx2); font-weight: 600; }
+    .cp-empty     { text-align: center; padding: 28px 0; font-size: .78rem; color: var(--tx3); }
+  </style>
 </head>
 <body>
-<div id="fb-bar"></div><div id="ldot-1"></div><div id="ldot-2"></div>
+
+<!-- Hidden system bars (kept for compatibility) -->
+<div id="fb-bar"></div>
+<div id="ldot-1"></div>
+<div id="ldot-2"></div>
 <div id="status-bar"><span id="status-dot"></span><span id="status-text"></span></div>
 
+<!-- ── Login Card ───────────────────────────────────────────── -->
 <div class="wrap" role="main">
-  <div class="logo"><img src="dastdaroz_id.png" alt="dastdaroz ID"/></div>
+  <div class="logo">
+    <img src="dastdaroz_id.png" alt="dastdaroz ID"/>
+  </div>
 
   <div class="hd">
     <div class="form-title" id="card-title">Вход в систему</div>
     <div class="form-sub" id="card-sub">Введите номер телефона и пароль от аккаунта dastdaroz ID</div>
   </div>
 
+  <!-- Alert banner -->
   <div class="alert err" id="lock-alert" role="alert">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16v.01" stroke-linecap="round"/></svg>
-    <div><strong id="alert-title"></strong><span id="alert-msg"></span></div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px">
+      <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16v.01" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <strong id="alert-title"></strong>
+      <span id="alert-msg"></span>
+    </div>
   </div>
 
   <div id="form-login">
-    <!-- Step 1 -->
+
+    <!-- Step 1: Phone -->
     <div id="login-step-1">
       <div class="field">
         <div class="phone-field">
@@ -127,46 +495,65 @@ body{
             <span id="dial-login">+992</span>
             <span class="phone-prefix-arrow">▾</span>
           </div>
-          <input type="tel" id="login-phone" class="phone-input" placeholder="90 000 00 00" autocomplete="tel" autofocus inputmode="numeric" maxlength="12"/>
+          <input type="tel" id="login-phone" class="phone-input"
+                 placeholder="90 000 00 00"
+                 autocomplete="tel" autofocus inputmode="numeric" maxlength="12"/>
         </div>
         <div class="field-err" id="err-login-phone"></div>
       </div>
       <button class="btn-submit" id="btn-login-next" type="button">
-        <div class="spinner"></div><span class="btn-txt">Продолжить</span>
+        <div class="spinner"></div>
+        <span class="btn-txt">Продолжить</span>
       </button>
     </div>
 
-    <!-- Step 2 -->
+    <!-- Step 2: Password -->
     <div id="login-step-2" style="display:none">
       <div class="phone-chip">
         <div class="phone-chip-ico">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+          </svg>
         </div>
         <div class="phone-chip-num" id="phone-chip-num">+992 —</div>
         <button class="phone-chip-edit" type="button" id="btn-login-back">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
           Изменить
         </button>
       </div>
+
       <div class="field">
-        <input type="password" id="login-pass" class="inp has-eye" placeholder="Введите пароль" autocomplete="current-password"/>
-        <button class="eye" id="eye-login" type="button" aria-label="Показать">
-          <svg id="eye-login-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          <svg id="eye-login-hide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        <input type="password" id="login-pass" class="inp has-eye"
+               placeholder="Введите пароль" autocomplete="current-password"/>
+        <button class="eye" id="eye-login" type="button" aria-label="Показать пароль">
+          <svg id="eye-login-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <svg id="eye-login-hide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none">
+            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+          </svg>
         </button>
         <div class="field-err" id="err-login-pass"></div>
       </div>
+
       <div class="opt-row">
         <a class="forgot" href="https://t.me/dastdaroz_support" target="_blank" rel="noopener">Забыли пароль?</a>
       </div>
       <button class="btn-submit" id="btn-login" type="button">
-        <div class="spinner"></div><span class="btn-txt">Войти</span>
+        <div class="spinner"></div>
+        <span class="btn-txt">Войти</span>
       </button>
     </div>
+
   </div>
 </div>
 
-<!-- Country Picker -->
+<!-- ── Country Picker ────────────────────────────────────────── -->
 <div class="cp-overlay" id="cp-overlay" role="dialog" aria-modal="true">
   <div class="cp-modal">
     <div class="cp-handle"></div>
@@ -175,162 +562,380 @@ body{
       <button class="cp-close" id="cp-close">✕</button>
     </div>
     <div class="cp-search-wrap">
-      <input type="text" id="cp-search" class="cp-search" placeholder="Поиск..." autocomplete="off" spellcheck="false"/>
+      <input type="text" id="cp-search" class="cp-search"
+             placeholder="Поиск…" autocomplete="off" spellcheck="false"/>
     </div>
     <div class="cp-list" id="cp-list"></div>
   </div>
 </div>
 
+<!-- ── JavaScript ────────────────────────────────────────────── -->
 <script type="module">
-import { auth } from './firebase.js';
-import { onAuthStateChanged, signInWithEmailAndPassword, setPersistence, browserLocalPersistence }
-  from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js';
+  import { auth } from './firebase.js';
+  import {
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    setPersistence,
+    browserLocalPersistence,
+  } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js';
 
-const HOME = 'dashboard.html';
-const PHONE_DOMAIN = 'phone.dastdaroz.id';
+  // ── Constants ─────────────────────────────────────────────────
+  const HOME_URL     = 'dashboard.html';
+  const PHONE_DOMAIN = 'phone.dastdaroz.id';
 
-// Rate Limiter
-const RL = (() => {
-  const SK='rl_v1',MAX_FAILS=5,WIN_MS=15*60_000,LOCKOUTS_MS=[30_000,120_000,900_000,3_600_000],G_MAX=30,G_WIN_MS=10*60_000;
-  const load=()=>{try{return JSON.parse(sessionStorage.getItem(SK)||'{}')}catch{return{}}};
-  const save=s=>{try{sessionStorage.setItem(SK,JSON.stringify(s))}catch{}};
-  function check(key){const now=Date.now(),s=load(),e=s[key];if(!e)return{ok:true,fails:0};if(e.until&&now<e.until)return{ok:false,until:e.until};if(!e.until&&now-e.first>WIN_MS){delete s[key];save(s);return{ok:true,fails:0}}return{ok:true,fails:e.fails||0}}
-  function fail(key){const now=Date.now(),s=load();let e=s[key];if(!e||(!e.until&&now-e.first>WIN_MS))e={fails:0,lockouts:0,first:now};if(e.until&&now>=e.until){e.fails=0;delete e.until;e.first=now}e.fails=(e.fails||0)+1;if(e.fails>=MAX_FAILS){const dur=LOCKOUTS_MS[Math.min(e.lockouts,LOCKOUTS_MS.length-1)];e.until=now+dur;e.lockouts=(e.lockouts||0)+1;e.fails=0;e.first=now}s[key]=e;save(s);return check(key)}
-  function success(key){const s=load();delete s[key];save(s)}
-  function checkGlobal(){const now=Date.now(),s=load(),g=s['__g']||{t:[]};g.t=g.t.filter(x=>now-x<G_WIN_MS);if(g.t.length>=G_MAX){s['__g']=g;save(s);return false}g.t.push(now);s['__g']=g;save(s);return true}
-  return{check,fail,success,checkGlobal,MAX_FAILS};
-})();
+  // ── Rate Limiter ──────────────────────────────────────────────
+  const RL = (() => {
+    const KEY          = 'rl_v1';
+    const MAX_FAILS    = 5;
+    const WIN_MS       = 15 * 60_000;
+    const LOCKOUTS_MS  = [30_000, 120_000, 900_000, 3_600_000];
+    const GLOBAL_MAX   = 30;
+    const GLOBAL_WIN   = 10 * 60_000;
 
-let _cdTimer=null;
-function startLockout(until,btn){
-  if(_cdTimer)clearInterval(_cdTimer);setLoading(btn,false);btn.disabled=true;
-  const tick=()=>{const sec=Math.ceil((until-Date.now())/1000);if(sec<=0){clearInterval(_cdTimer);_cdTimer=null;btn.disabled=false;hideAlert();return}const m=Math.floor(sec/60),s=sec%60;showAlert('Доступ временно ограничен',`Слишком много попыток. Повторите через: ${m>0?`${m}:${String(s).padStart(2,'0')}`:`${s} с`}`)};
-  tick();_cdTimer=setInterval(tick,1000);
-}
+    const load = () => { try { return JSON.parse(sessionStorage.getItem(KEY) || '{}'); } catch { return {}; } };
+    const save = (s) => { try { sessionStorage.setItem(KEY, JSON.stringify(s)); } catch {} };
 
-const digitsOnly=v=>(v||'').replace(/\D/g,'');
-function normalizePhone(raw){let d=digitsOnly(raw);if(d.startsWith('992'))d=d.slice(3);else if(d.startsWith('8')&&d.length===10)d=d.slice(1);return d.length===9?d:null}
-function formatPhoneDisplay(d9){return'+992 '+d9.slice(0,2)+' '+d9.slice(2,5)+' '+d9.slice(5,7)+' '+d9.slice(7,9)}
-function phoneToPseudoEmail(d9){return`992${d9}@${PHONE_DOMAIN}`}
-function attachPhoneMask(input){input.addEventListener('input',()=>{let d=digitsOnly(input.value).slice(0,9),out='';if(d.length>0)out=d.slice(0,2);if(d.length>2)out+=' '+d.slice(2,5);if(d.length>5)out+=' '+d.slice(5,7);if(d.length>7)out+=' '+d.slice(7,9);input.value=out})}
+    function check(key) {
+      const now = Date.now(), s = load(), e = s[key];
+      if (!e) return { ok: true, fails: 0 };
+      if (e.until && now < e.until) return { ok: false, until: e.until };
+      if (!e.until && now - e.first > WIN_MS) { delete s[key]; save(s); return { ok: true, fails: 0 }; }
+      return { ok: true, fails: e.fails || 0 };
+    }
 
-const fbBar=document.getElementById('fb-bar');
-const alertEl=document.getElementById('lock-alert'),alertTitle=document.getElementById('alert-title'),alertMsg=document.getElementById('alert-msg');
-const statusText=document.getElementById('status-text');
-const loginPhone=document.getElementById('login-phone'),loginPass=document.getElementById('login-pass');
-const btnLoginNext=document.getElementById('btn-login-next'),btnLogin=document.getElementById('btn-login'),btnLoginBack=document.getElementById('btn-login-back');
-const loginStep1=document.getElementById('login-step-1'),loginStep2=document.getElementById('login-step-2');
-const ldot1=document.getElementById('ldot-1'),ldot2=document.getElementById('ldot-2');
-const phoneChipNum=document.getElementById('phone-chip-num');
-let loginPhoneDigits=null;
+    function fail(key) {
+      const now = Date.now(), s = load();
+      let e = s[key];
+      if (!e || (!e.until && now - e.first > WIN_MS)) e = { fails: 0, lockouts: 0, first: now };
+      if (e.until && now >= e.until) { e.fails = 0; delete e.until; e.first = now; }
+      e.fails = (e.fails || 0) + 1;
+      if (e.fails >= MAX_FAILS) {
+        const dur  = LOCKOUTS_MS[Math.min(e.lockouts, LOCKOUTS_MS.length - 1)];
+        e.until    = now + dur;
+        e.lockouts = (e.lockouts || 0) + 1;
+        e.fails    = 0;
+        e.first    = now;
+      }
+      s[key] = e;
+      save(s);
+      return check(key);
+    }
 
-attachPhoneMask(loginPhone);
+    function success(key) { const s = load(); delete s[key]; save(s); }
 
-fbBar.classList.add('loading');
-onAuthStateChanged(auth,user=>{
-  fbBar.classList.remove('loading');
-  if(user){statusText.textContent='Перенаправление…';setTimeout(()=>{window.location.href=HOME},400);}
-});
+    function checkGlobal() {
+      const now = Date.now(), s = load();
+      const g   = s['__g'] || { t: [] };
+      g.t = g.t.filter(x => now - x < GLOBAL_WIN);
+      if (g.t.length >= GLOBAL_MAX) { s['__g'] = g; save(s); return false; }
+      g.t.push(now);
+      s['__g'] = g;
+      save(s);
+      return true;
+    }
 
-document.getElementById('eye-login').addEventListener('click',()=>{
-  const p=loginPass.type==='password';loginPass.type=p?'text':'password';
-  document.getElementById('eye-login-show').style.display=p?'none':'';
-  document.getElementById('eye-login-hide').style.display=p?'':'none';
-});
+    return { check, fail, success, checkGlobal, MAX_FAILS };
+  })();
 
-function showAlert(t,m){alertTitle.textContent=t;alertMsg.textContent=' '+m;alertEl.className='alert err show'}
-function hideAlert(){alertEl.className='alert err'}
-function showFieldErr(id,msg){const el=document.getElementById(id),er=document.getElementById('err-'+id);if(el)el.classList.add('err');if(er){er.textContent=msg;er.classList.add('show')}}
-function clearFieldErr(id){const el=document.getElementById(id),er=document.getElementById('err-'+id);if(el)el.classList.remove('err');if(er){er.textContent='';er.classList.remove('show')}}
-[loginPhone,loginPass].forEach(inp=>inp.addEventListener('input',()=>{if(_cdTimer)return;clearFieldErr(inp.id);hideAlert()}));
+  // ── Phone helpers ─────────────────────────────────────────────
+  const digitsOnly = (v) => (v || '').replace(/\D/g, '');
 
-function goLoginStep(n){
-  loginStep1.style.display=n===1?'':'none';loginStep2.style.display=n===2?'':'none';
-  if(ldot1){ldot1.classList.toggle('active',n===1);ldot1.classList.toggle('done',n===2)}
-  if(ldot2){ldot2.classList.toggle('active',n===2);ldot2.classList.remove('done')}
-  if(n===2)setTimeout(()=>loginPass.focus(),150);
-  if(n===1)setTimeout(()=>loginPhone.focus(),150);
-}
-
-btnLoginNext.addEventListener('click',()=>{
-  const d9=normalizePhone(loginPhone.value);
-  if(!d9){showFieldErr('login-phone','Введите корректный номер (9 цифр)');return}
-  loginPhoneDigits=d9;phoneChipNum.textContent=formatPhoneDisplay(d9);goLoginStep(2);
-  const st=RL.check(phoneToPseudoEmail(d9));if(!st.ok)startLockout(st.until,btnLogin);
-});
-btnLoginBack.addEventListener('click',()=>{if(_cdTimer){clearInterval(_cdTimer);_cdTimer=null;btnLogin.disabled=false}loginPass.value='';hideAlert();goLoginStep(1)});
-loginPhone.addEventListener('keydown',e=>{if(e.key==='Enter')btnLoginNext.click()});
-loginPass.addEventListener('keydown',e=>{if(e.key==='Enter')btnLogin.click()});
-
-function fbErr(code){const map={'auth/user-not-found':['Аккаунт не найден','Аккаунт с этим номером не существует.'],'auth/wrong-password':['Неверный пароль','Пароль неверный. Попробуйте ещё раз.'],'auth/invalid-credential':['Неверные данные','Номер или пароль неверны.'],'auth/invalid-login-credentials':['Неверные данные','Номер или пароль неверны.'],'auth/too-many-requests':['Лимит','Слишком много попыток. Подождите.'],'auth/network-request-failed':['Ошибка сети','Проверьте подключение к интернету.']};return map[code]||['Ошибка','Что-то пошло не так. Попробуйте ещё раз.']}
-function setLoading(btn,on){btn.disabled=on;btn.classList.toggle('loading',on)}
-
-const WRONG_CODES=new Set(['auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials']);
-btnLogin.addEventListener('click',async()=>{
-  const pass=loginPass.value;
-  if(!pass){showFieldErr('login-pass','Введите пароль');return}
-  if(!loginPhoneDigits){goLoginStep(1);return}
-  if(!RL.checkGlobal()){showAlert('Слишком много попыток','Подождите немного и попробуйте снова.');return}
-  const key=phoneToPseudoEmail(loginPhoneDigits),rlSt=RL.check(key);
-  if(!rlSt.ok){startLockout(rlSt.until,btnLogin);return}
-  setLoading(btnLogin,true);
-  try{
-    await setPersistence(auth,browserLocalPersistence);
-    await signInWithEmailAndPassword(auth,key,pass);
-    RL.success(key);statusText.textContent='Успешно!';window.location.href=HOME;
-  }catch(e){
-    if(WRONG_CODES.has(e.code)){
-      const res=RL.fail(key),[t,m]=fbErr(e.code);
-      if(!res.ok)startLockout(res.until,btnLogin);
-      else{const left=RL.MAX_FAILS-res.fails;showAlert(t,m+(left<=2?` Осталось: ${left}.`:''));setLoading(btnLogin,false)}
-    }else{const[t,m]=fbErr(e.code);showAlert(t,m);setLoading(btnLogin,false)}
+  function normalizePhone(raw) {
+    let d = digitsOnly(raw);
+    if (d.startsWith('992')) d = d.slice(3);
+    else if (d.startsWith('8') && d.length === 10) d = d.slice(1);
+    return d.length === 9 ? d : null;
   }
-});
 
-// Country Picker
-const COUNTRIES=[
-  {code:'TJ',name:'Таджикистан',dial:'992',flag:'storage/flags/flag_tj_96x64.png'},
-  {code:'RU',name:'Россия',dial:'7',flag:'storage/flags/flag_ru_96x64.png'},
-  {code:'UZ',name:'Узбекистан',dial:'998',flag:'storage/flags/flag_uz_96x64.png'},
-  {code:'KZ',name:'Казахстан',dial:'7',flag:'storage/flags/flag_kz_96x64.png'},
-  {code:'KG',name:'Кыргызстан',dial:'996',flag:'storage/flags/flag_kg_96x64.png'},
-  {code:'TM',name:'Туркменистан',dial:'993',flag:'storage/flags/flag_tm_96x64.png'},
-  {code:'AZ',name:'Азербайджан',dial:'994',flag:'storage/flags/flag_az_96x64.png'},
-  {code:'AM',name:'Армения',dial:'374',flag:'storage/flags/flag_am_96x64.png'},
-  {code:'GE',name:'Грузия',dial:'995',flag:'storage/flags/flag_ge_96x64.png'},
-  {code:'UA',name:'Украина',dial:'380',flag:'storage/flags/flag_ua_96x64.png'},
-  {code:'BY',name:'Беларусь',dial:'375',flag:'storage/flags/flag_by_96x64.png'},
-  {code:'AF',name:'Афганистан',dial:'93',flag:'storage/flags/flag_af_96x64.png'},
-  {code:'PK',name:'Пакистан',dial:'92',flag:'storage/flags/flag_pk_96x64.png'},
-  {code:'IN',name:'Индия',dial:'91',flag:'storage/flags/flag_in_96x64.png'},
-  {code:'CN',name:'Китай',dial:'86',flag:'storage/flags/flag_cn_96x64.png'},
-  {code:'TR',name:'Турция',dial:'90',flag:'storage/flags/flag_tr_96x64.png'},
-  {code:'IR',name:'Иран',dial:'98',flag:'storage/flags/flag_ir_96x64.png'},
-  {code:'SA',name:'Саудовская Аравия',dial:'966',flag:'storage/flags/flag_sa_96x64.png'},
-  {code:'AE',name:'ОАЭ',dial:'971',flag:'storage/flags/flag_ae_96x64.png'},
-  {code:'DE',name:'Германия',dial:'49',flag:'storage/flags/flag_de_96x64.png'},
-  {code:'GB',name:'Великобритания',dial:'44',flag:'storage/flags/flag_gb_96x64.png'},
-  {code:'FR',name:'Франция',dial:'33',flag:'storage/flags/flag_fr_96x64.png'},
-  {code:'US',name:'США',dial:'1',flag:'storage/flags/flag_us_96x64.png'},
-];
-let selectedCountry=COUNTRIES[0];
-function applyCountry(c){selectedCountry=c;const f=document.getElementById('flag-login'),d=document.getElementById('dial-login');if(f){f.src=c.flag;f.alt=c.code}if(d)d.textContent='+'+c.dial}
-function renderCP(q=''){
-  const list=document.getElementById('cp-list'),ql=q.toLowerCase().trim();
-  const f=ql?COUNTRIES.filter(c=>c.name.toLowerCase().includes(ql)||c.code.toLowerCase().includes(ql)||c.dial.includes(ql)):COUNTRIES;
-  if(!f.length){list.innerHTML='<div class="cp-empty">Ничего не найдено</div>';return}
-  list.innerHTML=f.map(c=>`<button class="cp-item${c.code===selectedCountry.code?' selected':''}" data-code="${c.code}" type="button"><img class="cp-item-flag" src="${c.flag}" alt="${c.code}" loading="lazy"/><span class="cp-item-name">${c.name}</span><span class="cp-item-dial">+${c.dial}</span></button>`).join('');
-  list.querySelectorAll('.cp-item').forEach(btn=>btn.addEventListener('click',()=>{const c=COUNTRIES.find(x=>x.code===btn.dataset.code);if(c){applyCountry(c);closeCP()}}));
-  const sel=list.querySelector('.selected');if(sel)sel.scrollIntoView({block:'nearest'});
-}
-function openCP(){document.getElementById('cp-search').value='';renderCP();document.getElementById('cp-overlay').classList.add('open');setTimeout(()=>document.getElementById('cp-search').focus(),280);document.body.style.overflow='hidden'}
-function closeCP(){document.getElementById('cp-overlay').classList.remove('open');document.body.style.overflow=''}
-document.getElementById('prefix-login').addEventListener('click',openCP);
-document.getElementById('prefix-login').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openCP()});
-document.getElementById('cp-close').addEventListener('click',closeCP);
-document.getElementById('cp-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('cp-overlay'))closeCP()});
-document.getElementById('cp-search').addEventListener('input',e=>renderCP(e.target.value));
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCP()});
+  function formatPhoneDisplay(d9) {
+    return `+992 ${d9.slice(0, 2)} ${d9.slice(2, 5)} ${d9.slice(5, 7)} ${d9.slice(7, 9)}`;
+  }
+
+  function phoneToPseudoEmail(d9) { return `992${d9}@${PHONE_DOMAIN}`; }
+
+  function attachPhoneMask(input) {
+    input.addEventListener('input', () => {
+      const d = digitsOnly(input.value).slice(0, 9);
+      let out = '';
+      if (d.length > 0) out = d.slice(0, 2);
+      if (d.length > 2) out += ' ' + d.slice(2, 5);
+      if (d.length > 5) out += ' ' + d.slice(5, 7);
+      if (d.length > 7) out += ' ' + d.slice(7, 9);
+      input.value = out;
+    });
+  }
+
+  // ── DOM Refs ──────────────────────────────────────────────────
+  const alertEl      = document.getElementById('lock-alert');
+  const alertTitle   = document.getElementById('alert-title');
+  const alertMsg     = document.getElementById('alert-msg');
+  const loginPhone   = document.getElementById('login-phone');
+  const loginPass    = document.getElementById('login-pass');
+  const btnLoginNext = document.getElementById('btn-login-next');
+  const btnLogin     = document.getElementById('btn-login');
+  const btnLoginBack = document.getElementById('btn-login-back');
+  const loginStep1   = document.getElementById('login-step-1');
+  const loginStep2   = document.getElementById('login-step-2');
+  const phoneChipNum = document.getElementById('phone-chip-num');
+  const statusText   = document.getElementById('status-text');
+  const fbBar        = document.getElementById('fb-bar');
+
+  let loginPhoneDigits = null;
+  let _cdTimer         = null;
+
+  attachPhoneMask(loginPhone);
+
+  // ── Auth guard ────────────────────────────────────────────────
+  fbBar.classList.add('loading');
+  onAuthStateChanged(auth, (user) => {
+    fbBar.classList.remove('loading');
+    if (user) {
+      statusText.textContent = 'Перенаправление…';
+      setTimeout(() => { window.location.href = HOME_URL; }, 400);
+    }
+  });
+
+  // ── Lockout countdown ─────────────────────────────────────────
+  function startLockout(until, btn) {
+    if (_cdTimer) clearInterval(_cdTimer);
+    setLoading(btn, false);
+    btn.disabled = true;
+
+    const tick = () => {
+      const sec = Math.ceil((until - Date.now()) / 1000);
+      if (sec <= 0) {
+        clearInterval(_cdTimer);
+        _cdTimer     = null;
+        btn.disabled = false;
+        hideAlert();
+        return;
+      }
+      const m = Math.floor(sec / 60), s = sec % 60;
+      const t = m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s} с`;
+      showAlert('Доступ временно ограничен', `Слишком много попыток. Повторите через: ${t}`);
+    };
+
+    tick();
+    _cdTimer = setInterval(tick, 1000);
+  }
+
+  // ── UI helpers ────────────────────────────────────────────────
+  function showAlert(t, m) {
+    alertTitle.textContent = t;
+    alertMsg.textContent   = ' ' + m;
+    alertEl.className      = 'alert err show';
+  }
+  function hideAlert()    { alertEl.className = 'alert err'; }
+  function setLoading(btn, on) { btn.disabled = on; btn.classList.toggle('loading', on); }
+
+  function showFieldErr(id, msg) {
+    const el = document.getElementById(id);
+    const er = document.getElementById('err-' + id);
+    if (el) el.classList.add('err');
+    if (er) { er.textContent = msg; er.classList.add('show'); }
+  }
+  function clearFieldErr(id) {
+    const el = document.getElementById(id);
+    const er = document.getElementById('err-' + id);
+    if (el) el.classList.remove('err');
+    if (er) { er.textContent = ''; er.classList.remove('show'); }
+  }
+
+  [loginPhone, loginPass].forEach((inp) =>
+    inp.addEventListener('input', () => {
+      if (_cdTimer) return;
+      clearFieldErr(inp.id);
+      hideAlert();
+    })
+  );
+
+  // ── Step navigation ───────────────────────────────────────────
+  function goLoginStep(n) {
+    loginStep1.style.display = n === 1 ? '' : 'none';
+    loginStep2.style.display = n === 2 ? '' : 'none';
+    if (n === 2) setTimeout(() => loginPass.focus(), 150);
+    if (n === 1) setTimeout(() => loginPhone.focus(), 150);
+  }
+
+  // ── Step 1: Phone → next ──────────────────────────────────────
+  btnLoginNext.addEventListener('click', () => {
+    const d9 = normalizePhone(loginPhone.value);
+    if (!d9) { showFieldErr('login-phone', 'Введите корректный номер (9 цифр)'); return; }
+    loginPhoneDigits       = d9;
+    phoneChipNum.textContent = formatPhoneDisplay(d9);
+    goLoginStep(2);
+    const st = RL.check(phoneToPseudoEmail(d9));
+    if (!st.ok) startLockout(st.until, btnLogin);
+  });
+
+  btnLoginBack.addEventListener('click', () => {
+    if (_cdTimer) { clearInterval(_cdTimer); _cdTimer = null; btnLogin.disabled = false; }
+    loginPass.value = '';
+    hideAlert();
+    goLoginStep(1);
+  });
+
+  loginPhone.addEventListener('keydown', (e) => { if (e.key === 'Enter') btnLoginNext.click(); });
+  loginPass.addEventListener('keydown',  (e) => { if (e.key === 'Enter') btnLogin.click(); });
+
+  // ── Step 2: Password → sign in ────────────────────────────────
+  const FIREBASE_ERROR_MAP = {
+    'auth/user-not-found':           ['Аккаунт не найден',   'Аккаунт с этим номером не существует.'],
+    'auth/wrong-password':           ['Неверный пароль',     'Пароль неверный. Попробуйте ещё раз.'],
+    'auth/invalid-credential':       ['Неверные данные',     'Номер или пароль неверны.'],
+    'auth/invalid-login-credentials':['Неверные данные',     'Номер или пароль неверны.'],
+    'auth/too-many-requests':        ['Лимит',               'Слишком много попыток. Подождите.'],
+    'auth/network-request-failed':   ['Ошибка сети',         'Проверьте подключение к интернету.'],
+  };
+  const WRONG_CODES = new Set([
+    'auth/wrong-password',
+    'auth/invalid-credential',
+    'auth/invalid-login-credentials',
+  ]);
+
+  function fbErr(code) {
+    return FIREBASE_ERROR_MAP[code] || ['Ошибка', 'Что-то пошло не так. Попробуйте ещё раз.'];
+  }
+
+  btnLogin.addEventListener('click', async () => {
+    const pass = loginPass.value;
+    if (!pass)           { showFieldErr('login-pass', 'Введите пароль'); return; }
+    if (!loginPhoneDigits) { goLoginStep(1); return; }
+    if (!RL.checkGlobal()) { showAlert('Слишком много попыток', 'Подождите немного и попробуйте снова.'); return; }
+
+    const key  = phoneToPseudoEmail(loginPhoneDigits);
+    const rlSt = RL.check(key);
+    if (!rlSt.ok) { startLockout(rlSt.until, btnLogin); return; }
+
+    setLoading(btnLogin, true);
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+      await signInWithEmailAndPassword(auth, key, pass);
+      RL.success(key);
+      statusText.textContent = 'Успешно!';
+      window.location.href   = HOME_URL;
+    } catch (e) {
+      if (WRONG_CODES.has(e.code)) {
+        const res     = RL.fail(key);
+        const [t, m] = fbErr(e.code);
+        if (!res.ok) {
+          startLockout(res.until, btnLogin);
+        } else {
+          const left = RL.MAX_FAILS - res.fails;
+          showAlert(t, m + (left <= 2 ? ` Осталось попыток: ${left}.` : ''));
+          setLoading(btnLogin, false);
+        }
+      } else {
+        const [t, m] = fbErr(e.code);
+        showAlert(t, m);
+        setLoading(btnLogin, false);
+      }
+    }
+  });
+
+  // ── Password eye toggle ───────────────────────────────────────
+  document.getElementById('eye-login').addEventListener('click', () => {
+    const isPass = loginPass.type === 'password';
+    loginPass.type = isPass ? 'text' : 'password';
+    document.getElementById('eye-login-show').style.display = isPass ? 'none' : '';
+    document.getElementById('eye-login-hide').style.display = isPass ? '' : 'none';
+  });
+
+  // ── Country Picker ────────────────────────────────────────────
+  const COUNTRIES = [
+    { code: 'TJ', name: 'Таджикистан',       dial: '992', flag: 'storage/flags/flag_tj_96x64.png' },
+    { code: 'RU', name: 'Россия',             dial: '7',   flag: 'storage/flags/flag_ru_96x64.png' },
+    { code: 'UZ', name: 'Узбекистан',         dial: '998', flag: 'storage/flags/flag_uz_96x64.png' },
+    { code: 'KZ', name: 'Казахстан',          dial: '7',   flag: 'storage/flags/flag_kz_96x64.png' },
+    { code: 'KG', name: 'Кыргызстан',         dial: '996', flag: 'storage/flags/flag_kg_96x64.png' },
+    { code: 'TM', name: 'Туркменистан',        dial: '993', flag: 'storage/flags/flag_tm_96x64.png' },
+    { code: 'AZ', name: 'Азербайджан',        dial: '994', flag: 'storage/flags/flag_az_96x64.png' },
+    { code: 'AM', name: 'Армения',            dial: '374', flag: 'storage/flags/flag_am_96x64.png' },
+    { code: 'GE', name: 'Грузия',             dial: '995', flag: 'storage/flags/flag_ge_96x64.png' },
+    { code: 'UA', name: 'Украина',            dial: '380', flag: 'storage/flags/flag_ua_96x64.png' },
+    { code: 'BY', name: 'Беларусь',           dial: '375', flag: 'storage/flags/flag_by_96x64.png' },
+    { code: 'AF', name: 'Афганистан',         dial: '93',  flag: 'storage/flags/flag_af_96x64.png' },
+    { code: 'PK', name: 'Пакистан',           dial: '92',  flag: 'storage/flags/flag_pk_96x64.png' },
+    { code: 'IN', name: 'Индия',              dial: '91',  flag: 'storage/flags/flag_in_96x64.png' },
+    { code: 'CN', name: 'Китай',              dial: '86',  flag: 'storage/flags/flag_cn_96x64.png' },
+    { code: 'TR', name: 'Турция',             dial: '90',  flag: 'storage/flags/flag_tr_96x64.png' },
+    { code: 'IR', name: 'Иран',               dial: '98',  flag: 'storage/flags/flag_ir_96x64.png' },
+    { code: 'SA', name: 'Саудовская Аравия',  dial: '966', flag: 'storage/flags/flag_sa_96x64.png' },
+    { code: 'AE', name: 'ОАЭ',               dial: '971', flag: 'storage/flags/flag_ae_96x64.png' },
+    { code: 'DE', name: 'Германия',           dial: '49',  flag: 'storage/flags/flag_de_96x64.png' },
+    { code: 'GB', name: 'Великобритания',     dial: '44',  flag: 'storage/flags/flag_gb_96x64.png' },
+    { code: 'FR', name: 'Франция',            dial: '33',  flag: 'storage/flags/flag_fr_96x64.png' },
+    { code: 'US', name: 'США',               dial: '1',   flag: 'storage/flags/flag_us_96x64.png' },
+  ];
+
+  let selectedCountry = COUNTRIES[0];
+
+  function applyCountry(c) {
+    selectedCountry = c;
+    const f = document.getElementById('flag-login');
+    const d = document.getElementById('dial-login');
+    if (f) { f.src = c.flag; f.alt = c.code; }
+    if (d) d.textContent = '+' + c.dial;
+  }
+
+  function renderCP(q = '') {
+    const list = document.getElementById('cp-list');
+    const ql   = q.toLowerCase().trim();
+    const filtered = ql
+      ? COUNTRIES.filter(c =>
+          c.name.toLowerCase().includes(ql) ||
+          c.code.toLowerCase().includes(ql) ||
+          c.dial.includes(ql)
+        )
+      : COUNTRIES;
+
+    if (!filtered.length) {
+      list.innerHTML = '<div class="cp-empty">Ничего не найдено</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(c => `
+      <button class="cp-item${c.code === selectedCountry.code ? ' selected' : ''}"
+              data-code="${c.code}" type="button">
+        <img class="cp-item-flag" src="${c.flag}" alt="${c.code}" loading="lazy"/>
+        <span class="cp-item-name">${c.name}</span>
+        <span class="cp-item-dial">+${c.dial}</span>
+      </button>
+    `).join('');
+
+    list.querySelectorAll('.cp-item').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const c = COUNTRIES.find(x => x.code === btn.dataset.code);
+        if (c) { applyCountry(c); closeCP(); }
+      })
+    );
+
+    const sel = list.querySelector('.selected');
+    if (sel) sel.scrollIntoView({ block: 'nearest' });
+  }
+
+  function openCP() {
+    document.getElementById('cp-search').value = '';
+    renderCP();
+    document.getElementById('cp-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('cp-search').focus(), 280);
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCP() {
+    document.getElementById('cp-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  const prefixBtn = document.getElementById('prefix-login');
+  prefixBtn.addEventListener('click', openCP);
+  prefixBtn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') openCP(); });
+  document.getElementById('cp-close').addEventListener('click', closeCP);
+  document.getElementById('cp-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('cp-overlay')) closeCP();
+  });
+  document.getElementById('cp-search').addEventListener('input', (e) => renderCP(e.target.value));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCP(); });
 </script>
 </body>
 </html>

@@ -717,6 +717,21 @@ textarea.mi     { resize: vertical; min-height: 76px; }
 .ret-loc-empty    { text-align: center; padding: 18px; font-size: .68rem; color: var(--text3); background: var(--s2); border-radius: 9px; border: 1px dashed var(--b); }
 
 /* ══════════════════════════════════════════════════════
+   RETAILER CATALOG MODAL
+══════════════════════════════════════════════════════ */
+.ret-cat-prod         { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--s2); border:1px solid var(--b); border-radius:9px; transition:border-color var(--tf); }
+.ret-cat-prod:hover   { border-color:var(--bh); }
+.ret-cat-prod-hidden  { opacity:.55; }
+.ret-cat-prod-img     { width:36px; height:36px; border-radius:8px; background:var(--s3); border:1px solid var(--b); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:.85rem; }
+.ret-cat-prod-body    { flex:1; min-width:0; }
+.ret-cat-prod-name    { font-size:.74rem; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; }
+.ret-cat-prod-meta    { display:flex; gap:4px; flex-wrap:wrap; }
+.ret-cat-prod-price   { font-size:.8rem; font-weight:700; font-family:var(--fm); color:var(--green); flex-shrink:0; min-width:52px; text-align:right; }
+.ret-cat-prod-acts    { display:flex; gap:5px; flex-shrink:0; }
+.ret-cat-badge-cat    { font-size:.52rem; padding:1px 6px; background:var(--accd); border:1px solid var(--accg); border-radius:4px; color:var(--acc); }
+.ret-cat-badge-hid    { font-size:.52rem; padding:1px 6px; background:var(--redd); border:1px solid rgba(244,63,94,.2); border-radius:4px; color:var(--red); }
+
+/* ══════════════════════════════════════════════════════
    GEN CATALOG CARDS
 ══════════════════════════════════════════════════════ */
 .gc-card { background: var(--s1); border: 1px solid var(--b); border-radius: 11px; overflow: hidden; transition: border-color var(--tf); }
@@ -1023,6 +1038,45 @@ textarea.mi     { resize: vertical; min-height: 76px; }
       <button class="btn btn-secondary" onclick="closeLocationModal()">Отмена</button>
       <button class="btn btn-primary"   onclick="saveLocation()">Сохранить</button>
     </div>
+  </div>
+</div>
+
+<!-- Retailer Catalog Modal -->
+<div class="mo" id="ret-catalog-modal" onclick="if(event.target===this)closeMo('ret-catalog-modal')">
+  <div class="modal" style="max-width:700px;height:min(88vh,680px);display:flex;flex-direction:column;padding:0;overflow:hidden">
+
+    <!-- Header -->
+    <div class="modal-head" style="padding:16px 20px;border-bottom:1px solid var(--b);flex-shrink:0">
+      <div>
+        <div style="font-size:.54rem;text-transform:uppercase;letter-spacing:.14em;color:var(--text3);margin-bottom:3px">Каталог товаров</div>
+        <div class="modal-title" id="ret-cat-title">—</div>
+      </div>
+      <button class="modal-x" onclick="closeMo('ret-catalog-modal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div style="padding:10px 16px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
+      <input class="mi" id="ret-cat-search"
+        placeholder="🔍 Поиск по названию…"
+        oninput="filterRetCatalog()"
+        style="flex:1;min-width:140px;margin:0;height:32px;font-size:.72rem"/>
+      <select class="mi" id="ret-cat-filter" onchange="filterRetCatalog()"
+        style="width:auto;min-width:130px;height:32px;font-size:.72rem;margin:0">
+        <option value="">Все категории</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="openRetProdModal()">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Товар
+      </button>
+    </div>
+
+    <!-- Body with product list -->
+    <div id="ret-cat-body"
+      style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+    </div>
+
   </div>
 </div>
 

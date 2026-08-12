@@ -2045,7 +2045,7 @@ function renderLocationsPanel(rid, locs) {
   el.innerHTML = locs.map(loc => {
     const cName  = _retCities.find(c => c.id === loc.cityId)?.name || loc.cityId || '—';
     const coords = (loc.lat && loc.lng) ? `${(+loc.lat).toFixed(5)}, ${(+loc.lng).toFixed(5)}` : '';
-    return `<div class="ret-loc-row">
+    return `<div class="ret-loc-row" style="cursor:pointer" onclick="openRetCatalog('${rid}','${escHtml(rName)}')">
       <div class="ret-loc-ico">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
       </div>
@@ -2053,7 +2053,10 @@ function renderLocationsPanel(rid, locs) {
         <div class="ret-loc-addr">${escHtml(loc.address || '—')}</div>
         <div class="ret-loc-meta">${escHtml(cName)}${coords ? ' · ' + coords : ''}</div>
       </div>
-      <button class="btn btn-secondary btn-sm" onclick="openLocationModal('${rid}','${escHtml(rName)}','${loc.id}')">
+      <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openRetCatalog('${rid}','${escHtml(rName)}')" title="Каталог товаров">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openLocationModal('${rid}','${escHtml(rName)}','${loc.id}')" title="Редактировать точку">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
     </div>`;
@@ -2700,6 +2703,211 @@ window.deleteCity = async function (id, name) {
     toast('Город удалён', 'ok');
     await loadAZones();
   } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
+};
+
+// ══════════════════════════════════════════════════════════════
+// RETAILER CATALOG  (retailers/{rid}/catalog/{productId})
+// ══════════════════════════════════════════════════════════════
+
+let _retCatRid   = null;
+let _retCatName  = '';
+let _retCatProds = [];
+
+window.openRetCatalog = async function (rid, rName) {
+  _retCatRid   = rid;
+  _retCatName  = rName;
+  _retCatProds = [];
+
+  document.getElementById('ret-cat-title').textContent = rName;
+  const search = document.getElementById('ret-cat-search');
+  const filter = document.getElementById('ret-cat-filter');
+  if (search) search.value = '';
+  if (filter) filter.innerHTML = '<option value="">Все категории</option>';
+  document.getElementById('ret-cat-body').innerHTML = _retCatSkeleton();
+  openMo('ret-catalog-modal');
+
+  try {
+    const snap = await getDocs(collection(db, 'retailers', rid, 'catalog'));
+    _retCatProds = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    _retCatProds.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
+    _fillRetCatFilter();
+    renderRetCatalog();
+  } catch (e) {
+    document.getElementById('ret-cat-body').innerHTML =
+      `<div class="ret-loc-empty" style="padding:28px">Ошибка загрузки: ${e.message}</div>`;
+  }
+};
+
+function _retCatSkeleton() {
+  const row = () => `<div class="ret-cat-prod">
+    <div class="ret-cat-prod-img" style="background:linear-gradient(90deg,var(--s2) 25%,var(--s3) 50%,var(--s2) 75%);background-size:200% 100%;animation:skl 1.4s ease-in-out infinite;border:none"></div>
+    <div class="ret-cat-prod-body">
+      <div class="skl-block" style="height:8px;width:58%;margin-bottom:6px"></div>
+      <div class="skl-block" style="height:7px;width:36%"></div>
+    </div>
+    <div class="skl-block" style="height:9px;width:50px;border-radius:4px;flex-shrink:0"></div>
+    <div style="display:flex;gap:5px;flex-shrink:0">
+      <div class="skl-block" style="height:26px;width:28px;border-radius:7px"></div>
+      <div class="skl-block" style="height:26px;width:28px;border-radius:7px"></div>
+    </div>
+  </div>`;
+  return [1,2,3,4,5].map(row).join('');
+}
+
+function _fillRetCatFilter() {
+  const sel = document.getElementById('ret-cat-filter'); if (!sel) return;
+  const cats = [...new Set(_retCatProds.map(p => p.categoryId).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
+  sel.innerHTML = '<option value="">Все категории</option>' +
+    cats.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+}
+
+function renderRetCatalog() {
+  const body   = document.getElementById('ret-cat-body'); if (!body) return;
+  const search = (document.getElementById('ret-cat-search')?.value || '').toLowerCase().trim();
+  const cat    = document.getElementById('ret-cat-filter')?.value || '';
+
+  const list = _retCatProds.filter(p => {
+    if (cat && p.categoryId !== cat) return false;
+    if (search && !(p.name || '').toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  if (!list.length) {
+    body.innerHTML = _retCatProds.length
+      ? '<div class="ret-loc-empty">Ничего не найдено по фильтру</div>'
+      : '<div class="ret-loc-empty" style="padding:32px">Каталог пуст — нажмите «+ Товар»</div>';
+    return;
+  }
+
+  body.innerHTML = list.map(p => {
+    const avail = p.available !== false;
+    const img = p.imageUrl
+      ? `<img src="${escHtml(p.imageUrl)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
+      : `<span style="font-size:.9rem">📦</span>`;
+    return `<div class="ret-cat-prod${avail ? '' : ' ret-cat-prod-hidden'}">
+      <div class="ret-cat-prod-img">${img}</div>
+      <div class="ret-cat-prod-body">
+        <div class="ret-cat-prod-name">${escHtml(p.name || '—')}</div>
+        <div class="ret-cat-prod-meta">
+          ${p.categoryId ? `<span class="ret-cat-badge-cat">${escHtml(p.categoryId)}</span>` : ''}
+          ${!avail ? '<span class="ret-cat-badge-hid">скрыт</span>' : ''}
+        </div>
+      </div>
+      <div class="ret-cat-prod-price">${p.price != null ? p.price + '\u00a0см' : '—'}</div>
+      <div class="ret-cat-prod-acts">
+        <button class="btn btn-secondary btn-sm" onclick="openRetProdModal('${p.id}')" title="Изменить">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn btn-${avail ? 'warn' : 'success'} btn-sm"
+          onclick="toggleRetProd('${p.id}',${!avail})"
+          title="${avail ? 'Скрыть товар' : 'Показать товар'}">
+          ${avail
+            ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>`
+            : `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.filterRetCatalog = function () { renderRetCatalog(); };
+
+window.openRetProdModal = function (id = null) {
+  const p = id ? _retCatProds.find(x => x.id === id) : null;
+  document.getElementById('m-order-title').textContent =
+    p ? 'Изменить: ' + (p.name || '—') : 'Новый товар';
+  document.getElementById('m-order-body').innerHTML = `
+    <div style="padding:8px 10px;background:var(--s2);border:1px solid var(--b);border-radius:8px;font-size:.62rem;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;gap:6px">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <strong style="color:var(--text)">${escHtml(_retCatName)}</strong>
+      <code style="color:var(--text3);font-size:.58rem">retailers/${_retCatRid}/catalog/</code>
+    </div>
+    <div class="mf">
+      <label class="ml">Название *</label>
+      <input class="mi" id="rp-nm" value="${escHtml(p?.name || '')}" placeholder="Молоко 1л"/>
+    </div>
+    <div class="mf">
+      <label class="ml">Описание</label>
+      <input class="mi" id="rp-ds" value="${escHtml(p?.description || '')}" placeholder="Краткое описание…"/>
+    </div>
+    <div class="mr">
+      <div class="mf">
+        <label class="ml">Цена (смн) *</label>
+        <input class="mi" type="number" min="0" id="rp-pr" value="${p?.price ?? ''}" placeholder="10"/>
+      </div>
+      <div class="mf">
+        <label class="ml">Категория</label>
+        <input class="mi" id="rp-ct" value="${escHtml(p?.categoryId || '')}" placeholder="молочное"/>
+      </div>
+    </div>
+    <div class="mf">
+      <label class="ml">URL изображения</label>
+      <input class="mi" id="rp-im" value="${escHtml(p?.imageUrl || '')}" placeholder="https://…"/>
+    </div>`;
+  document.getElementById('m-order-foot').innerHTML = `
+    ${p ? `<button class="btn btn-danger" style="margin-right:auto" onclick="deleteRetProd('${id}')">Удалить</button>` : ''}
+    <button class="btn btn-secondary" onclick="closeMo('order-modal')">Отмена</button>
+    <button class="btn btn-primary" onclick="${p ? `saveRetEditProd('${id}')` : 'saveRetNewProd()'}">
+      ${p ? 'Сохранить' : 'Добавить'}
+    </button>`;
+  openMo('order-modal');
+};
+
+window.saveRetNewProd = async function () {
+  const name  = document.getElementById('rp-nm')?.value.trim();
+  const price = parseFloat(document.getElementById('rp-pr')?.value || '0');
+  if (!name)  { toast('Укажите название', 'warn'); return; }
+  if (!price) { toast('Укажите цену', 'warn'); return; }
+  try {
+    await addDoc(collection(db, 'retailers', _retCatRid, 'catalog'), {
+      name,
+      description: document.getElementById('rp-ds')?.value.trim() || '',
+      price,
+      categoryId:  document.getElementById('rp-ct')?.value.trim() || '',
+      imageUrl:    document.getElementById('rp-im')?.value.trim() || '',
+      available:   true,
+      createdAt:   serverTimestamp(),
+      updatedAt:   serverTimestamp(),
+    });
+    toast('Товар добавлен', 'ok');
+    closeMo('order-modal');
+    await openRetCatalog(_retCatRid, _retCatName);
+  } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
+};
+
+window.saveRetEditProd = async function (id) {
+  try {
+    await updateDoc(doc(db, 'retailers', _retCatRid, 'catalog', id), {
+      name:        document.getElementById('rp-nm')?.value.trim() || '',
+      description: document.getElementById('rp-ds')?.value.trim() || '',
+      price:       parseFloat(document.getElementById('rp-pr')?.value || '0'),
+      categoryId:  document.getElementById('rp-ct')?.value.trim() || '',
+      imageUrl:    document.getElementById('rp-im')?.value.trim() || '',
+      updatedAt:   serverTimestamp(),
+    });
+    toast('Товар обновлён', 'ok');
+    closeMo('order-modal');
+    await openRetCatalog(_retCatRid, _retCatName);
+  } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
+};
+
+window.toggleRetProd = async function (id, val) {
+  try {
+    await updateDoc(doc(db, 'retailers', _retCatRid, 'catalog', id),
+      { available: val, updatedAt: serverTimestamp() });
+    toast(val ? 'Товар показан' : 'Товар скрыт', 'ok');
+    await openRetCatalog(_retCatRid, _retCatName);
+  } catch (e) { toast('Ошибка', 'err'); }
+};
+
+window.deleteRetProd = async function (id) {
+  if (!confirm('Удалить товар из каталога?')) return;
+  try {
+    await deleteDoc(doc(db, 'retailers', _retCatRid, 'catalog', id));
+    toast('Удалён', 'ok');
+    closeMo('order-modal');
+    await openRetCatalog(_retCatRid, _retCatName);
+  } catch (e) { toast('Ошибка', 'err'); }
 };
 
 // ══════════════════════════════════════════════════════════════

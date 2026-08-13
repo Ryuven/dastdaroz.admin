@@ -343,6 +343,7 @@ async function loadAll() {
   renderKPI();
   renderAnalytics();
   renderSupportChats();
+  listenTgChats();
 }
 
 async function loadOrders() {
@@ -1634,6 +1635,164 @@ window.sendAdminReply = async function (chatId) {
   } catch { toast('Ошибка отправки', 'err'); }
   if (btn) btn.disabled = false;
   inp.focus();
+};
+
+// ══════════════════════════════════════════════════════════════
+// TELEGRAM SUPPORT (tgChats)
+// ══════════════════════════════════════════════════════════════
+
+let TG_CHATS        = [];
+let tgChatFilt      = 'all';
+let currentTgChatId = null;
+let unsubTgChats    = null;
+let unsubTgMsgs     = null;
+
+function listenTgChats() {
+  if (unsubTgChats) unsubTgChats();
+  const q = query(collection(db, 'tgChats'), orderBy('updatedAt', 'desc'));
+  unsubTgChats = onSnapshot(q, (snap) => {
+    TG_CHATS = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTgChats();
+    updateTgBadge();
+  }, () => {});
+}
+
+function updateTgBadge() {
+  const total = TG_CHATS.filter(c => (c.adminUnread || 0) > 0).length;
+  const b = document.getElementById('sb-tg-b');
+  if (b) { b.style.display = total > 0 ? '' : 'none'; b.textContent = total; }
+}
+
+function renderTgChats() {
+  const el = document.getElementById('tg-chats-list'); if (!el) return;
+  const list = tgChatFilt === 'unread'
+    ? TG_CHATS.filter(c => (c.adminUnread || 0) > 0)
+    : [...TG_CHATS];
+
+  el.innerHTML = list.map(c => {
+    const init      = (c.userName || '?').trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'TG';
+    const time      = c.updatedAt?.toDate
+      ? c.updatedAt.toDate().toLocaleDateString('ru-RU', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
+      : '—';
+    const hasUnread = (c.adminUnread || 0) > 0;
+    return `<div class="sc-item ${currentTgChatId === c.id ? 'active' : ''}" onclick="openTgChat('${c.id}')">
+      <div class="sc-item-av" style="background:linear-gradient(135deg,#2196f3,#1565c0)">${escHtml(init)}</div>
+      <div class="sc-item-body">
+        <div class="sc-item-head">
+          <div class="sc-item-name">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="#2196f3" style="margin-right:3px;vertical-align:middle"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.01 9.47c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.873.751z"/></svg>
+            ${escHtml(c.userName || 'Telegram пользователь')}
+          </div>
+          <div class="sc-item-time">${time}</div>
+        </div>
+        <div class="sc-item-last">
+          ${hasUnread ? '<span class="sc-item-dot"></span>' : ''}
+          ${escHtml((c.lastMessage || '').slice(0, 55) || 'Нет сообщений')}
+        </div>
+      </div>
+      ${hasUnread ? `<div class="sc-item-badge">${c.adminUnread}</div>` : ''}
+    </div>`;
+  }).join('') || '<div class="er"><div class="er-ico">💬</div>Нет обращений из Telegram</div>';
+}
+
+window.fTgChats = function (f, btn) {
+  tgChatFilt = f;
+  document.querySelectorAll('#tg-chats-filter .fp').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderTgChats();
+};
+
+window.openTgChat = async function (id) {
+  currentTgChatId = id;
+  renderTgChats();
+  const c = TG_CHATS.find(x => x.id === id); if (!c) return;
+  const init = (c.userName || 'TG').trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'TG';
+
+  document.getElementById('tg-chat-detail').innerHTML = `
+    <div class="sc-detail-wrap">
+      <div class="panel-head">
+        <div class="sc-detail-user">
+          <div class="sc-detail-av" style="background:linear-gradient(135deg,#2196f3,#1565c0)">${escHtml(init)}</div>
+          <div>
+            <div class="panel-title">${escHtml(c.userName || 'Telegram пользователь')}</div>
+            <div class="sc-detail-phone" style="color:#2196f3;font-size:.7rem">Telegram · ID: ${escHtml(c.tgChatId || id)}</div>
+          </div>
+        </div>
+      </div>
+      <div class="sc-msgs" id="tg-msgs"><div style="padding:28px;text-align:center;color:var(--text3);font-size:.7rem">Загрузка…</div></div>
+      <div class="sc-reply-row">
+        <textarea class="sc-reply-input" id="tg-reply-input" rows="1" placeholder="Ответ в Telegram…"
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendTgReply('${id}');}"></textarea>
+        <button class="sc-send-btn" id="tg-send-btn" onclick="sendTgReply('${id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>`;
+
+  updateDoc(doc(db, 'tgChats', id), { adminUnread: 0 }).catch(() => {});
+  _listenTgMessages(id);
+};
+
+function _listenTgMessages(chatId) {
+  if (unsubTgMsgs) unsubTgMsgs();
+  const q = query(collection(db, 'tgChats', chatId, 'messages'), orderBy('createdAt', 'asc'));
+  unsubTgMsgs = onSnapshot(q, (snap) => {
+    const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const el   = document.getElementById('tg-msgs'); if (!el) return;
+    if (!msgs.length) {
+      el.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-size:.7rem">Нет сообщений</div>';
+      return;
+    }
+    el.innerHTML = msgs.map(m => {
+      const isAdmin = m.sender === 'admin';
+      const time    = m.createdAt?.toDate ? m.createdAt.toDate().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' }) : '';
+      const name    = isAdmin ? `<span class="sc-msg-name">Поддержка</span>` : '';
+      return `<div class="sc-msg ${isAdmin ? 'sc-msg-admin' : 'sc-msg-client'}">${name}${escHtml(m.text)}<span class="sc-msg-time">${time}</span></div>`;
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+  });
+}
+
+window.sendTgReply = async function (chatId) {
+  const inp = document.getElementById('tg-reply-input'); if (!inp) return;
+  const text = inp.value.trim(); if (!text) return;
+  inp.value = ''; inp.style.height = 'auto';
+  const btn = document.getElementById('tg-send-btn'); if (btn) btn.disabled = true;
+  try {
+    await addDoc(collection(db, 'tgChats', chatId, 'messages'), {
+      text,
+      sender:    'admin',
+      senderName: AD?.displayName || CU.displayName || 'Поддержка',
+      createdAt: serverTimestamp(),
+    });
+    await updateDoc(doc(db, 'tgChats', chatId), {
+      userUnread:  increment(1),
+      lastMessage: text.slice(0, 120),
+      updatedAt:   serverTimestamp(),
+    });
+  } catch { toast('Ошибка отправки', 'err'); }
+  if (btn) btn.disabled = false;
+  inp.focus();
+};
+
+window.switchSupportTab = function (tab) {
+  const webTab = document.getElementById('support-tab-web');
+  const tgTab  = document.getElementById('support-tab-tg');
+  const webBtn = document.getElementById('tab-web-support');
+  const tgBtn  = document.getElementById('tab-tg-support');
+  if (tab === 'web') {
+    webTab.style.display = '';
+    tgTab.style.display  = 'none';
+    webBtn.classList.add('active');
+    tgBtn.classList.remove('active');
+  } else {
+    webTab.style.display = 'none';
+    tgTab.style.display  = '';
+    webBtn.classList.remove('active');
+    tgBtn.classList.add('active');
+    renderTgChats();
+  }
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -2943,7 +3102,7 @@ window.goPage = function (page) {
   if (el) el.textContent = PAGE_TITLES[page] || page;
 
   if (page === 'couriers')    renderCouriersPage();
-  if (page === 'support')     renderSupportChats();
+  if (page === 'support')     { renderSupportChats(); listenTgChats(); }
   if (page === 'analytics')   renderAnalytics();
   if (page === 'staff')       renderStaff();
   if (page === 'overview')    { renderDonut(); renderLiveOrders(); renderAct(); }

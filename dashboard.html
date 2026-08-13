@@ -1390,19 +1390,55 @@ textarea.mi     { resize: vertical; min-height: 76px; }
       <!-- ── SUPPORT ── -->
       <div class="page" id="page-support">
         <div class="sh"><div><div class="sh-tag">Чат · Поддержка</div><div class="sh-title">Чаты <em>с клиентами</em></div></div></div>
-        <div class="two-col">
-          <div class="panel">
-            <div class="fb">
-              <button class="fp active" onclick="fChats('all',this)">Все</button>
-              <button class="fp r"      onclick="fChats('unread',this)">Непрочитанные</button>
+
+        <!-- Вкладки: Сайт / Telegram -->
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button class="fp active" id="tab-web-support" onclick="switchSupportTab('web')" style="display:flex;align-items:center;gap:6px">
+            🌐 Сайт
+          </button>
+          <button class="fp" id="tab-tg-support" onclick="switchSupportTab('tg')" style="display:flex;align-items:center;gap:6px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#2196f3"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.01 9.47c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.873.751z"/></svg>
+            Telegram
+            <span id="sb-tg-b" style="display:none;background:#2196f3;color:#fff;border-radius:999px;padding:1px 6px;font-size:.65rem;font-weight:700"></span>
+          </button>
+        </div>
+
+        <!-- Вкладка: Сайт -->
+        <div id="support-tab-web">
+          <div class="two-col">
+            <div class="panel">
+              <div class="fb">
+                <button class="fp active" onclick="fChats('all',this)">Все</button>
+                <button class="fp r"      onclick="fChats('unread',this)">Непрочитанные</button>
+              </div>
+              <div id="chats-list"></div>
             </div>
-            <div id="chats-list"></div>
+            <div class="panel" id="chat-detail">
+              <div class="panel-head"><div class="panel-title">Выберите чат</div></div>
+              <div style="padding:36px 20px;text-align:center;color:var(--text3);font-size:.72rem">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" style="opacity:.18;margin-bottom:10px"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <div>Выберите чат из списка</div>
+              </div>
+            </div>
           </div>
-          <div class="panel" id="chat-detail">
-            <div class="panel-head"><div class="panel-title">Выберите чат</div></div>
-            <div style="padding:36px 20px;text-align:center;color:var(--text3);font-size:.72rem">
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" style="opacity:.18;margin-bottom:10px"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-              <div>Выберите чат из списка</div>
+        </div>
+
+        <!-- Вкладка: Telegram -->
+        <div id="support-tab-tg" style="display:none">
+          <div class="two-col">
+            <div class="panel">
+              <div class="fb" id="tg-chats-filter">
+                <button class="fp active" onclick="fTgChats('all',this)">Все</button>
+                <button class="fp r"      onclick="fTgChats('unread',this)">Непрочитанные</button>
+              </div>
+              <div id="tg-chats-list"></div>
+            </div>
+            <div class="panel" id="tg-chat-detail">
+              <div class="panel-head"><div class="panel-title">Выберите чат</div></div>
+              <div style="padding:36px 20px;text-align:center;color:var(--text3);font-size:.72rem">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="#2196f3" style="opacity:.3;margin-bottom:10px"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.01 9.47c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.873.751z"/></svg>
+                <div>Выберите Telegram чат</div>
+              </div>
             </div>
           </div>
         </div>

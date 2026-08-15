@@ -2106,14 +2106,15 @@ window.viewApplications = async function (vacId) {
 
 async function loadDeliveryServices() {
   try {
-    const q  = query(collection(db, 'deliveryServices'), orderBy('order', 'asc'));
-    const sn = await getDocs(q);
-    allDeliveryServices = sn.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch {
-    try {
-      const sn = await getDocs(collection(db, 'deliveryServices'));
-      allDeliveryServices = sn.docs.map(d => ({ id: d.id, ...d.data() }));
-    } catch { allDeliveryServices = []; }
+    // Не используем orderBy — Firestore исключает документы без поля 'order'.
+    // Сортируем на клиенте, чтобы показывать все службы независимо от структуры.
+    const sn = await getDocs(collection(db, 'deliveryServices'));
+    allDeliveryServices = sn.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+  } catch (e) {
+    console.error('loadDeliveryServices:', e);
+    allDeliveryServices = [];
   }
   renderDeliveryServices();
 }

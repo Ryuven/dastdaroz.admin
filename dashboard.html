@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard · Dastdaroz Admin</title>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap"/>
+
+<style>
+/* ══════════════════════════════════════════════════════
+   CSS VARIABLES
+══════════════════════════════════════════════════════ */
+:root {
+  --bg:    #0a0a0a;
+  --s1:    #111111;
+  --s2:    #181818;
+  --s3:    #1f1f1f;
+  --b:     rgba(255, 255, 255, .06);
+  --bh:    rgba(255, 255, 255, .12);
+
+  --acc:   #e8e8e8;
+  --acc2:  #ffffff;
+  --accd:  rgba(255, 255, 255, .06);
+  --accg:  rgba(255, 255, 255, .12);
+
+  --green:  #22c55e; --greend: rgba(34, 197, 94, .10); --greeng: rgba(34, 197, 94, .2);
+  --red:    #f43f5e; --redd:   rgba(244, 63, 94, .10);
+  --yellow: #f59e0b; --yellowd:rgba(245, 158, 11, .10);
+  --blue:   #60a5fa;
+  --cyan:   #22d3ee; --cyand:  rgba(34, 211, 238, .10);
+
+  --text:   #e8e8e8;
+  --text2:  #888888;
+  --text3:  #555555;
+  --muted:  #444444;
+  --muted2: #2a2a2a;
+  --muted3: #1a1a1a;
+
+  --fd:    'Syne',    sans-serif;
+  --fm:    'DM Mono', monospace;
+  --fs:    'Inter',   system-ui, sans-serif;
+
+  --ease:   cubic-bezier(.32, 0, .18, 1);
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --t:      .2s;
+  --tf:     .12s;
+
+  --sw: 232px;
+  --th: 52px;
+}
+
+/* ══════════════════════════════════════════════════════
+   RESET
+══════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html  { height: 100%; }
+body  {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--fs);
+  font-weight: 400;
+  min-height: 100svh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar        { width: 3px; height: 3px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--muted2); border-radius: 99px; }
+
+/* Grid overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--b) 1px, transparent 1px),
+    linear-gradient(90deg, var(--b) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 0% 0%, black 10%, transparent 60%);
+}
+body::after { display: none; }
+
+.app {
+  display: flex;
+  height: 100svh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ══════════════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════════════ */
+.sb {
+  width: var(--sw);
+  flex-shrink: 0;
+  background: var(--s1);
+  border-right: 1px solid var(--b);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--t) var(--ease);
+}
+.sb::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, .2), transparent 70%);
+}
+
+.sb-logo {
+  padding: 18px 20px 16px;
+  border-bottom: 1px solid var(--b);
+  display: flex;
+  align-items: center;
+}
+.sb-logo img {
+  width: 100%;
+  height: auto;
+  max-height: 28px;
+  object-fit: contain;
+  object-position: left center;
+  opacity: .92;
+  filter: brightness(0) invert(1);
+}
+
+.sb-admin {
+  margin: 8px 12px;
+  padding: 8px 10px;
+  background: var(--s2);
+  border: 1px solid var(--b);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sb-av {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--accd);
+  border: 1.5px solid var(--accg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .56rem;
+  font-weight: 700;
+  color: var(--acc2);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.sb-av img   { width: 100%; height: 100%; object-fit: cover; }
+.sb-name     { font-size: .7rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-role     { font-size: .5rem; color: var(--muted); letter-spacing: .04em; margin-top: 1px; }
+
+.sb-rt {
+  margin: 0 12px 6px;
+  padding: 6px 10px;
+  background: var(--greend);
+  border: 1px solid var(--greeng);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .56rem;
+  color: var(--green);
+  font-weight: 600;
+}
+.rt-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: rtP 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes rtP {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, .6); }
+  50%       { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); }
+}
+
+.sb-nav  { flex: 1; overflow-y: auto; padding: 4px 8px; }
+.nav-grp {
+  font-size: .4rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  padding: 10px 8px 3px;
+}
+
+/* Nav item */
+.ni {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  cursor: pointer;
+  color: var(--text3);
+  font-size: .72rem;
+  font-weight: 500;
+  border-radius: 6px;
+  position: relative;
+  transition: color var(--tf), background var(--tf);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--fs);
+}
+.ni:hover          { color: var(--text2); background: var(--s2); }
+.ni.active         { color: var(--acc2); background: var(--accd); }
+.ni.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 2px;
+  background: rgba(255, 255, 255, .5);
+  border-radius: 99px;
+}
+.ni svg        { flex-shrink: 0; opacity: .55; transition: opacity var(--tf); }
+.ni.active svg { opacity: 1; }
+
+.ni-badge {
+  margin-left: auto;
+  min-width: 16px; height: 16px;
+  padding: 0 4px;
+  font-size: .48rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 99px;
+  background: var(--red);
+  color: #fff;
+}
+.ni-badge.info { background: var(--acc); }
+
+.sb-bottom { padding: 8px; border-top: 1px solid var(--b); }
+.sb-logout {
+  width: 100%;
+  padding: 7px 9px;
+  background: none;
+  border: 1px solid var(--b);
+  border-radius: 6px;
+  color: var(--text3);
+  font-size: .64rem;
+  font-family: var(--fs);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: all var(--tf);
+}
+.sb-logout:hover { border-color: rgba(244, 63, 94, .3); color: var(--red); background: var(--redd); }
+
+/* ══════════════════════════════════════════════════════
+   MAIN AREA
+══════════════════════════════════════════════════════ */
+.main { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: var(--th);
+  flex-shrink: 0;
+  background: rgba(10, 10, 10, .96);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--b);
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 10px;
+  z-index: 50;
+}
+.tb-title  { font-family: var(--fd); font-weight: 800; font-size: .88rem; color: #fff; flex: 1; letter-spacing: -.01em; }
+.tb-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--s2);
+  border: 1px solid var(--b);
+  border-radius: 7px;
+  padding: 5px 10px;
+  width: 240px;
+  transition: border-color var(--tf);
+}
+.tb-search:focus-within { border-color: var(--bh); box-shadow: 0 0 0 2px rgba(255, 255, 255, .04); }
+.tb-search input { background: none; border: none; outline: none; color: var(--text); font-family: var(--fs); font-size: .72rem; width: 100%; }
+.tb-search input::placeholder { color: var(--muted); }
+.tb-search svg { color: var(--muted); flex-shrink: 0; }
+.tb-btn {
+  background: none;
+  border: 1px solid var(--b);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text3);
+  width: 30px; height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--tf);
+  flex-shrink: 0;
+}
+.tb-btn:hover { border-color: var(--bh); color: var(--text2); background: var(--s2); }
+.tb-time { font-family: var(--fm); font-size: .66rem; color: var(--muted); letter-spacing: .06em; flex-shrink: 0; }
+.tb-sep  { width: 1px; height: 18px; background: var(--b); flex-shrink: 0; }
+
+.mob-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text3);
+  width: 32px; height: 32px;
+  border-radius: 7px;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--tf);
+}
+.mob-btn:hover { background: var(--s2); color: var(--text); }
+
+/* ══════════════════════════════════════════════════════
+   PAGES
+══════════════════════════════════════════════════════ */
+.pages  { flex: 1; overflow-y: auto; }
+.page   { display: none; padding: 18px 20px 36px; animation: pgIn .22s var(--ease) both; }
+.page.active { display: block; }
+@keyframes pgIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ══════════════════════════════════════════════════════
+   SHARED COMPONENTS
+══════════════════════════════════════════════════════ */
+
+/* Page header */
+.sh {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sh-tag   { font-size: .4rem; letter-spacing: .3em; text-transform: uppercase; color: var(--muted2); margin-bottom: 3px; }
+.sh-title { font-family: var(--fd); font-weight: 800; font-size: 1.15rem; color: #fff; letter-spacing: -.02em; line-height: 1; }
+.sh-title em { color: var(--acc2); font-style: normal; }
+.sh-actions { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+
+/* Buttons */
+.btn {
+  padding: 6px 13px;
+  border-radius: 6px;
+  font-family: var(--fs);
+  font-size: .66rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--tf);
+  letter-spacing: .02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  white-space: nowrap;
+}
+.btn-primary   { background: #e8e8e8; color: #0a0a0a; }
+.btn-primary:hover { opacity: .88; }
+.btn-secondary { background: var(--s2); border: 1px solid var(--b); color: var(--text2); }
+.btn-secondary:hover { border-color: var(--bh); color: var(--text); }
+.btn-danger    { background: var(--redd); border: 1px solid rgba(244, 63, 94, .2); color: var(--red); }
+.btn-danger:hover    { background: rgba(244, 63, 94, .18); }
+.btn-success   { background: var(--greend); border: 1px solid var(--greeng); color: var(--green); }
+.btn-success:hover   { background: rgba(16, 185, 129, .18); }
+.btn-warning   { background: rgba(245, 158, 11, .1); border: 1px solid rgba(245, 158, 11, .28); color: var(--yellow); }
+.btn-warning:hover   { background: rgba(245, 158, 11, .18); }
+.btn-sm        { padding: 4px 9px; font-size: .6rem; }
+.btn:disabled  { opacity: .4; cursor: not-allowed; }
+
+/* KPI grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+.kpi {
+  background: var(--s1);
+  border: 1px solid var(--b);
+  border-radius: 11px;
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--tf), transform var(--t);
+}
+.kpi:hover          { border-color: var(--bh); transform: translateY(-1px); }
+.kpi::before        { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; }
+.kpi.acc::before    { background: linear-gradient(90deg, rgba(255, 255, 255, .2), transparent); }
+.kpi.green::before  { background: linear-gradient(90deg, var(--green), transparent); }
+.kpi.yellow::before { background: linear-gradient(90deg, var(--yellow), transparent); }
+.kpi.red::before    { background: linear-gradient(90deg, var(--red), transparent); }
+.kpi.blue::before   { background: linear-gradient(90deg, var(--blue), transparent); }
+.kpi.cyan::before   { background: linear-gradient(90deg, var(--cyan), transparent); }
+.kpi-label  { font-size: .46rem; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); margin-bottom: 7px; display: flex; align-items: center; justify-content: space-between; }
+.kpi-trend  { font-size: .5rem; font-weight: 600; padding: 2px 5px; border-radius: 99px; }
+.kpi-trend.up   { color: var(--green); background: var(--greend); }
+.kpi-trend.down { color: var(--red);   background: var(--redd); }
+.kpi-val  { font-family: var(--fd); font-size: 1.5rem; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -.03em; margin-bottom: 4px; }
+.kpi-sub  { font-size: .56rem; color: var(--text3); }
+.kpi-ico  { position: absolute; right: 12px; bottom: 8px; font-size: 1.6rem; opacity: .05; }
+.kpi-spark { margin-top: 8px; height: 24px; }
+
+/* Layouts */
+.two-col   { display: grid; grid-template-columns: 1fr 320px; gap: 12px; margin-bottom: 12px; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+
+/* Panel */
+.panel      { background: var(--s1); border: 1px solid var(--b); border-radius: 11px; overflow: hidden; }
+.panel-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--b);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.panel-title { font-size: .72rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; }
+.pdot        { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+/* Table */
+.ot { width: 100%; border-collapse: collapse; }
+.ot th {
+  font-size: .46rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 9px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--b);
+  white-space: nowrap;
+  background: var(--s2);
+  font-weight: 500;
+}
+.ot td             { padding: 10px 14px; font-size: .72rem; color: var(--text2); border-bottom: 1px solid rgba(99, 102, 241, .03); vertical-align: middle; }
+.ot tr:hover td    { background: rgba(99, 102, 241, .025); }
+.ot tr:last-child td { border-bottom: none; }
+.mono   { font-family: var(--fm); font-size: .66rem; color: var(--text3); }
+.ostatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: .56rem;
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.osdot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.oact  { display: flex; gap: 4px; flex-wrap: wrap; }
+
+/* Courier card */
+.cc { padding: 11px 14px; border-bottom: 1px solid var(--b); display: flex; align-items: center; gap: 10px; transition: background var(--tf); }
+.cc:hover       { background: rgba(99, 102, 241, .025); }
+.cc:last-child  { border-bottom: none; }
+.cav {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--accd);
+  border: 1.5px solid var(--accg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .6rem; font-weight: 700;
+  color: var(--acc2);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.cav img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Activity feed */
+.af { padding: 9px 14px; border-bottom: 1px solid var(--b); display: flex; align-items: flex-start; gap: 10px; }
+.af:last-child  { border-bottom: none; }
+.af:hover       { background: rgba(99, 102, 241, .02); }
+.af-ico  { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: .68rem; flex-shrink: 0; }
+.af-txt  { font-size: .7rem; color: var(--text2); line-height: 1.4; margin-bottom: 2px; }
+.af-txt strong { color: var(--text); }
+.af-time { font-family: var(--fm); font-size: .54rem; color: var(--text3); }
+
+/* Sparklines */
+.spark { display: flex; align-items: flex-end; gap: 2px; height: 100%; }
+.bar {
+  flex: 1;
+  background: var(--muted2);
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.bar:hover  { background: var(--acc); }
+.bar.g      { background: rgba(16, 185, 129, .35); }
+.bar.g:hover { background: var(--green); }
+
+/* Donut */
+.donut-wrap  { display: flex; align-items: center; gap: 14px; padding: 12px 16px; }
+.donut-chart { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
+.donut-chart svg { transform: rotate(-90deg); }
+.dc-center   { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.dc-val      { font-family: var(--fd); font-weight: 800; font-size: .95rem; color: #fff; line-height: 1; }
+.dc-lbl      { font-size: .42rem; color: var(--text3); text-transform: uppercase; letter-spacing: .12em; margin-top: 2px; }
+.dl          { display: flex; align-items: center; margin-bottom: 6px; font-size: .64rem; }
+.dl-dot      { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; margin-right: 6px; }
+
+/* Support chat list */
+.sc-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--b);
+  cursor: pointer;
+  transition: background var(--tf);
+}
+.sc-item:hover       { background: rgba(99, 102, 241, .03); }
+.sc-item:last-child  { border-bottom: none; }
+.sc-item.active      { background: rgba(99, 102, 241, .06); }
+.sc-item-av {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--accd);
+  border: 1.5px solid var(--accg);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--acc2); font-weight: 700; font-size: .7rem;
+  flex-shrink: 0;
+}
+.sc-item-body        { flex: 1; min-width: 0; }
+.sc-item-head        { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
+.sc-item-name        { font-size: .76rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-item-time        { font-size: .58rem; color: var(--text3); white-space: nowrap; flex-shrink: 0; }
+.sc-item-last        { font-size: .66rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 5px; }
+.sc-item-dot         { width: 6px; height: 6px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+.sc-item-order       { font-size: .58rem; color: var(--acc2); margin-top: 2px; font-weight: 600; }
+.sc-item-badge       { min-width: 18px; height: 18px; padding: 0 5px; background: var(--red); color: #fff; border-radius: 99px; font-size: .58rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* Support chat detail */
+.sc-detail-wrap   { display: flex; flex-direction: column; height: 100%; }
+.sc-detail-user   { display: flex; align-items: center; gap: 10px; }
+.sc-detail-av     { width: 34px; height: 34px; border-radius: 50%; background: var(--accd); border: 1.5px solid var(--accg); display: flex; align-items: center; justify-content: center; color: var(--acc2); font-weight: 700; font-size: .7rem; flex-shrink: 0; }
+.sc-detail-phone  { font-size: .64rem; color: var(--text3); margin-top: 1px; }
+.sc-order-chip    { display: flex; align-items: center; gap: 8px; background: var(--s2); border: 1px solid var(--b); border-radius: 9px; padding: 9px 12px; margin: 10px 16px 0; font-size: .7rem; color: var(--text2); cursor: pointer; transition: border-color var(--tf); }
+.sc-order-chip:hover { border-color: var(--bh); }
+.sc-order-chip svg   { color: var(--acc2); flex-shrink: 0; }
+.sc-msgs          { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 7px; min-height: 160px; max-height: 340px; }
+.sc-msg           { max-width: 78%; padding: 7px 11px; border-radius: 11px; font-size: .72rem; line-height: 1.5; word-wrap: break-word; white-space: pre-wrap; }
+.sc-msg-client    { align-self: flex-start; background: var(--s2); border: 1px solid var(--b); color: var(--text); }
+.sc-msg-admin     { align-self: flex-end; background: #e8e8e8; color: #0a0a0a; }
+.sc-msg-name      { font-size: .54rem; font-weight: 700; color: var(--acc2); margin-bottom: 2px; display: block; text-align: right; }
+.sc-msg-time      { font-size: .54rem; opacity: .6; margin-top: 3px; display: block; }
+.sc-msg-admin .sc-msg-time { text-align: right; }
+.sc-reply-row     { display: flex; gap: 7px; padding: 10px 16px; border-top: 1px solid var(--b); align-items: flex-end; flex-shrink: 0; }
+.sc-reply-input   { flex: 1; resize: none; max-height: 80px; border: 1px solid var(--b); border-radius: 8px; padding: 8px 11px; font-family: var(--fs); font-size: .72rem; background: var(--s2); color: var(--text); outline: none; transition: border-color var(--tf); }
+.sc-reply-input:focus { border-color: var(--acc); }
+.sc-send-btn      { width: 34px; height: 34px; border-radius: 8px; background: var(--acc); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity var(--tf); }
+.sc-send-btn:disabled { opacity: .4; cursor: default; }
+
+/* Modal */
+.mo {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, .82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all .22s var(--ease);
+}
+.mo.open { opacity: 1; visibility: visible; }
+.modal {
+  background: var(--s1);
+  border: 1px solid var(--bh);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(14px) scale(.97);
+  transition: transform .22s var(--spring);
+}
+.mo.open .modal { transform: none; }
+.modal-head    { padding: 16px 20px; border-bottom: 1px solid var(--b); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.modal-title   { font-family: var(--fd); font-weight: 800; font-size: .86rem; color: #fff; }
+.modal-x       { background: none; border: none; cursor: pointer; color: var(--text3); width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all var(--tf); }
+.modal-x:hover { background: var(--s2); color: var(--text); }
+.modal-body    { padding: 18px 20px; overflow-y: auto; flex: 1; }
+.modal-foot    { padding: 12px 20px; border-top: 1px solid var(--b); display: flex; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* Form fields */
+.mf { margin-bottom: 12px; }
+.ml { font-size: .48rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px; }
+.mi {
+  width: 100%;
+  background: var(--s2);
+  border: 1px solid var(--b);
+  border-radius: 7px;
+  color: var(--text);
+  font-family: var(--fs);
+  font-size: .76rem;
+  padding: 8px 11px;
+  outline: none;
+  transition: border-color var(--tf);
+}
+.mi:focus       { border-color: var(--bh); box-shadow: 0 0 0 2px rgba(255, 255, 255, .04); }
+.mi::placeholder { color: var(--muted); }
+select.mi       { cursor: pointer; }
+textarea.mi     { resize: vertical; min-height: 76px; }
+.mr             { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 2px; padding: 3px; background: var(--s2); border-radius: 7px; border: 1px solid var(--b); }
+.tab  { padding: 5px 10px; border-radius: 5px; border: none; background: none; cursor: pointer; font-size: .62rem; font-weight: 500; font-family: var(--fs); color: var(--text3); transition: all var(--tf); }
+.tab.active        { background: var(--s3); color: var(--text); border: 1px solid var(--bh); }
+.tab:hover:not(.active) { color: var(--text2); }
+
+/* Filter pills */
+.fb { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--b); flex-wrap: wrap; }
+.fp { padding: 4px 10px; border-radius: 99px; border: 1px solid var(--b); background: none; cursor: pointer; font-size: .6rem; font-family: var(--fs); color: var(--text3); transition: all var(--tf); }
+.fp:hover             { border-color: var(--bh); color: var(--text2); }
+.fp.active            { background: var(--s3); border-color: var(--bh); color: var(--text); }
+.fp.g.active          { background: var(--greend); border-color: var(--greeng); color: var(--green); }
+.fp.r.active          { background: var(--redd); border-color: rgba(244, 63, 94, .2); color: var(--red); }
+
+/* Empty state + loader */
+.er         { text-align: center; padding: 36px 20px; color: var(--text3); }
+.er-ico     { font-size: 1.8rem; opacity: .18; margin-bottom: 7px; }
+.pload      { display: flex; align-items: center; justify-content: center; padding: 36px; gap: 8px; color: var(--text3); font-size: .7rem; }
+.spin       { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid var(--muted2); border-top-color: var(--text); animation: sp .65s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+
+/* Toast */
+.toast-wrap { position: fixed; bottom: 20px; right: 18px; z-index: 9999; display: flex; flex-direction: column; gap: 5px; pointer-events: none; }
+.toast {
+  background: rgba(20, 20, 20, .98);
+  border: 1px solid var(--bh);
+  border-radius: 9px;
+  padding: 9px 13px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .7rem;
+  color: var(--text);
+  animation: tIn .26s var(--ease) both, tOut .26s var(--ease) forwards;
+  animation-delay: 0s, 3s;
+  pointer-events: all;
+  max-width: 270px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .6);
+}
+@keyframes tIn  { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes tOut { to   { opacity: 0; transform: translateY(6px); } }
+.tdot                { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; background: var(--acc2); }
+.toast.ok   .tdot    { background: var(--green); }
+.toast.err  .tdot    { background: var(--red); }
+.toast.info .tdot    { background: var(--acc2); }
+.toast.warn .tdot    { background: var(--yellow); }
+
+/* Mobile sidebar overlay */
+.sb-overlay { display: none; position: fixed; inset: 0; z-index: 190; background: rgba(0, 0, 0, .65); }
+
+/* ══════════════════════════════════════════════════════
+   NEWS MODULE
+══════════════════════════════════════════════════════ */
+.news-cover-th  { width: 52px; height: 40px; border-radius: 6px; object-fit: cover; display: block; background: var(--muted2); flex-shrink: 0; }
+.news-cover-ph  { width: 52px; height: 40px; border-radius: 6px; background: var(--muted2); display: flex; align-items: center; justify-content: center; color: var(--text3); flex-shrink: 0; }
+.ns-pub  { color: var(--green);  border-color: rgba(34, 197, 94, .2); background: var(--greend); }
+.ns-drft { color: var(--text3);  border-color: var(--b);               background: var(--muted2); }
+.cover-preview-box { width: 100%; height: 148px; border-radius: 8px; border: 1px solid var(--b); object-fit: cover; margin-bottom: 10px; display: none; }
+
+/* ══════════════════════════════════════════════════════
+   RETAILER MANAGEMENT
+══════════════════════════════════════════════════════ */
+.ret-card { background: var(--s1); border: 1px solid var(--b); border-radius: 12px; overflow: hidden; transition: border-color var(--tf), box-shadow var(--tf); }
+.ret-card:hover { border-color: var(--bh); }
+
+.ret-card-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; user-select: none; }
+.ret-card-head:hover { background: rgba(255, 255, 255, .02); }
+
+.ret-card-logo {
+  width: 48px; height: 48px;
+  border-radius: 10px;
+  background: var(--s2);
+  border: 1px solid var(--b);
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3); font-size: .52rem; font-weight: 700;
+}
+.ret-card-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ret-card-info     { flex: 1; min-width: 0; }
+.ret-card-name     { font-size: .84rem; font-weight: 700; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ret-card-meta     { font-size: .6rem; color: var(--text3); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ret-card-city     { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; background: var(--s2); border: 1px solid var(--b); border-radius: 99px; font-size: .56rem; color: var(--text2); }
+.ret-card-locs-count { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; background: var(--cyand); border: 1px solid rgba(34, 211, 238, .15); border-radius: 99px; font-size: .56rem; color: var(--cyan); }
+.ret-card-actions  { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.ret-card-chevron  { color: var(--text3); transition: transform .2s; flex-shrink: 0; }
+.ret-card-chevron.open { transform: rotate(180deg); }
+
+/* Locations sub-panel */
+.ret-locs-panel   { border-top: 1px solid var(--b); background: var(--muted3); display: none; padding: 12px 16px; flex-direction: column; gap: 8px; }
+.ret-locs-panel.open { display: flex; }
+.ret-locs-head    { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.ret-locs-title   { font-size: .58rem; letter-spacing: .2em; text-transform: uppercase; color: var(--text3); font-weight: 500; }
+.ret-loc-row      { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--s2); border: 1px solid var(--b); border-radius: 9px; transition: border-color var(--tf); }
+.ret-loc-row:hover { border-color: var(--bh); }
+.ret-loc-ico      { width: 32px; height: 32px; border-radius: 8px; background: var(--cyand); border: 1px solid rgba(34, 211, 238, .15); display: flex; align-items: center; justify-content: center; color: var(--cyan); flex-shrink: 0; }
+.ret-loc-body     { flex: 1; min-width: 0; }
+.ret-loc-addr     { font-size: .72rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ret-loc-meta     { font-size: .56rem; color: var(--text3); margin-top: 1px; }
+.ret-loc-empty    { text-align: center; padding: 18px; font-size: .68rem; color: var(--text3); background: var(--s2); border-radius: 9px; border: 1px dashed var(--b); }
+
+/* ══════════════════════════════════════════════════════
+   RETAILER CATALOG MODAL
+══════════════════════════════════════════════════════ */
+.ret-cat-prod         { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--s2); border:1px solid var(--b); border-radius:9px; transition:border-color var(--tf); }
+.ret-cat-prod:hover   { border-color:var(--bh); }
+.ret-cat-prod-hidden  { opacity:.55; }
+.ret-cat-prod-img     { width:36px; height:36px; border-radius:8px; background:var(--s3); border:1px solid var(--b); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:.85rem; }
+.ret-cat-prod-body    { flex:1; min-width:0; }
+.ret-cat-prod-name    { font-size:.74rem; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; }
+.ret-cat-prod-meta    { display:flex; gap:4px; flex-wrap:wrap; }
+.ret-cat-prod-price   { font-size:.8rem; font-weight:700; font-family:var(--fm); color:var(--green); flex-shrink:0; min-width:52px; text-align:right; }
+.ret-cat-prod-acts    { display:flex; gap:5px; flex-shrink:0; }
+.ret-cat-badge-cat    { font-size:.52rem; padding:1px 6px; background:var(--accd); border:1px solid var(--accg); border-radius:4px; color:var(--acc); }
+.ret-cat-badge-hid    { font-size:.52rem; padding:1px 6px; background:var(--redd); border:1px solid rgba(244,63,94,.2); border-radius:4px; color:var(--red); }
+
+/* ══════════════════════════════════════════════════════
+   GEN CATALOG CARDS
+══════════════════════════════════════════════════════ */
+.gc-card { background: var(--s1); border: 1px solid var(--b); border-radius: 11px; overflow: hidden; transition: border-color var(--tf); }
+.gc-card:hover       { border-color: var(--bh); }
+.gc-card-img         { width: 100%; aspect-ratio: 1/1; background: var(--s2); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+.gc-card-img img     { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gc-card-img-ph      { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: var(--text3); opacity: .25; }
+.gc-card-body        { padding: 9px 11px 10px; }
+.gc-card-name        { font-size: .72rem; font-weight: 700; color: var(--text); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-card-slug        { font-family: var(--fm); font-size: .56rem; color: var(--text3); margin-bottom: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-card-foot        { display: flex; gap: 5px; flex-wrap: wrap; }
+.gc-card-hidden      { opacity: .5; }
+.gc-card-status      { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 99px; font-size: .5rem; font-weight: 700; border: 1px solid; white-space: nowrap; position: absolute; top: 7px; right: 7px; }
+@media (max-width: 900px) { #gen-catalogs-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+
+/* ══════════════════════════════════════════════════════
+   ADS PAGE
+══════════════════════════════════════════════════════ */
+.ads-preview-wrap {
+  background: var(--s2);
+  border: 1px solid var(--b);
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 984/312;
+  position: relative;
+  margin-top: 14px;
+  display: none;
+}
+.ads-preview-wrap img  { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ads-preview-empty     { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: .7rem; color: var(--text3); }
+.ads-toggle            { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+.ads-toggle input[type=checkbox] { width: 36px; height: 20px; accent-color: var(--acc); cursor: pointer; }
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  :root { --sw: 220px; }
+  .sb {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    z-index: 300;
+    transform: translateX(-110%);
+  }
+  .sb.open        { transform: translateX(0); box-shadow: 16px 0 48px rgba(0, 0, 0, .8); }
+  .sb-overlay.open { display: block; }
+  .mob-btn        { display: flex; }
+  .tb-search      { display: none; }
+  .page           { padding: 12px 12px 28px; }
+  .two-col        { grid-template-columns: 1fr; }
+  .three-col      { grid-template-columns: 1fr 1fr; }
+  .kpi-grid       { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .kpi-val        { font-size: 1.25rem; }
+  .modal          { max-width: 100%; margin: 0; }
+  .mo             { align-items: flex-end; padding: 0; }
+  .modal          { border-radius: 14px 14px 0 0; max-height: 92svh; }
+  .ot th, .ot td  { padding: 8px 10px; }
+}
+@media (max-width: 500px) {
+  .kpi-grid       { grid-template-columns: 1fr 1fr; }
+  .three-col      { grid-template-columns: 1fr; }
+  .two-col        { grid-template-columns: 1fr; }
+  .topbar         { padding: 0 12px; gap: 8px; }
+  .tb-time        { display: none; }
+  .tb-sep:last-of-type { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════════════ -->
+
+<!-- Order Modal -->
+<div class="mo" id="order-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="m-order-title">Заказ</div>
+      <button class="modal-x" onclick="closeMo('order-modal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="m-order-body"></div>
+    <div class="modal-foot" id="m-order-foot"></div>
+  </div>
+</div>
+
+<!-- Assign Courier Modal -->
+<div class="mo" id="assign-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Назначить курьера</div>
+      <button class="modal-x" onclick="closeMo('assign-modal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="mf">
+        <label class="ml">Курьер</label>
+        <select class="mi" id="assign-sel"><option value="">— Загрузка —</option></select>
+      </div>
+      <div class="mf">
+        <label class="ml">Комментарий диспетчера</label>
+        <input class="mi" type="text" id="assign-comment" placeholder="Приоритетный заказ…"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeMo('assign-modal')">Отмена</button>
+      <button class="btn btn-primary"   onclick="doAssign()">Назначить →</button>
+    </div>
+  </div>
+</div>
+
+<!-- News Modal -->
+<div class="mo" id="news-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <div class="modal-title" id="news-modal-title">Новая статья</div>
+      <button class="modal-x" onclick="closeMo('news-modal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="mr">
+        <div class="mf">
+          <label class="ml">Статус</label>
+          <select class="mi" id="ni-status">
+            <option value="published">✓ Опубликовать</option>
+            <option value="draft">📝 Черновик</option>
+          </select>
+        </div>
+        <div class="mf">
+          <label class="ml">Категория</label>
+          <select class="mi" id="ni-cat">
+            <option value="актуали">🔥 Актуалӣ</option>
+            <option value="ҷомеа">👥 Ҷомеа</option>
+            <option value="иқтисод">💼 Иқтисод</option>
+            <option value="варзиш">⚽ Варзиш</option>
+            <option value="технология">💻 Технология</option>
+          </select>
+        </div>
+      </div>
+      <div class="mf"><label class="ml">Заголовок *</label><input class="mi" id="ni-title" placeholder="Введите заголовок…"/></div>
+      <div class="mf"><label class="ml">Подзаголовок</label><input class="mi" id="ni-subtitle" placeholder="Краткое описание…"/></div>
+      <div class="mr">
+        <div class="mf"><label class="ml">Автор</label><input class="mi" id="ni-author" placeholder="Имя автора"/></div>
+        <div class="mf"><label class="ml">Время чтения (мин)</label><input class="mi" type="number" id="ni-rtime" value="3" min="1" max="120"/></div>
+      </div>
+      <div class="mf"><label class="ml">Обложка — URL</label><input class="mi" id="ni-cover" placeholder="https://…" oninput="previewNewscover(this.value)"/></div>
+      <img id="ni-cover-preview" class="cover-preview-box" src="" alt="Превью"/>
+      <div class="mf">
+        <label class="ml">Текст статьи *</label>
+        <textarea class="mi" id="ni-content" rows="10" style="min-height:180px" placeholder="Первый абзац…&#10;&#10;Второй абзац…"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeMo('news-modal')">Отмена</button>
+      <button class="btn btn-primary"   id="ni-save-btn" onclick="saveNews()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- HR Vacancy Modal -->
+<div class="mo" id="hr-modal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-head">
+      <div class="modal-title" id="hr-modal-title">Новая вакансия</div>
+      <button class="modal-x" onclick="closeMo('hr-modal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="mr">
+        <div class="mf"><label class="ml">Должность *</label><input class="mi" id="hv-title" placeholder="Frontend Developer"/></div>
+        <div class="mf"><label class="ml">Зарплата</label><input class="mi" id="hv-salary" placeholder="2 000 – 3 000 TJS"/></div>
+      </div>
+      <div class="mr">
+        <div class="mf">
+          <label class="ml">Отдел</label>
+          <select class="mi" id="hv-dept">
+            <option value="Технологии">💻 Технологии</option>
+            <option value="Операции">⚙️ Операции</option>
+            <option value="Маркетинг">📣 Маркетинг</option>
+            <option value="Финансы">💰 Финансы</option>
+            <option value="Дизайн">🎨 Дизайн</option>
+            <option value="HR">👥 HR</option>
+          </select>
+        </div>
+        <div class="mf">
+          <label class="ml">Тип занятости</label>
+          <select class="mi" id="hv-type">
+            <option value="full-time">Полный день</option>
+            <option value="part-time">Частичная занятость</option>
+            <option value="internship">Стажировка</option>
+          </select>
+        </div>
+      </div>
+      <div class="mf"><label class="ml">Локация</label><input class="mi" id="hv-location" placeholder="Душанбе / Remote"/></div>
+      <div class="mf"><label class="ml">Описание</label><textarea class="mi" id="hv-desc" rows="3" placeholder="Краткое описание задач и обязанностей…"></textarea></div>
+      <div class="mf"><label class="ml">Требования</label><textarea class="mi" id="hv-req" rows="3" placeholder="Необходимые навыки и опыт…"></textarea></div>
+      <div class="mf">
+        <label class="ml">Статус</label>
+        <select class="mi" id="hv-status">
+          <option value="open">✓ Открытая</option>
+          <option value="closed">✕ Закрытая</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="hv-del-btn" onclick="deleteVacancy()" style="display:none;margin-right:auto">Удалить</button>
+      <button class="btn btn-secondary" onclick="closeMo('hr-modal')">Отмена</button>
+      <button class="btn btn-primary"   onclick="saveVacancy()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- HR Applications Modal -->
+<div class="mo" id="hr-apps-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <div class="modal-title" id="hr-apps-title">Заявки</div>
+      <button class="modal-x" onclick="closeMo('hr-apps-modal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="hr-apps-body" style="padding:0"></div>
+    <div class="modal-foot"><button class="btn btn-secondary" onclick="closeMo('hr-apps-modal')">Закрыть</button></div>
+  </div>
+</div>
+
+<!-- Retailer Modal -->
+<div class="mo" id="retailer-modal" onclick="if(event.target===this)closeRetailerModal()">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title" id="ret-modal-title">Новый ритейлер</div>
+      <button class="modal-x" onclick="closeRetailerModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+      <input type="hidden" id="ret-id">
+      <div class="mf"><label class="ml">Название ритейлера *</label><input class="mi" id="ret-name" type="text" placeholder="Напр. Carrefour, Gloria Jeans…"></div>
+      <div class="mf">
+        <label class="ml">Город (основной) *</label>
+        <select class="mi" id="ret-city"><option value="">— Загружаем города… —</option></select>
+      </div>
+      <div class="mf">
+        <label class="ml">URL изображения / логотипа</label>
+        <input class="mi" id="ret-image" type="url" placeholder="https://…/logo.png">
+        <div id="ret-img-preview" style="margin-top:7px;display:none">
+          <img id="ret-img-preview-img" src="" style="width:80px;height:80px;border-radius:10px;object-fit:cover;border:1px solid var(--b)">
+        </div>
+      </div>
+      <div class="mf"><label class="ml">Описание <span style="color:var(--text3);font-weight:400">(необязательно)</span></label><textarea class="mi" id="ret-desc" rows="2" placeholder="Краткое описание…"></textarea></div>
+      <div class="mr">
+        <div class="mf" style="margin-bottom:0"><label class="ml">Порядок сортировки</label><input class="mi" id="ret-order" type="number" min="1" value="1"></div>
+        <div class="mf" style="margin-bottom:0">
+          <label class="ml">Статус</label>
+          <select class="mi" id="ret-active"><option value="true">✓ Активен</option><option value="false">✕ Скрыт</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="ret-del-btn" style="display:none;margin-right:auto" onclick="deleteRetailer()">Удалить</button>
+      <button class="btn btn-secondary" onclick="closeRetailerModal()">Отмена</button>
+      <button class="btn btn-primary"   onclick="saveRetailer()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Location Modal -->
+<div class="mo" id="location-modal" onclick="if(event.target===this)closeLocationModal()">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <div class="modal-title" id="loc-modal-title">Новая точка</div>
+      <button class="modal-x" onclick="closeLocationModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+      <input type="hidden" id="loc-retailer-id">
+      <input type="hidden" id="loc-id">
+      <div style="padding:10px 12px;background:var(--s2);border-radius:8px;border:1px solid var(--b);font-size:.7rem;color:var(--text2)">
+        Ритейлер: <strong id="loc-retailer-name" style="color:var(--text)">—</strong>
+      </div>
+      <div class="mf">
+        <label class="ml">Город *</label>
+        <select class="mi" id="loc-city"><option value="">— Загружаем города… —</option></select>
+      </div>
+      <div class="mf"><label class="ml">Адрес *</label><input class="mi" id="loc-address" type="text" placeholder="Напр. ул. Рудаки 42, ТЦ «Мавлон»…"></div>
+      <div class="mr">
+        <div class="mf" style="margin-bottom:0"><label class="ml">Широта (Lat)</label><input class="mi" id="loc-lat" type="number" step="any" placeholder="38.559772"></div>
+        <div class="mf" style="margin-bottom:0"><label class="ml">Долгота (Lng)</label><input class="mi" id="loc-lng" type="number" step="any" placeholder="68.773945"></div>
+      </div>
+      <div style="font-size:.6rem;color:var(--text3);display:flex;align-items:center;gap:5px">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Координаты: Google Maps → ПКМ на точке → «Что здесь?»
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" id="loc-del-btn" style="display:none;margin-right:auto" onclick="deleteLocation()">Удалить точку</button>
+      <button class="btn btn-secondary" onclick="closeLocationModal()">Отмена</button>
+      <button class="btn btn-primary"   onclick="saveLocation()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Retailer Catalog Modal -->
+<div class="mo" id="ret-catalog-modal" onclick="if(event.target===this)closeMo('ret-catalog-modal')">
+  <div class="modal" style="max-width:700px;height:min(88vh,680px);display:flex;flex-direction:column;padding:0;overflow:hidden">
+
+    <!-- Header -->
+    <div class="modal-head" style="padding:16px 20px;border-bottom:1px solid var(--b);flex-shrink:0">
+      <div>
+        <div style="font-size:.54rem;text-transform:uppercase;letter-spacing:.14em;color:var(--text3);margin-bottom:3px">Каталог товаров</div>
+        <div class="modal-title" id="ret-cat-title">—</div>
+      </div>
+      <button class="modal-x" onclick="closeMo('ret-catalog-modal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div style="padding:10px 16px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
+      <input class="mi" id="ret-cat-search"
+        placeholder="🔍 Поиск по названию…"
+        oninput="filterRetCatalog()"
+        style="flex:1;min-width:140px;margin:0;height:32px;font-size:.72rem"/>
+      <select class="mi" id="ret-cat-filter" onchange="filterRetCatalog()"
+        style="width:auto;min-width:130px;height:32px;font-size:.72rem;margin:0">
+        <option value="">Все категории</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="openRetProdModal()">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Товар
+      </button>
+    </div>
+
+    <!-- Body with product list -->
+    <div id="ret-cat-body"
+      style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+    </div>
+
+  </div>
+</div>
+
+<!-- Gen Catalog Modal -->
+<div class="mo" id="gc-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title" id="gc-modal-title">Редактировать категорию</div>
+      <button class="modal-x" onclick="closeMo('gc-modal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="gc-modal-body"></div>
+    <div class="modal-foot" id="gc-modal-foot"></div>
+  </div>
+</div>
+
+<!-- City Modal -->
+<div class="mo" id="az-modal" onclick="if(event.target===this)closeCityModal()">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title" id="az-modal-title">Новый город</div>
+      <button class="modal-x" onclick="closeCityModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+      <div class="mf" id="az-id-field">
+        <label class="ml">ID города * <span style="font-weight:400;color:var(--muted2);font-size:.6rem">(латиница, без пробелов — напр. dushanbe)</span></label>
+        <input class="mi" id="az-id" type="text" placeholder="dushanbe">
+      </div>
+      <div class="mf"><label class="ml">Название *</label><input class="mi" id="az-name" type="text" placeholder="Душанбе"></div>
+      <div class="mf"><label class="ml">Регион <span style="font-weight:400;color:var(--muted2);font-size:.6rem">(необязательно)</span></label><input class="mi" id="az-region" type="text" placeholder="Столица, Согдийская область…"></div>
+      <div class="mf"><label class="ml">Порядок отображения *</label><input class="mi" id="az-order" type="number" min="1" placeholder="1"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--s2);border:1px solid var(--b);border-radius:8px">
+        <div>
+          <div style="font-size:.76rem;font-weight:600;color:var(--text)">Город активен</div>
+          <div style="font-size:.62rem;color:var(--muted);margin-top:2px">Выключите — город появится как «Скоро»</div>
+        </div>
+        <label class="tog">
+          <input type="checkbox" id="az-avail-tog" checked>
+          <span class="tog-track"></span>
+          <span class="tog-thumb"></span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeCityModal()">Отмена</button>
+      <button class="btn btn-primary"   id="az-save-btn" onclick="saveCity()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     APP LAYOUT
+═══════════════════════════════════════════════════════ -->
+<div class="app">
+  <div class="sb-overlay" id="sb-overlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sb" id="sidebar">
+    <div class="sb-logo">
+      <img src="dastdaroz.png" alt="Dastdaroz"/>
+    </div>
+    <div class="sb-admin">
+      <div class="sb-av" id="sb-av">A</div>
+      <div style="flex:1;min-width:0">
+        <div class="sb-name" id="sb-name">Загрузка…</div>
+        <div class="sb-role" id="sb-role">—</div>
+      </div>
+    </div>
+    <div class="sb-rt"><div class="rt-dot"></div>Realtime · Firebase</div>
+
+    <nav class="sb-nav">
+      <div class="nav-grp">Мониторинг</div>
+      <button class="ni active" data-page="overview"  onclick="goPage('overview')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Обзор
+      </button>
+      <button class="ni" data-page="orders" onclick="goPage('orders')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+        Заказы
+        <span class="ni-badge info" id="sb-ord-b" style="display:none">0</span>
+      </button>
+      <button class="ni" data-page="couriers" onclick="goPage('couriers')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+        Курьеры
+        <span class="ni-badge" id="sb-cur-b" style="display:none;background:var(--green)">0</span>
+      </button>
+      <button class="ni" data-page="clients" onclick="goPage('clients')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Клиенты
+      </button>
+
+      <div class="nav-grp">Управление</div>
+      <button class="ni" data-page="support" onclick="goPage('support')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Поддержка
+        <span class="ni-badge" id="sb-tkt-b" style="display:none">0</span>
+      </button>
+      <button class="ni" data-page="catalog" onclick="goPage('catalog')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Каталог
+      </button>
+      <button class="ni" data-page="delivery-services" onclick="goPage('delivery-services')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Курьерские службы
+      </button>
+      <button class="ni" data-page="stores" onclick="goPage('stores')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Ритейлеры
+      </button>
+      <button class="ni" data-page="addresses" onclick="goPage('addresses')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Адреса
+        <span class="ni-badge" id="sb-az-b" style="display:none;background:var(--red)">!</span>
+      </button>
+      <button class="ni" data-page="gen-catalogs" onclick="goPage('gen-catalogs')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        Общий каталог
+      </button>
+      <button class="ni" data-page="ads" onclick="goPage('ads')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-4 0v2M8 12h8M8 16h5"/></svg>
+        Реклама
+      </button>
+      <button class="ni" data-page="news" onclick="goPage('news')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8L2 8v12a2 2 0 002 2z"/><polyline points="10 2 10 8 2 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        Новости
+        <span class="ni-badge info" id="sb-news-b" style="display:none">0</span>
+      </button>
+      <button class="ni" data-page="analytics" onclick="goPage('analytics')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Аналитика
+      </button>
+      <button class="ni" data-page="hr" onclick="goPage('hr')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><path d="M2 13a20 20 0 0020 0"/></svg>
+        HR / Вакансии
+        <span class="ni-badge info" id="sb-hr-b" style="display:none">0</span>
+      </button>
+      <button class="ni" data-page="partners" onclick="goPage('partners')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Партнерство
+        <span class="ni-badge" id="sb-partner-b" style="display:none;background:var(--yellow)">0</span>
+      </button>
+
+      <div class="nav-grp">Система</div>
+      <button class="ni" data-page="staff" onclick="goPage('staff')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Сотрудники
+      </button>
+      <button class="ni" data-page="settings" onclick="goPage('settings')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Настройки
+      </button>
+    </nav>
+
+    <div class="sb-bottom">
+      <button class="sb-logout" onclick="doLogout()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Выйти
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <button class="mob-btn" onclick="toggleSB()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h12"/></svg>
+      </button>
+      <div class="tb-title" id="tb-title">Обзор</div>
+      <div class="tb-search">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="search-inp" placeholder="Поиск заказов, клиентов, курьеров…" oninput="onSearch(this.value)"/>
+      </div>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" onclick="refreshAll()" title="Обновить">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      </button>
+      <div class="tb-sep"></div>
+      <div class="tb-time" id="tb-time">--:--:--</div>
+    </div>
+
+    <div class="pages" id="pages">
+
+      <!-- ── OVERVIEW ── -->
+      <div class="page active" id="page-overview">
+        <div class="sh">
+          <div><div class="sh-tag">Мониторинг · Реальное время</div><div class="sh-title">Обзор <em>системы</em></div></div>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi acc"><div class="kpi-label">Заказов всего</div><div class="kpi-val" id="kv-ord">—</div><div class="kpi-sub">За всё время</div><div class="kpi-ico">📦</div><div class="kpi-spark"><div class="spark" id="sp-ord"></div></div></div>
+          <div class="kpi green"><div class="kpi-label">Выручка</div><div class="kpi-val" id="kv-rev">—</div><div class="kpi-sub">Без отменённых</div><div class="kpi-ico">💰</div><div class="kpi-spark"><div class="spark" id="sp-rev"></div></div></div>
+          <div class="kpi cyan"><div class="kpi-label">Курьеры онлайн</div><div class="kpi-val" id="kv-cur">—</div><div class="kpi-sub">Из <span id="kv-curtot">—</span> всего</div><div class="kpi-ico">🚴</div></div>
+          <div class="kpi blue"><div class="kpi-label">Клиентов</div><div class="kpi-val" id="kv-cli">—</div><div class="kpi-sub">Зарегистрированных</div><div class="kpi-ico">👤</div></div>
+          <div class="kpi yellow"><div class="kpi-label">Очередь</div><div class="kpi-val" id="kv-pend">—</div><div class="kpi-sub">Ждут курьера</div><div class="kpi-ico">⏳</div></div>
+          <div class="kpi green"><div class="kpi-label">Доставлено</div><div class="kpi-val" id="kv-done">—</div><div class="kpi-sub">Успешных</div><div class="kpi-ico">✅</div></div>
+          <div class="kpi red"><div class="kpi-label">Отменено <span class="kpi-trend down" id="kt-can">—</span></div><div class="kpi-val" id="kv-can">—</div><div class="kpi-sub">Заказов отменено</div><div class="kpi-ico">❌</div></div>
+          <div class="kpi acc"><div class="kpi-label">В процессе</div><div class="kpi-val" id="kv-active">—</div><div class="kpi-sub">Готовятся / в пути</div><div class="kpi-ico">🔄</div></div>
+        </div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title"><div class="pdot" style="background:var(--acc);animation:rtP 2s infinite"></div>Активные заказы</div>
+              <button class="btn btn-secondary btn-sm" onclick="goPage('orders')">Все →</button>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="ot">
+                <thead><tr><th>Заказ</th><th>Клиент</th><th>Адрес</th><th>Статус</th><th>Сумма</th><th>Действия</th></tr></thead>
+                <tbody id="live-ob"><tr><td colspan="6"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="panel">
+              <div class="panel-head"><div class="panel-title">Статусы заказов</div></div>
+              <div class="donut-wrap">
+                <div class="donut-chart">
+                  <svg width="84" height="84" viewBox="0 0 84 84">
+                    <circle cx="42" cy="42" r="33" fill="none" stroke="var(--muted2)" stroke-width="9"/>
+                    <circle cx="42" cy="42" r="33" fill="none" stroke="var(--acc)"    stroke-width="9" stroke-dasharray="0 207" id="d-acc" style="transition:stroke-dasharray .8s var(--ease)"/>
+                    <circle cx="42" cy="42" r="33" fill="none" stroke="var(--green)"  stroke-width="9" stroke-dasharray="0 207" id="d-grn" style="transition:all .8s var(--ease) .1s"/>
+                    <circle cx="42" cy="42" r="33" fill="none" stroke="var(--yellow)" stroke-width="9" stroke-dasharray="0 207" id="d-yel" style="transition:all .8s var(--ease) .2s"/>
+                    <circle cx="42" cy="42" r="33" fill="none" stroke="var(--red)"    stroke-width="9" stroke-dasharray="0 207" id="d-red" style="transition:all .8s var(--ease) .3s"/>
+                  </svg>
+                  <div class="dc-center"><div class="dc-val" id="d-tot">0</div><div class="dc-lbl">Всего</div></div>
+                </div>
+                <div id="d-legend" style="flex:1"></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head">
+                <div class="panel-title"><div class="pdot" style="background:var(--green);animation:rtP 2s infinite"></div>Курьеры онлайн</div>
+                <button class="btn btn-secondary btn-sm" onclick="goPage('couriers')">Все →</button>
+              </div>
+              <div id="online-clist"><div class="pload"><div class="spin"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel" style="margin-bottom:12px">
+          <div class="panel-head"><div class="panel-title">Лента активности</div></div>
+          <div id="act-feed"><div class="pload" style="padding:20px"><div class="spin"></div> Ожидаем…</div></div>
+        </div>
+      </div>
+
+      <!-- ── ORDERS ── -->
+      <div class="page" id="page-orders">
+        <div class="sh">
+          <div><div class="sh-tag">Управление</div><div class="sh-title">Заказы</div></div>
+          <div class="sh-actions">
+            <div class="tabs">
+              <button class="tab active" onclick="fOrders('all',this)">Все</button>
+              <button class="tab" onclick="fOrders('pending',this)">Ожидают</button>
+              <button class="tab" onclick="fOrders('delivering',this)">В пути</button>
+              <button class="tab" onclick="fOrders('delivered',this)">Доставлено</button>
+              <button class="tab" onclick="fOrders('cancelled',this)">Отменено</button>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="exportOrders()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> CSV
+            </button>
+          </div>
+        </div>
+        <div class="panel">
+          <div style="overflow-x:auto">
+            <table class="ot">
+              <thead><tr><th>№</th><th>Клиент</th><th>Адрес</th><th>Курьер</th><th>Статус</th><th>Сумма</th><th>Время</th><th>Действия</th></tr></thead>
+              <tbody id="all-ob"><tr><td colspan="8"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── COURIERS ── -->
+      <div class="page" id="page-couriers">
+        <div class="sh">
+          <div><div class="sh-tag">Управление</div><div class="sh-title">Курьеры</div></div>
+          <div class="sh-actions">
+            <div class="tabs">
+              <button class="tab active" onclick="fCouriers('all',this)">Все</button>
+              <button class="tab" onclick="fCouriers('online',this)">Онлайн</button>
+              <button class="tab" onclick="fCouriers('busy',this)">Заняты</button>
+              <button class="tab" onclick="fCouriers('offline',this)">Офлайн</button>
+            </div>
+            <div class="tabs">
+              <button class="tab active" onclick="fCouriersVerif('all',this)">Все</button>
+              <button class="tab" onclick="fCouriersVerif('pending',this)">⏳ Ожидают</button>
+              <button class="tab" onclick="fCouriersVerif('verified',this)">✓ Верифицированы</button>
+              <button class="tab" onclick="fCouriersVerif('blocked',this)">✕ Заблокированы</button>
+            </div>
+          </div>
+        </div>
+        <div class="three-col" id="couriers-grid"><div class="pload" style="grid-column:1/-1"><div class="spin"></div></div></div>
+      </div>
+
+      <!-- ── CLIENTS ── -->
+      <div class="page" id="page-clients">
+        <div class="sh">
+          <div><div class="sh-tag">База</div><div class="sh-title">Клиенты</div></div>
+          <div class="sh-actions">
+            <button class="btn btn-secondary btn-sm" onclick="exportClients()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> CSV
+            </button>
+          </div>
+        </div>
+        <div class="panel">
+          <div style="overflow-x:auto">
+            <table class="ot">
+              <thead><tr><th>Клиент</th><th>Email</th><th>Телефон</th><th>Адрес</th><th>Заказов</th><th>Потрачено</th><th>Дата</th><th></th></tr></thead>
+              <tbody id="cli-ob"><tr><td colspan="8"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SUPPORT ── -->
+      <div class="page" id="page-support">
+        <div class="sh"><div><div class="sh-tag">Чат · Поддержка</div><div class="sh-title">Чаты <em>с клиентами</em></div></div></div>
+
+        <!-- Вкладки: Сайт / Telegram -->
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button class="fp active" id="tab-web-support" onclick="switchSupportTab('web')" style="display:flex;align-items:center;gap:6px">
+            🌐 Сайт
+          </button>
+          <button class="fp" id="tab-tg-support" onclick="switchSupportTab('tg')" style="display:flex;align-items:center;gap:6px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#2196f3"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.01 9.47c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.873.751z"/></svg>
+            Telegram
+            <span id="sb-tg-b" style="display:none;background:#2196f3;color:#fff;border-radius:999px;padding:1px 6px;font-size:.65rem;font-weight:700"></span>
+          </button>
+        </div>
+
+        <!-- Вкладка: Сайт -->
+        <div id="support-tab-web">
+          <div class="two-col">
+            <div class="panel">
+              <div class="fb">
+                <button class="fp active" onclick="fChats('all',this)">Все</button>
+                <button class="fp r"      onclick="fChats('unread',this)">Непрочитанные</button>
+              </div>
+              <div id="chats-list"></div>
+            </div>
+            <div class="panel" id="chat-detail">
+              <div class="panel-head"><div class="panel-title">Выберите чат</div></div>
+              <div style="padding:36px 20px;text-align:center;color:var(--text3);font-size:.72rem">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" style="opacity:.18;margin-bottom:10px"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <div>Выберите чат из списка</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Вкладка: Telegram -->
+        <div id="support-tab-tg" style="display:none">
+          <div class="two-col">
+            <div class="panel">
+              <div class="fb" id="tg-chats-filter">
+                <button class="fp active" onclick="fTgChats('all',this)">Все</button>
+                <button class="fp r"      onclick="fTgChats('unread',this)">Непрочитанные</button>
+              </div>
+              <div id="tg-chats-list"></div>
+            </div>
+            <div class="panel" id="tg-chat-detail">
+              <div class="panel-head"><div class="panel-title">Выберите чат</div></div>
+              <div style="padding:36px 20px;text-align:center;color:var(--text3);font-size:.72rem">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="#2196f3" style="opacity:.3;margin-bottom:10px"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.01 9.47c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.873.751z"/></svg>
+                <div>Выберите Telegram чат</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CATALOG ── -->
+      <div class="page" id="page-catalog">
+        <div class="sh">
+          <div><div class="sh-tag">Управление</div><div class="sh-title">Каталог <em>товаров</em></div></div>
+          <div class="sh-actions"><button class="btn btn-primary" onclick="openAddProduct()">+ Товар</button></div>
+        </div>
+        <div class="panel">
+          <div style="overflow-x:auto">
+            <table class="ot">
+              <thead><tr><th>Товар</th><th>Категория</th><th>Цена</th><th>Штрих-код</th><th>Статус</th><th>Действия</th></tr></thead>
+              <tbody id="cat-ob"><tr><td colspan="6"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DELIVERY SERVICES ── -->
+      <div class="page" id="page-delivery-services">
+        <div class="sh">
+          <div>
+            <div class="sh-tag">Управление · Firestore: deliveryServices/</div>
+            <div class="sh-title">Курьерские <em>службы</em></div>
+          </div>
+          <div class="sh-actions">
+            <button class="btn btn-primary" onclick="openDSModal()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Новая служба
+            </button>
+          </div>
+        </div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:14px">
+          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="ds-kv-active">—</div><div class="kpi-sub">Отображаются в корзине</div><div class="kpi-ico">🚚</div></div>
+          <div class="kpi acc"><div class="kpi-label">Всего служб</div><div class="kpi-val" id="ds-kv-total">—</div><div class="kpi-sub">В коллекции deliveryServices</div><div class="kpi-ico">🗂️</div></div>
+        </div>
+        <div id="ds-list" style="display:flex;flex-direction:column;gap:10px">
+          <div class="pload"><div class="spin"></div> Загружаем…</div>
+        </div>
+
+        <!-- Модалка добавления/редактирования курьерской службы -->
+        <div class="mo-bg" id="ds-modal-bg" onclick="closeDSModal(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;display:none;align-items:center;justify-content:center">
+          <div class="mo" style="width:min(480px,95vw);max-height:80vh;overflow-y:auto">
+            <div class="mo-head">
+              <div class="mo-title" id="ds-modal-title">Новая курьерская служба</div>
+              <button class="mo-close" onclick="closeDSModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div class="mo-body" style="padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+              <input type="hidden" id="ds-edit-id">
+              <div class="mf">
+                <label class="ml">ID службы <span style="color:var(--red)">*</span></label>
+                <input class="mi" id="ds-id-inp" placeholder="например: mavsimi или dastdaroz" maxlength="40">
+                <div style="font-size:.55rem;color:var(--text3);margin-top:3px">Латиница, без пробелов. Используется как deliveryService в заказе.</div>
+              </div>
+              <div class="mf">
+                <label class="ml">Название <span style="color:var(--red)">*</span></label>
+                <input class="mi" id="ds-name-inp" placeholder="Мавсими Расон" maxlength="80">
+              </div>
+              <div class="mf">
+                <label class="ml">Подзаголовок</label>
+                <input class="mi" id="ds-sub-inp" placeholder="Хидмати расонидан" maxlength="100">
+              </div>
+              <div class="mf">
+                <label class="ml">URL логотипа (Storage path)</label>
+                <input class="mi" id="ds-logo-inp" placeholder="/storage/delivery-service/mavsimi_rason_mini.png">
+                <div style="font-size:.55rem;color:var(--text3);margin-top:3px">Путь относительно хоста или полный URL из Firebase Storage.</div>
+              </div>
+              <div class="mf">
+                <label class="ml">Целевая коллекция Firestore</label>
+                <select class="mi" id="ds-col-inp">
+                  <option value="dastdarozOrders">dastdarozOrders (курьер назначается из дашборда)</option>
+                  <option value="mavsimiOrders">mavsimiOrders (внешний бэкенд, только хранение)</option>
+                </select>
+              </div>
+              <div class="mf">
+                <label class="ml">Порядок отображения</label>
+                <input class="mi" type="number" id="ds-order-inp" placeholder="1" min="1" max="99">
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+                <input type="checkbox" id="ds-active-chk" checked style="width:16px;height:16px;accent-color:var(--acc)">
+                <label for="ds-active-chk" style="font-size:.72rem;color:var(--text);cursor:pointer">Активна (отображается в корзине)</label>
+              </div>
+            </div>
+            <div class="mo-foot">
+              <button class="btn btn-secondary" onclick="closeDSModal()">Отмена</button>
+              <button class="btn btn-primary" onclick="saveDS()">Сохранить →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RETAILERS ── -->
+      <div class="page" id="page-stores">
+        <div class="sh">
+          <div><div class="sh-tag">Управление · Firestore: retailers/</div><div class="sh-title">Ритейлеры <em>&amp; Точки</em></div></div>
+          <div class="sh-actions">
+            <button class="btn btn-primary" onclick="openRetailerModal()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Новый ритейлер
+            </button>
+          </div>
+        </div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
+          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="ret-kv-active">—</div><div class="kpi-sub">Показываются на главной</div><div class="kpi-ico">🏪</div></div>
+          <div class="kpi acc"><div class="kpi-label">Всего ритейлеров</div><div class="kpi-val" id="ret-kv-total">—</div><div class="kpi-sub">В коллекции retailers</div><div class="kpi-ico">🗂️</div></div>
+          <div class="kpi blue"><div class="kpi-label">Точек всего</div><div class="kpi-val" id="ret-kv-locs">—</div><div class="kpi-sub">По всем ритейлерам</div><div class="kpi-ico">📍</div></div>
+        </div>
+        <div id="retailers-list" style="display:flex;flex-direction:column;gap:10px">
+          <div class="pload"><div class="spin"></div> Загружаем ритейлеры…</div>
+        </div>
+      </div>
+
+      <!-- ── ADDRESSES ── -->
+      <div class="page" id="page-addresses">
+        <div class="sh">
+          <div><div class="sh-tag">Управление</div><div class="sh-title">Города <em>доставки</em></div></div>
+          <div class="sh-actions">
+            <button class="btn btn-primary" onclick="openCityModal()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Добавить город
+            </button>
+          </div>
+        </div>
+        <div class="kpis" style="margin-bottom:16px">
+          <div class="kpi acc"><div class="kpi-label">Всего городов</div><div class="kpi-val" id="az-kv-total">—</div><div class="kpi-sub">В коллекции cities</div><div class="kpi-ico">🏙️</div></div>
+          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="az-kv-avail">—</div><div class="kpi-sub">Доступны для заказа</div><div class="kpi-ico">✅</div></div>
+          <div class="kpi red"><div class="kpi-label">Скоро</div><div class="kpi-val" id="az-kv-unavail">—</div><div class="kpi-sub">Временно недоступны</div><div class="kpi-ico">🔜</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Список городов
+            </div>
+            <div class="tabs" id="az-tabs">
+              <button class="tab active" onclick="cityFilter('all',this)">Все</button>
+              <button class="tab" onclick="cityFilter('active',this)">Активные</button>
+              <button class="tab" onclick="cityFilter('inactive',this)">Скоро</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="ot">
+              <thead><tr><th>ID</th><th>Название</th><th>Регион</th><th>Порядок</th><th>Статус</th><th>Действия</th></tr></thead>
+              <tbody id="az-tbody"><tr><td colspan="6"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── GEN CATALOGS ── -->
+      <div class="page" id="page-gen-catalogs">
+        <div class="sh">
+          <div><div class="sh-tag">Управление</div><div class="sh-title">Общий <em>каталог</em></div></div>
+          <div class="sh-actions">
+            <button class="btn btn-secondary btn-sm" onclick="initGenCatalogs()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              Инициализировать все (51)
+            </button>
+          </div>
+        </div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
+          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="gc-kv-active">—</div><div class="kpi-sub">Показываются на главной</div><div class="kpi-ico">✅</div></div>
+          <div class="kpi red"><div class="kpi-label">Скрытых</div><div class="kpi-val" id="gc-kv-hidden">—</div><div class="kpi-sub">Не отображаются</div><div class="kpi-ico">🙈</div></div>
+          <div class="kpi acc"><div class="kpi-label">Всего</div><div class="kpi-val" id="gc-kv-total">—</div><div class="kpi-sub">Категорий в Firestore</div><div class="kpi-ico">📂</div></div>
+        </div>
+        <div id="gen-catalogs-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          <div class="pload" style="grid-column:1/-1"><div class="spin"></div> Загружаем каталог…</div>
+        </div>
+      </div>
+
+      <!-- ── NEWS ── -->
+      <div class="page" id="page-news">
+        <div class="sh">
+          <div><div class="sh-tag">Контент</div><div class="sh-title">Новости <em>&amp; Статьи</em></div></div>
+          <div class="sh-actions">
+            <div class="tabs">
+              <button class="tab active" onclick="fNews('all',this)">Все</button>
+              <button class="tab" onclick="fNews('published',this)">Опубликованы</button>
+              <button class="tab" onclick="fNews('draft',this)">Черновики</button>
+            </div>
+            <button class="btn btn-primary" onclick="openNewsModal()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Статья
+            </button>
+          </div>
+        </div>
+        <div id="news-stats" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"></div>
+        <div class="panel">
+          <div style="overflow-x:auto">
+            <table class="ot">
+              <thead><tr><th>Статья</th><th>Категория</th><th>Автор</th><th>Статус</th><th>Просмотры</th><th>Дата</th><th>Действия</th></tr></thead>
+              <tbody id="news-ob"><tr><td colspan="7"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ANALYTICS ── -->
+      <div class="page" id="page-analytics">
+        <div class="sh"><div><div class="sh-tag">Отчёты</div><div class="sh-title">Аналитика</div></div></div>
+        <div class="three-col" style="margin-bottom:12px">
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Заказы по часам</div></div>
+            <div style="padding:12px 14px">
+              <div style="display:flex;align-items:flex-end;gap:2px;height:72px" id="ch-hourly"></div>
+              <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:.48rem;color:var(--text3);margin-top:5px"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Заказы по дням (7 дней)</div></div>
+            <div style="padding:12px 14px">
+              <div style="display:flex;align-items:flex-end;gap:4px;height:72px" id="ch-daily"></div>
+              <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:.48rem;color:var(--text3);margin-top:5px" id="ch-dlbls"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Топ категорий</div></div>
+            <div id="top-cats"></div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="panel"><div class="panel-head"><div class="panel-title">Топ курьеров</div></div><div id="top-couriers"></div></div>
+          <div class="panel"><div class="panel-head"><div class="panel-title">Сводка</div></div><div id="period-sum" style="padding:14px 16px"></div></div>
+        </div>
+      </div>
+
+      <!-- ── STAFF ── -->
+      <div class="page" id="page-staff">
+        <div class="sh">
+          <div><div class="sh-tag">Администрирование</div><div class="sh-title">Сотрудники</div></div>
+          <div class="sh-actions"><button class="btn btn-primary" onclick="openAddStaff()">+ Сотрудник</button></div>
+        </div>
+        <div class="panel">
+          <div style="overflow-x:auto">
+            <table class="ot">
+              <thead><tr><th>Сотрудник</th><th>Email</th><th>Роль</th><th>Последний вход</th><th>Действия</th></tr></thead>
+              <tbody id="staff-ob"><tr><td colspan="5"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS ── -->
+      <div class="page" id="page-settings">
+        <div class="sh"><div><div class="sh-tag">Конфигурация</div><div class="sh-title">Настройки</div></div></div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Параметры доставки</div></div>
+            <div style="padding:16px">
+              <div class="mf"><label class="ml">Стоимость доставки (₽)</label><input class="mi" type="number" id="s-fee" value="149"/></div>
+              <div class="mf"><label class="ml">Минимальная сумма (₽)</label><input class="mi" type="number" id="s-min" value="200"/></div>
+              <div class="mf"><label class="ml">Радиус доставки (км)</label><input class="mi" type="number" id="s-rad" value="15"/></div>
+              <button class="btn btn-primary" onclick="saveSettings()">Сохранить</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">О системе</div></div>
+            <div style="padding:16px;font-size:.72rem;color:var(--text2);line-height:2.2">
+              <div><span style="color:var(--text3)">Версия:</span> Admin v2.0</div>
+              <div><span style="color:var(--text3)">База данных:</span> Firebase Firestore</div>
+              <div><span style="color:var(--text3)">Проект:</span> dastdaroz</div>
+              <div><span style="color:var(--text3)">Статус:</span> <span style="color:var(--green)">● Работает</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── HR ── -->
+      <div class="page" id="page-hr">
+        <div class="sh">
+          <div><div class="sh-tag">Кадры</div><div class="sh-title">HR / <em>Вакансии</em></div></div>
+          <div class="sh-actions">
+            <div class="tabs">
+              <button class="tab active" onclick="fHr('all',this)">Все</button>
+              <button class="tab" onclick="fHr('open',this)">Открытые</button>
+              <button class="tab" onclick="fHr('closed',this)">Закрытые</button>
+            </div>
+            <button class="btn btn-primary" onclick="openHrModal()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Вакансия
+            </button>
+          </div>
+        </div>
+        <div class="kpi-grid" style="margin-bottom:14px">
+          <div class="kpi green"><div class="kpi-label">Открытых вакансий</div><div class="kpi-val" id="hr-kv-open">—</div><div class="kpi-sub">Активных позиций</div><div class="kpi-ico">💼</div></div>
+          <div class="kpi blue"><div class="kpi-label">Заявок всего</div><div class="kpi-val" id="hr-kv-apps">—</div><div class="kpi-sub">На все вакансии</div><div class="kpi-ico">📩</div></div>
+          <div class="kpi yellow"><div class="kpi-label">Отделов</div><div class="kpi-val" id="hr-kv-depts">—</div><div class="kpi-sub">С открытыми вакансиями</div><div class="kpi-ico">🏢</div></div>
+          <div class="kpi acc"><div class="kpi-label">Закрытых</div><div class="kpi-val" id="hr-kv-closed">—</div><div class="kpi-sub">Позиций закрыто</div><div class="kpi-ico">✅</div></div>
+        </div>
+        <div class="panel">
+          <div style="overflow-x:auto">
+            <table class="ot">
+              <thead><tr><th>Должность</th><th>Отдел</th><th>Тип</th><th>Зарплата</th><th>Заявок</th><th>Статус</th><th>Создано</th><th>Действия</th></tr></thead>
+              <tbody id="hr-ob"><tr><td colspan="8"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ADS ── -->
+      <div class="page" id="page-ads">
+        <div class="sh"><div><div class="sh-tag">Контент</div><div class="sh-title">Реклама</div></div></div>
+        <div style="max-width:680px">
+          <div class="panel" style="margin-bottom:16px">
+            <div class="panel-head">
+              <div class="panel-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-4 0v2"/></svg>
+                Промо-баннер на главной странице
+              </div>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+              <label class="ads-toggle">
+                <input type="checkbox" id="ads-active" onchange="previewPromo()"/>
+                <span style="font-size:.75rem;font-weight:600;color:var(--text)">Показывать баннер</span>
+              </label>
+              <div>
+                <div class="ml" style="margin-bottom:6px">URL изображения <span style="color:var(--text3);font-weight:400;font-size:.6rem">(рекомендуется 984×312 px)</span></div>
+                <input type="url" id="ads-img-url" class="mi" placeholder="https://example.com/banner.jpg" oninput="previewPromo()"/>
+                <div class="ads-preview-wrap" id="ads-preview-wrap">
+                  <img id="ads-preview-img" src="" alt="Preview"
+                       onerror="this.style.display='none';document.getElementById('ads-preview-empty').style.display='flex'"
+                       onload="this.style.display='block';document.getElementById('ads-preview-empty').style.display='none'"/>
+                  <div class="ads-preview-empty" id="ads-preview-empty">Не удалось загрузить изображение</div>
+                </div>
+              </div>
+              <div>
+                <div class="ml" style="margin-bottom:6px">Ссылка при клике <span style="color:var(--text3);font-weight:400;font-size:.6rem">(необязательно)</span></div>
+                <input type="url" id="ads-link-url" class="mi" placeholder="https://example.com/promo"/>
+                <div style="font-size:.6rem;color:var(--text3);margin-top:4px">Если не указано — клик ничего не делает</div>
+              </div>
+              <div style="display:flex;gap:8px;padding-top:4px">
+                <button class="btn btn-primary" onclick="saveHomePromo()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Сохранить
+                </button>
+                <button class="btn btn-secondary" onclick="renderAdsPage()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+                  Сбросить
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Рекомендации</div></div>
+            <div style="padding:16px;background:var(--s2);margin:16px;border-radius:10px;font-size:.68rem;color:var(--text2);line-height:1.8">
+              📌 Изображение должно быть <strong>984×312 px</strong><br>
+              📌 Поддерживаются форматы: JPG, PNG, WebP, GIF<br>
+              📌 Если баннер неактивен — секция полностью скрыта<br>
+              📌 Ссылка открывается в новой вкладке
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PARTNERS ── -->
+      <div class="page" id="page-partners">
+        <div class="sh">
+          <div><div class="sh-tag">Заявки</div><div class="sh-title">Партнерство</div></div>
+          <div class="sh-actions">
+            <div class="tabs">
+              <button class="tab active" onclick="fPartners('all',this)">Все</button>
+              <button class="tab" onclick="fPartners('new',this)">🔔 Новые</button>
+              <button class="tab" onclick="fPartners('contacted',this)">✓ Связались</button>
+              <button class="tab" onclick="fPartners('archived',this)">Архив</button>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
+          <div class="kpi yellow"><div class="kpi-label">Новые заявки</div><div class="kpi-val" id="partner-kv-new">—</div><div class="kpi-sub">Ждут обработки</div><div class="kpi-ico">📩</div></div>
+          <div class="kpi green"><div class="kpi-label">Связались</div><div class="kpi-val" id="partner-kv-contacted">—</div><div class="kpi-sub">Обработанных</div><div class="kpi-ico">✅</div></div>
+          <div class="kpi acc"><div class="kpi-label">Всего</div><div class="kpi-val" id="partner-kv-total">—</div><div class="kpi-sub">Заявок получено</div><div class="kpi-ico">🤝</div></div>
+        </div>
+        <div class="panel">
+          <div style="overflow-x:auto">
+            <table class="ot">
+              <thead><tr><th>Компания / Ресторан</th><th>Адрес</th><th>Телефон</th><th>Доп. телефон</th><th>Комментарий</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead>
+              <tbody id="partner-ob"><tr><td colspan="8"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pages -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

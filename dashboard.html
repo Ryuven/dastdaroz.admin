@@ -1181,6 +1181,10 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
         Каталог
       </button>
+      <button class="ni" data-page="delivery-services" onclick="goPage('delivery-services')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Курьерские службы
+      </button>
       <button class="ni" data-page="stores" onclick="goPage('stores')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         Ритейлеры
@@ -1456,6 +1460,81 @@ textarea.mi     { resize: vertical; min-height: 76px; }
               <thead><tr><th>Товар</th><th>Категория</th><th>Цена</th><th>Штрих-код</th><th>Статус</th><th>Действия</th></tr></thead>
               <tbody id="cat-ob"><tr><td colspan="6"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DELIVERY SERVICES ── -->
+      <div class="page" id="page-delivery-services">
+        <div class="sh">
+          <div>
+            <div class="sh-tag">Управление · Firestore: deliveryServices/</div>
+            <div class="sh-title">Курьерские <em>службы</em></div>
+          </div>
+          <div class="sh-actions">
+            <button class="btn btn-primary" onclick="openDSModal()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Новая служба
+            </button>
+          </div>
+        </div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:14px">
+          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="ds-kv-active">—</div><div class="kpi-sub">Отображаются в корзине</div><div class="kpi-ico">🚚</div></div>
+          <div class="kpi acc"><div class="kpi-label">Всего служб</div><div class="kpi-val" id="ds-kv-total">—</div><div class="kpi-sub">В коллекции deliveryServices</div><div class="kpi-ico">🗂️</div></div>
+        </div>
+        <div id="ds-list" style="display:flex;flex-direction:column;gap:10px">
+          <div class="pload"><div class="spin"></div> Загружаем…</div>
+        </div>
+
+        <!-- Модалка добавления/редактирования курьерской службы -->
+        <div class="mo-bg" id="ds-modal-bg" onclick="closeDSModal(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;display:none;align-items:center;justify-content:center">
+          <div class="mo" style="width:min(480px,95vw);max-height:80vh;overflow-y:auto">
+            <div class="mo-head">
+              <div class="mo-title" id="ds-modal-title">Новая курьерская служба</div>
+              <button class="mo-close" onclick="closeDSModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div class="mo-body" style="padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+              <input type="hidden" id="ds-edit-id">
+              <div class="mf">
+                <label class="ml">ID службы <span style="color:var(--red)">*</span></label>
+                <input class="mi" id="ds-id-inp" placeholder="например: mavsimi или dastdaroz" maxlength="40">
+                <div style="font-size:.55rem;color:var(--text3);margin-top:3px">Латиница, без пробелов. Используется как deliveryService в заказе.</div>
+              </div>
+              <div class="mf">
+                <label class="ml">Название <span style="color:var(--red)">*</span></label>
+                <input class="mi" id="ds-name-inp" placeholder="Мавсими Расон" maxlength="80">
+              </div>
+              <div class="mf">
+                <label class="ml">Подзаголовок</label>
+                <input class="mi" id="ds-sub-inp" placeholder="Хидмати расонидан" maxlength="100">
+              </div>
+              <div class="mf">
+                <label class="ml">URL логотипа (Storage path)</label>
+                <input class="mi" id="ds-logo-inp" placeholder="/storage/delivery-service/mavsimi_rason_mini.png">
+                <div style="font-size:.55rem;color:var(--text3);margin-top:3px">Путь относительно хоста или полный URL из Firebase Storage.</div>
+              </div>
+              <div class="mf">
+                <label class="ml">Целевая коллекция Firestore</label>
+                <select class="mi" id="ds-col-inp">
+                  <option value="dastdarozOrders">dastdarozOrders (курьер назначается из дашборда)</option>
+                  <option value="mavsimiOrders">mavsimiOrders (внешний бэкенд, только хранение)</option>
+                </select>
+              </div>
+              <div class="mf">
+                <label class="ml">Порядок отображения</label>
+                <input class="mi" type="number" id="ds-order-inp" placeholder="1" min="1" max="99">
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+                <input type="checkbox" id="ds-active-chk" checked style="width:16px;height:16px;accent-color:var(--acc)">
+                <label for="ds-active-chk" style="font-size:.72rem;color:var(--text);cursor:pointer">Активна (отображается в корзине)</label>
+              </div>
+            </div>
+            <div class="mo-foot">
+              <button class="btn btn-secondary" onclick="closeDSModal()">Отмена</button>
+              <button class="btn btn-primary" onclick="saveDS()">Сохранить →</button>
+            </div>
           </div>
         </div>
       </div>

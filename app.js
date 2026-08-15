@@ -139,7 +139,7 @@ let CU = null; // Firebase User
 let AD = null; // Данные из Firestore (users/{uid})
 
 // Основные коллекции
-let allOrders    = [];
+let allOrders    = [];  // объединяет bookedOrders + dastdarozOrders + mavsimiOrders
 let allCouriers  = [];
 let allClients   = [];
 let allProducts  = [];
@@ -148,6 +148,10 @@ let allGenCatalogs = [];
 let allNews      = [];
 let allVacancies = [];
 let allPartnerApps = [];
+
+// Курьерские службы
+let allDeliveryServices = [];
+let _dsEditId = null;
 
 // Ритейлеры (Firestore: retailers/)
 let _retailers   = [];
@@ -178,11 +182,14 @@ let partnerFilt = 'all';
 
 // Редактирование
 let assignOid      = null;
+let assignCol      = null;  // коллекция заказа при назначении курьера
 let editingNewsId  = null;
 let editingVacId   = null;
 
 // Unsubscribe refs для onSnapshot
-let unsubOrders   = null;
+let unsubOrders   = null;  // bookedOrders listener
+let unsubDast     = null;  // dastdarozOrders listener
+let unsubMav      = null;  // mavsimiOrders listener (активные)
 let unsubCouriers = null;
 
 // Лента активности
@@ -280,36 +287,96 @@ function renderSB() {
 // ══════════════════════════════════════════════════════════════
 
 function startListeners() {
-  // Слушаем активные заказы
+  // ── bookedOrders (статус reserved) ──────────────────────────
   if (unsubOrders) unsubOrders();
-  const qOrders = query(
-    collection(db, 'orders'),
-    where('status', 'in', ['pending','confirmed','preparing','delivering'])
+  const qBooked = query(
+    collection(db, 'bookedOrders'),
+    where('status', '==', 'reserved')
   );
-  let firstOrders = true;
-  unsubOrders = onSnapshot(qOrders, (sn) => {
-    liveOrders = sn.docs.map(d => ({ id: d.id, ...d.data() }));
+  let firstBooked = true;
+  unsubOrders = onSnapshot(qBooked, (sn) => {
+    const booked = sn.docs.map(d => ({ id: d.id, ...d.data(), _col: 'bookedOrders' }));
+    // Мержим: заменяем bookedOrders в liveOrders, сохраняем dastdaroz/mavsimi
+    liveOrders = [
+      ...booked,
+      ...liveOrders.filter(o => o._col !== 'bookedOrders'),
+    ];
     renderLiveOrders();
     updateKPI();
     renderDonut();
-
-    if (!firstOrders) {
+    if (!firstBooked) {
       sn.docChanges().forEach((ch) => {
         const o = ch.doc.data();
         if (ch.type === 'added') {
-          pushAct(`Новый заказ <strong>#${ch.doc.id.slice(-6).toUpperCase()}</strong> от ${o.clientName || 'клиента'}`, o.status);
-          toast('📦 Новый заказ: #' + ch.doc.id.slice(-6).toUpperCase(), 'info');
-        }
-        if (ch.type === 'modified') {
-          pushAct(`Заказ <strong>#${ch.doc.id.slice(-6).toUpperCase()}</strong> → ${SL[o.status] || o.status}`, o.status);
+          pushAct(`Новая бронь <strong>#${ch.doc.id.slice(-6).toUpperCase()}</strong> от ${o.clientName || 'клиента'}`, 'reserved');
+          toast('🔒 Новая бронь: #' + ch.doc.id.slice(-6).toUpperCase(), 'info');
         }
       });
     }
-    firstOrders = false;
+    firstBooked = false;
     updateOrdBadge();
   });
 
-  // Слушаем всех курьеров
+  // ── dastdarozOrders (активные) ──────────────────────────────
+  if (unsubDast) unsubDast();
+  const qDast = query(
+    collection(db, 'dastdarozOrders'),
+    where('status', 'in', ['pending', 'confirmed', 'preparing', 'delivering'])
+  );
+  let firstDast = true;
+  unsubDast = onSnapshot(qDast, (sn) => {
+    const dast = sn.docs.map(d => ({ id: d.id, ...d.data(), _col: 'dastdarozOrders' }));
+    liveOrders = [
+      ...liveOrders.filter(o => o._col !== 'dastdarozOrders'),
+      ...dast,
+    ];
+    renderLiveOrders();
+    updateKPI();
+    renderDonut();
+    if (!firstDast) {
+      sn.docChanges().forEach((ch) => {
+        const o = ch.doc.data();
+        if (ch.type === 'added') {
+          pushAct(`Заказ dastdaroz <strong>#${ch.doc.id.slice(-6).toUpperCase()}</strong> — ${o.clientName || 'клиент'}`, o.status);
+          toast('📦 Dastdaroz заказ: #' + ch.doc.id.slice(-6).toUpperCase(), 'info');
+        }
+        if (ch.type === 'modified') {
+          pushAct(`Dastdaroz #${ch.doc.id.slice(-6).toUpperCase()} → ${SL[o.status] || o.status}`, o.status);
+        }
+      });
+    }
+    firstDast = false;
+    updateOrdBadge();
+  });
+
+  // ── mavsimiOrders (активные — только pending, дальше через бэкенд) ──
+  if (unsubMav) unsubMav();
+  const qMav = query(
+    collection(db, 'mavsimiOrders'),
+    where('status', '==', 'pending')
+  );
+  let firstMav = true;
+  unsubMav = onSnapshot(qMav, (sn) => {
+    const mav = sn.docs.map(d => ({ id: d.id, ...d.data(), _col: 'mavsimiOrders' }));
+    liveOrders = [
+      ...liveOrders.filter(o => o._col !== 'mavsimiOrders'),
+      ...mav,
+    ];
+    renderLiveOrders();
+    updateKPI();
+    if (!firstMav) {
+      sn.docChanges().forEach((ch) => {
+        if (ch.type === 'added') {
+          pushAct(`Заказ Мавсими <strong>#${ch.doc.id.slice(-6).toUpperCase()}</strong>`, 'pending');
+          toast('🚚 Mavsimi заказ: #' + ch.doc.id.slice(-6).toUpperCase(), 'info');
+        }
+      });
+    }
+    firstMav = false;
+    updateOrdBadge();
+  });
+
+  // ── Couriers ────────────────────────────────────────────────
   if (unsubCouriers) unsubCouriers();
   unsubCouriers = onSnapshot(query(collection(db, 'couriers')), (sn) => {
     allCouriers = sn.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -339,6 +406,7 @@ async function loadAll() {
     loadStores(),       // Legacy: коллекция stores/ (не отображается в дашборде)
     loadGenCatalogs(),
     loadPartnerApps(),
+    loadDeliveryServices(),
   ]);
   renderKPI();
   renderAnalytics();
@@ -348,9 +416,23 @@ async function loadAll() {
 
 async function loadOrders() {
   try {
-    const q    = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(300));
-    const snap = await getDocs(q);
-    allOrders  = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const safeGet = async (col) => {
+      try {
+        const q = query(collection(db, col), orderBy('createdAt', 'desc'), limit(300));
+        const s = await getDocs(q);
+        return s.docs.map(d => ({ id: d.id, ...d.data(), _col: col }));
+      } catch { return []; }
+    };
+
+    const [booked, dast, mav] = await Promise.all([
+      safeGet('bookedOrders'),
+      safeGet('dastdarozOrders'),
+      safeGet('mavsimiOrders'),
+    ]);
+
+    allOrders = [...booked, ...dast, ...mav].sort(
+      (a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0)
+    );
     renderAllOrders();
   } catch (e) { console.error('Orders:', e); }
 }
@@ -530,13 +612,17 @@ function renderLiveOrders() {
 
 /** Строка таблицы заказа. live=true → без колонки «Курьер» */
 function oRow(o, live = false) {
-  const c = SC[o.status] || '#888';
-  const l = SL[o.status] || o.status;
+  const c   = SC[o.status] || '#888';
+  const l   = SL[o.status] || o.status;
+  const svcLabel = o._col === 'bookedOrders'   ? '<span style="font-size:.5rem;padding:1px 4px;background:#f0b44220;color:#f0b442;border:1px solid #f0b44230;border-radius:3px">🔒 Бронь</span>'
+                 : o._col === 'mavsimiOrders'   ? '<span style="font-size:.5rem;padding:1px 4px;background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630;border-radius:3px">МР</span>'
+                 : '<span style="font-size:.5rem;padding:1px 4px;background:var(--acc)20;color:var(--acc);border:1px solid var(--acc)30;border-radius:3px">DD</span>';
+  const canAssign = !o.courierId && ['pending','confirmed'].includes(o.status) && o._col === 'dastdarozOrders';
   const courierCol = live
     ? ''
     : `<td>${o.courierName || '<span style="color:var(--text3)">—</span>'}</td>`;
   return `<tr>
-    <td><span class="mono">#${o.id.slice(-6).toUpperCase()}</span></td>
+    <td><span class="mono">#${o.id.slice(-6).toUpperCase()}</span> ${svcLabel}</td>
     <td style="color:var(--text);font-weight:500">${o.clientName || '—'}</td>
     <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${o.address || '—'}</td>
     ${courierCol}
@@ -544,12 +630,12 @@ function oRow(o, live = false) {
     <td><span style="font-family:var(--fm)">${o.total || 0} ₽</span></td>
     <td><div class="oact">
       <button class="btn btn-secondary btn-sm" onclick="openOrderModal('${o.id}')">Детали</button>
-      ${!o.courierId && ['pending','confirmed'].includes(o.status)
-        ? `<button class="btn btn-success btn-sm" onclick="openAssign('${o.id}')">Назначить</button>` : ''}
-      ${['pending','confirmed'].includes(o.status)
-        ? `<button class="btn btn-danger btn-sm" onclick="cancelOrder('${o.id}')">✕</button>` : ''}
+      ${canAssign ? `<button class="btn btn-success btn-sm" onclick="openAssign('${o.id}','${o._col}')">Назначить</button>` : ''}
+      ${['pending','confirmed'].includes(o.status) && o._col !== 'mavsimiOrders'
+        ? `<button class="btn btn-danger btn-sm" onclick="cancelOrder('${o.id}','${o._col}')">✕</button>` : ''}
     </div></td>
   </tr>`;
+}
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -569,10 +655,16 @@ function renderAllOrders() {
     const date = o.createdAt?.toDate
       ? o.createdAt.toDate().toLocaleDateString('ru-RU', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
       : '—';
-    const c = SC[o.status] || '#888';
-    const l = SL[o.status] || o.status;
+    const c   = SC[o.status] || '#888';
+    const l   = SL[o.status] || o.status;
+    const svcLabel = o._col === 'bookedOrders'
+      ? '<span style="font-size:.5rem;padding:1px 4px;background:#f0b44220;color:#f0b442;border:1px solid #f0b44230;border-radius:3px">Бронь</span>'
+      : o._col === 'mavsimiOrders'
+      ? '<span style="font-size:.5rem;padding:1px 4px;background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630;border-radius:3px">МР</span>'
+      : '<span style="font-size:.5rem;padding:1px 4px;background:var(--acc)20;color:var(--acc);border:1px solid var(--acc)30;border-radius:3px">DD</span>';
+    const canAssign = !o.courierId && ['pending','confirmed'].includes(o.status) && o._col === 'dastdarozOrders';
     return `<tr>
-      <td><span class="mono">#${o.id.slice(-6).toUpperCase()}</span></td>
+      <td><span class="mono">#${o.id.slice(-6).toUpperCase()}</span> ${svcLabel}</td>
       <td style="color:var(--text);font-weight:500">${o.clientName || '—'}</td>
       <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.address || '—'}</td>
       <td style="color:var(--text2)">${o.courierName || '—'}</td>
@@ -581,8 +673,7 @@ function renderAllOrders() {
       <td><span class="mono">${date}</span></td>
       <td><div class="oact">
         <button class="btn btn-secondary btn-sm" onclick="openOrderModal('${o.id}')">Детали</button>
-        ${!o.courierId && ['pending','confirmed'].includes(o.status)
-          ? `<button class="btn btn-success btn-sm" onclick="openAssign('${o.id}')">+Курьер</button>` : ''}
+        ${canAssign ? `<button class="btn btn-success btn-sm" onclick="openAssign('${o.id}','${o._col}')">+Курьер</button>` : ''}
       </div></td>
     </tr>`;
   }).join('');
@@ -602,10 +693,13 @@ window.fOrders = function (f, btn) {
 window.openOrderModal = async function (oid) {
   let o = allOrders.find(x => x.id === oid) || liveOrders.find(x => x.id === oid);
   if (!o) {
-    try {
-      const snap = await getDoc(doc(db, 'orders', oid));
-      if (snap.exists()) o = { id: snap.id, ...snap.data() };
-    } catch {}
+    // Ищем последовательно во всех коллекциях
+    for (const col of ['bookedOrders', 'dastdarozOrders', 'mavsimiOrders', 'orders']) {
+      try {
+        const snap = await getDoc(doc(db, col, oid));
+        if (snap.exists()) { o = { id: snap.id, ...snap.data(), _col: col }; break; }
+      } catch {}
+    }
   }
   if (!o) { toast('Заказ не найден', 'err'); return; }
 
@@ -613,6 +707,10 @@ window.openOrderModal = async function (oid) {
   const pay  = o.paymentMethod === 'cash' ? '💵 Наличными' : o.paymentMethod === 'card' ? '💳 Картой' : '🌐 Онлайн';
   const c    = SC[o.status] || '#888';
   const l    = SL[o.status] || o.status;
+  const svcName = o._col === 'mavsimiOrders' ? '🚚 Мавсими Расон'
+                : o._col === 'bookedOrders'  ? '🔒 Не подтверждён'
+                : '📦 Dastdaroz Delivery';
+  const canAssign = !o.courierId && ['pending','confirmed'].includes(o.status) && o._col === 'dastdarozOrders';
 
   document.getElementById('m-order-title').innerHTML =
     `Заказ <span style="font-family:var(--fm);color:var(--acc2)">#${o.id.slice(-6).toUpperCase()}</span>`;
@@ -620,6 +718,7 @@ window.openOrderModal = async function (oid) {
   document.getElementById('m-order-body').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <span class="ostatus" style="color:${c};border-color:${c}30;background:${c}10"><span class="osdot"></span>${l}</span>
+      <span style="font-size:.55rem;color:var(--text3)">${svcName}</span>
       <span class="mono" style="font-size:.6rem;color:var(--text3)">${date}</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px">
@@ -643,6 +742,7 @@ window.openOrderModal = async function (oid) {
         <span style="font-family:var(--fm);color:var(--text)">${o.total} ₽</span>
       </div>
     </div>
+    ${o._col !== 'bookedOrders' ? `
     <div class="mf">
       <label class="ml">Изменить статус</label>
       <select class="mi" id="m-status-sel">
@@ -650,40 +750,53 @@ window.openOrderModal = async function (oid) {
           `<option value="${s}"${o.status === s ? ' selected' : ''}>${SL[s]}</option>`
         ).join('')}
       </select>
-    </div>`;
+    </div>` : `
+    <div style="background:var(--s2);border:1px solid var(--b);border-radius:6px;padding:10px 12px;font-size:.65rem;color:var(--text3)">
+      ⏳ Ожидает подтверждения клиентом. Статус изменится после подтверждения.
+    </div>`}`;
 
   document.getElementById('m-order-foot').innerHTML = `
     <button class="btn btn-secondary" onclick="closeMo('order-modal')">Закрыть</button>
-    ${!o.courierId ? `<button class="btn btn-success" onclick="closeMo('order-modal');openAssign('${o.id}')">+ Курьер</button>` : ''}
-    <button class="btn btn-primary" onclick="saveOrderStatus('${o.id}')">Сохранить →</button>`;
+    ${canAssign ? `<button class="btn btn-success" onclick="closeMo('order-modal');openAssign('${o.id}','${o._col}')">+ Курьер</button>` : ''}
+    ${o._col !== 'bookedOrders' ? `<button class="btn btn-primary" onclick="saveOrderStatus('${o.id}','${o._col}')">Сохранить →</button>` : ''}`;
 
   openMo('order-modal');
 };
 
-window.saveOrderStatus = async function (oid) {
+window.saveOrderStatus = async function (oid, col) {
   const sel = document.getElementById('m-status-sel'); if (!sel) return;
+  // Определяем коллекцию: приоритет параметру, затем ищем в памяти
+  const targetCol = col
+    || allOrders.find(x => x.id === oid)?._col
+    || liveOrders.find(x => x.id === oid)?._col
+    || 'dastdarozOrders';
   try {
-    await updateDoc(doc(db, 'orders', oid), { status: sel.value, updatedAt: serverTimestamp() });
+    await updateDoc(doc(db, targetCol, oid), { status: sel.value, updatedAt: serverTimestamp() });
     toast('Статус: ' + SL[sel.value], 'ok');
     closeMo('order-modal');
     await loadOrders();
   } catch { toast('Ошибка', 'err'); }
 };
 
-window.cancelOrder = async function (oid) {
+window.cancelOrder = async function (oid, col) {
   if (!confirm('Отменить заказ #' + oid.slice(-6).toUpperCase() + '?')) return;
+  const targetCol = col
+    || allOrders.find(x => x.id === oid)?._col
+    || liveOrders.find(x => x.id === oid)?._col
+    || 'dastdarozOrders';
   try {
-    await updateDoc(doc(db, 'orders', oid), { status: 'cancelled', updatedAt: serverTimestamp() });
+    await updateDoc(doc(db, targetCol, oid), { status: 'cancelled', updatedAt: serverTimestamp() });
     toast('Заказ отменён', 'ok');
   } catch { toast('Ошибка', 'err'); }
 };
 
 // ══════════════════════════════════════════════════════════════
-// ASSIGN COURIER
+// ASSIGN COURIER  (только для dastdarozOrders)
 // ══════════════════════════════════════════════════════════════
 
-window.openAssign = function (oid) {
+window.openAssign = function (oid, col) {
   assignOid = oid;
+  assignCol = col || 'dastdarozOrders';
   const sel  = document.getElementById('assign-sel');
   const free = allCouriers.filter(c => c.isOnline && !c.currentOrderId);
   sel.innerHTML = free.length
@@ -698,9 +811,13 @@ window.openAssign = function (oid) {
 window.doAssign = async function () {
   const cid = document.getElementById('assign-sel')?.value;
   if (!cid || !assignOid) { toast('Выберите курьера', 'warn'); return; }
+  if (assignCol !== 'dastdarozOrders') {
+    toast('Назначение курьера доступно только для Dastdaroz Delivery', 'warn');
+    return;
+  }
   const courier = allCouriers.find(c => c.id === cid);
   try {
-    await updateDoc(doc(db, 'orders', assignOid), {
+    await updateDoc(doc(db, 'dastdarozOrders', assignOid), {
       courierId:   cid,
       courierName: courier?.displayName || '',
       status:      'delivering',
@@ -1978,6 +2095,135 @@ window.viewApplications = async function (vacId) {
 };
 
 // ══════════════════════════════════════════════════════════════
+// DELIVERY SERVICES (Firestore: deliveryServices/)
+// Управление вкладками курьерских служб в корзине клиента.
+// ══════════════════════════════════════════════════════════════
+
+async function loadDeliveryServices() {
+  try {
+    const q  = query(collection(db, 'deliveryServices'), orderBy('order', 'asc'));
+    const sn = await getDocs(q);
+    allDeliveryServices = sn.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch {
+    try {
+      const sn = await getDocs(collection(db, 'deliveryServices'));
+      allDeliveryServices = sn.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch { allDeliveryServices = []; }
+  }
+  renderDeliveryServices();
+}
+
+function renderDeliveryServices() {
+  const el = document.getElementById('ds-list'); if (!el) return;
+  const active = allDeliveryServices.filter(s => s.active).length;
+  const tot    = allDeliveryServices.length;
+
+  const kva = document.getElementById('ds-kv-active');
+  const kvt = document.getElementById('ds-kv-total');
+  if (kva) kva.textContent = active;
+  if (kvt) kvt.textContent = tot;
+
+  if (!tot) {
+    el.innerHTML = `<div class="er"><div class="er-ico">🚚</div>Нет курьерских служб. Нажмите «Новая служба».</div>`;
+    return;
+  }
+
+  el.innerHTML = allDeliveryServices.map(s => {
+    const colLabel = s.targetCollection === 'mavsimiOrders'
+      ? '<span style="font-size:.5rem;padding:1px 5px;background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630;border-radius:3px">mavsimiOrders</span>'
+      : '<span style="font-size:.5rem;padding:1px 5px;background:var(--acc)20;color:var(--acc);border:1px solid var(--acc)30;border-radius:3px">dastdarozOrders</span>';
+    return `<div style="background:var(--s);border:1px solid var(--b);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px">
+      <img src="${s.logoUrl || ''}" alt="${s.name}"
+           style="width:44px;height:44px;border-radius:8px;object-fit:contain;background:var(--s2);border:1px solid var(--b)"
+           onerror="this.style.opacity='.3'">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.82rem;font-weight:600;color:var(--text)">${s.name} ${s.active ? '' : '<span style="font-size:.55rem;color:var(--red)">(неактивна)</span>'}</div>
+        <div style="font-size:.62rem;color:var(--text3);margin-top:2px">${s.subtitle || ''}</div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+          <span style="font-size:.5rem;padding:1px 5px;background:var(--s2);border:1px solid var(--b);border-radius:3px;color:var(--text3)">id: ${s.id}</span>
+          ${colLabel}
+          <span style="font-size:.5rem;padding:1px 5px;background:var(--s2);border:1px solid var(--b);border-radius:3px;color:var(--text3)">порядок: ${s.order ?? '—'}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button class="btn btn-secondary btn-sm" onclick="toggleDSActive('${s.id}',${!s.active})">${s.active ? 'Деактивировать' : 'Активировать'}</button>
+        <button class="btn btn-secondary btn-sm" onclick="openDSModal('${s.id}')">Редактировать</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteDS('${s.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.openDSModal = function (id = null) {
+  _dsEditId = id;
+  const s   = id ? allDeliveryServices.find(x => x.id === id) : null;
+  document.getElementById('ds-modal-title').textContent = id ? 'Редактировать службу' : 'Новая курьерская служба';
+  document.getElementById('ds-edit-id').value           = id || '';
+  document.getElementById('ds-id-inp').value            = s?.id || '';
+  document.getElementById('ds-id-inp').disabled         = !!id; // нельзя менять ID существующей
+  document.getElementById('ds-name-inp').value          = s?.name || '';
+  document.getElementById('ds-sub-inp').value           = s?.subtitle || '';
+  document.getElementById('ds-logo-inp').value          = s?.logoUrl || '';
+  document.getElementById('ds-col-inp').value           = s?.targetCollection || 'dastdarozOrders';
+  document.getElementById('ds-order-inp').value         = s?.order ?? '';
+  document.getElementById('ds-active-chk').checked      = s ? !!s.active : true;
+  document.getElementById('ds-modal-bg').style.display  = 'flex';
+};
+
+window.closeDSModal = function (e) {
+  if (e && e.target !== document.getElementById('ds-modal-bg')) return;
+  document.getElementById('ds-modal-bg').style.display = 'none';
+  _dsEditId = null;
+};
+
+window.saveDS = async function () {
+  const svcId = (document.getElementById('ds-id-inp').value || '').trim().toLowerCase().replace(/\s+/g, '-');
+  const name  = (document.getElementById('ds-name-inp').value || '').trim();
+  if (!svcId || !name) { toast('Заполните ID и название', 'warn'); return; }
+
+  const data = {
+    name,
+    subtitle:         (document.getElementById('ds-sub-inp').value || '').trim(),
+    logoUrl:          (document.getElementById('ds-logo-inp').value || '').trim(),
+    targetCollection: document.getElementById('ds-col-inp').value || 'dastdarozOrders',
+    order:            parseInt(document.getElementById('ds-order-inp').value) || 99,
+    active:           document.getElementById('ds-active-chk').checked,
+    updatedAt:        serverTimestamp(),
+  };
+
+  try {
+    if (_dsEditId) {
+      await updateDoc(doc(db, 'deliveryServices', _dsEditId), data);
+      toast('Служба обновлена', 'ok');
+    } else {
+      data.createdAt = serverTimestamp();
+      await setDoc(doc(db, 'deliveryServices', svcId), data);
+      toast('Служба добавлена', 'ok');
+    }
+    document.getElementById('ds-modal-bg').style.display = 'none';
+    _dsEditId = null;
+    await loadDeliveryServices();
+  } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
+};
+
+window.toggleDSActive = async function (id, val) {
+  try {
+    await updateDoc(doc(db, 'deliveryServices', id), { active: val, updatedAt: serverTimestamp() });
+    toast(val ? 'Служба активирована' : 'Служба деактивирована', 'ok');
+    await loadDeliveryServices();
+  } catch { toast('Ошибка', 'err'); }
+};
+
+window.deleteDS = async function (id) {
+  if (!confirm(`Удалить курьерскую службу "${id}"? Это не удалит уже созданные заказы.`)) return;
+  try {
+    await deleteDoc(doc(db, 'deliveryServices', id));
+    toast('Служба удалена', 'ok');
+    await loadDeliveryServices();
+  } catch { toast('Ошибка', 'err'); }
+};
+
+// ══════════════════════════════════════════════════════════════
 // STORES — Legacy (Firestore: stores/)
 // Коллекция stores/ НЕ отображается в дашборде.
 // Данные загружаются, т.к. могут использоваться в home.html.
@@ -3074,22 +3320,23 @@ window.deleteRetProd = async function (id) {
 // ══════════════════════════════════════════════════════════════
 
 const PAGE_TITLES = {
-  overview:      'Обзор',
-  orders:        'Заказы',
-  couriers:      'Курьеры',
-  clients:       'Клиенты',
-  support:       'Поддержка',
-  catalog:       'Каталог',
-  stores:        'Ритейлеры',
-  addresses:     'Адреса доставки',
-  'gen-catalogs':'Общий каталог',
-  news:          'Новости',
-  analytics:     'Аналитика',
-  staff:         'Сотрудники',
-  settings:      'Настройки',
-  hr:            'HR / Вакансии',
-  ads:           'Реклама',
-  partners:      'Партнерство',
+  overview:             'Обзор',
+  orders:               'Заказы',
+  couriers:             'Курьеры',
+  clients:              'Клиенты',
+  support:              'Поддержка',
+  catalog:              'Каталог',
+  'delivery-services':  'Курьерские службы',
+  stores:               'Ритейлеры',
+  addresses:            'Адреса доставки',
+  'gen-catalogs':       'Общий каталог',
+  news:                 'Новости',
+  analytics:            'Аналитика',
+  staff:                'Сотрудники',
+  settings:             'Настройки',
+  hr:                   'HR / Вакансии',
+  ads:                  'Реклама',
+  partners:             'Партнерство',
 };
 
 window.goPage = function (page) {
@@ -3101,18 +3348,19 @@ window.goPage = function (page) {
   const el = document.getElementById('tb-title');
   if (el) el.textContent = PAGE_TITLES[page] || page;
 
-  if (page === 'couriers')    renderCouriersPage();
-  if (page === 'support')     { renderSupportChats(); listenTgChats(); }
-  if (page === 'analytics')   renderAnalytics();
-  if (page === 'staff')       renderStaff();
-  if (page === 'overview')    { renderDonut(); renderLiveOrders(); renderAct(); }
-  if (page === 'news')        renderNewsTable();
-  if (page === 'hr')          renderHrPage();
-  if (page === 'stores')      renderRetailersPage();
-  if (page === 'ads')         renderAdsPage();
-  if (page === 'gen-catalogs')renderGenCatalogsPage();
-  if (page === 'partners')    renderPartnerPage();
-  if (page === 'addresses')   loadAZones();
+  if (page === 'couriers')          renderCouriersPage();
+  if (page === 'support')           { renderSupportChats(); listenTgChats(); }
+  if (page === 'analytics')         renderAnalytics();
+  if (page === 'staff')             renderStaff();
+  if (page === 'overview')          { renderDonut(); renderLiveOrders(); renderAct(); }
+  if (page === 'news')              renderNewsTable();
+  if (page === 'hr')                renderHrPage();
+  if (page === 'stores')            renderRetailersPage();
+  if (page === 'ads')               renderAdsPage();
+  if (page === 'gen-catalogs')      renderGenCatalogsPage();
+  if (page === 'partners')          renderPartnerPage();
+  if (page === 'addresses')         loadAZones();
+  if (page === 'delivery-services') loadDeliveryServices();
 
   closeSB();
   document.getElementById('pages')?.scrollTo(0, 0);

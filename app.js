@@ -2162,22 +2162,22 @@ function renderDeliveryServices() {
 window.openDSModal = function (id = null) {
   _dsEditId = id;
   const s   = id ? allDeliveryServices.find(x => x.id === id) : null;
-  document.getElementById('ds-modal-title').textContent = id ? 'Редактировать службу' : 'Новая курьерская служба';
-  document.getElementById('ds-edit-id').value           = id || '';
-  document.getElementById('ds-id-inp').value            = s?.id || '';
-  document.getElementById('ds-id-inp').disabled         = !!id; // нельзя менять ID существующей
-  document.getElementById('ds-name-inp').value          = s?.name || '';
-  document.getElementById('ds-sub-inp').value           = s?.subtitle || '';
-  document.getElementById('ds-logo-inp').value          = s?.logoUrl || '';
-  document.getElementById('ds-col-inp').value           = s?.targetCollection || 'dastdarozOrders';
-  document.getElementById('ds-order-inp').value         = s?.order ?? '';
-  document.getElementById('ds-active-chk').checked      = s ? !!s.active : true;
-  document.getElementById('ds-modal-bg').style.display  = 'flex';
+  document.getElementById('ds-modal-title').textContent  = id ? 'Редактировать службу' : 'Новая курьерская служба';
+  document.getElementById('ds-edit-id').value            = id || '';
+  const idInp = document.getElementById('ds-id-inp');
+  idInp.value    = s?.id || '';
+  idInp.disabled = !!id; // нельзя менять ID существующей службы
+  document.getElementById('ds-name-inp').value           = s?.name || '';
+  document.getElementById('ds-sub-inp').value            = s?.subtitle || '';
+  document.getElementById('ds-logo-inp').value           = s?.logoUrl || '';
+  document.getElementById('ds-col-inp').value            = s?.targetCollection || 'dastdarozOrders';
+  document.getElementById('ds-order-inp').value          = s?.order ?? '';
+  document.getElementById('ds-active-chk').checked       = s ? !!s.active : true;
+  openMo('ds-modal');
 };
 
-window.closeDSModal = function (e) {
-  if (e && e.target !== document.getElementById('ds-modal-bg')) return;
-  document.getElementById('ds-modal-bg').style.display = 'none';
+window.closeDSModal = function () {
+  closeMo('ds-modal');
   _dsEditId = null;
 };
 
@@ -2205,7 +2205,7 @@ window.saveDS = async function () {
       await setDoc(doc(db, 'deliveryServices', svcId), data);
       toast('Служба добавлена', 'ok');
     }
-    document.getElementById('ds-modal-bg').style.display = 'none';
+    closeMo('ds-modal');
     _dsEditId = null;
     await loadDeliveryServices();
   } catch (e) { toast('Ошибка: ' + e.message, 'err'); }

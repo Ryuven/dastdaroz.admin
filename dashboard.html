@@ -847,6 +847,58 @@ textarea.mi     { resize: vertical; min-height: 76px; }
   </div>
 </div>
 
+<!-- Delivery Service Modal -->
+<div class="mo" id="ds-modal" onclick="if(event.target===this)closeMo('ds-modal')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title" id="ds-modal-title">Новая курьерская служба</div>
+      <button class="modal-x" onclick="closeMo('ds-modal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:13px">
+      <input type="hidden" id="ds-edit-id">
+      <div class="mf">
+        <label class="ml">ID службы <span style="color:var(--red)">*</span></label>
+        <input class="mi" id="ds-id-inp" placeholder="например: mavsimi или dastdaroz" maxlength="40">
+        <div style="font-size:.55rem;color:var(--text3);margin-top:3px">Латиница, без пробелов. Используется как deliveryService в заказе.</div>
+      </div>
+      <div class="mf">
+        <label class="ml">Название <span style="color:var(--red)">*</span></label>
+        <input class="mi" id="ds-name-inp" placeholder="Мавсими Расон" maxlength="80">
+      </div>
+      <div class="mf">
+        <label class="ml">Подзаголовок</label>
+        <input class="mi" id="ds-sub-inp" placeholder="Хидмати расонидан" maxlength="100">
+      </div>
+      <div class="mf">
+        <label class="ml">URL логотипа (Firebase Storage path)</label>
+        <input class="mi" id="ds-logo-inp" placeholder="/storage/delivery-service/logo_mini.png">
+        <div style="font-size:.55rem;color:var(--text3);margin-top:3px">Путь относительно хоста или полный URL.</div>
+      </div>
+      <div class="mf">
+        <label class="ml">Целевая коллекция Firestore</label>
+        <select class="mi" id="ds-col-inp">
+          <option value="dastdarozOrders">dastdarozOrders — курьер назначается из дашборда</option>
+          <option value="mavsimiOrders">mavsimiOrders — внешний бэкенд (только хранение)</option>
+        </select>
+      </div>
+      <div class="mf">
+        <label class="ml">Порядок отображения</label>
+        <input class="mi" type="number" id="ds-order-inp" placeholder="1" min="1" max="99">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="ds-active-chk" checked style="width:16px;height:16px;accent-color:var(--acc)">
+        <label for="ds-active-chk" style="font-size:.72rem;color:var(--text);cursor:pointer">Активна (показывается в корзине клиента)</label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeMo('ds-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveDS()">Сохранить →</button>
+    </div>
+  </div>
+</div>
+
 <!-- News Modal -->
 <div class="mo" id="news-modal">
   <div class="modal" style="max-width:560px">
@@ -1486,58 +1538,6 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         </div>
         <div id="ds-list" style="display:flex;flex-direction:column;gap:10px">
           <div class="pload"><div class="spin"></div> Загружаем…</div>
-        </div>
-
-        <!-- Модалка добавления/редактирования курьерской службы -->
-        <div class="mo-bg" id="ds-modal-bg" onclick="closeDSModal(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;display:none;align-items:center;justify-content:center">
-          <div class="mo" style="width:min(480px,95vw);max-height:80vh;overflow-y:auto">
-            <div class="mo-head">
-              <div class="mo-title" id="ds-modal-title">Новая курьерская служба</div>
-              <button class="mo-close" onclick="closeDSModal()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-            <div class="mo-body" style="padding:18px 20px;display:flex;flex-direction:column;gap:12px">
-              <input type="hidden" id="ds-edit-id">
-              <div class="mf">
-                <label class="ml">ID службы <span style="color:var(--red)">*</span></label>
-                <input class="mi" id="ds-id-inp" placeholder="например: mavsimi или dastdaroz" maxlength="40">
-                <div style="font-size:.55rem;color:var(--text3);margin-top:3px">Латиница, без пробелов. Используется как deliveryService в заказе.</div>
-              </div>
-              <div class="mf">
-                <label class="ml">Название <span style="color:var(--red)">*</span></label>
-                <input class="mi" id="ds-name-inp" placeholder="Мавсими Расон" maxlength="80">
-              </div>
-              <div class="mf">
-                <label class="ml">Подзаголовок</label>
-                <input class="mi" id="ds-sub-inp" placeholder="Хидмати расонидан" maxlength="100">
-              </div>
-              <div class="mf">
-                <label class="ml">URL логотипа (Storage path)</label>
-                <input class="mi" id="ds-logo-inp" placeholder="/storage/delivery-service/mavsimi_rason_mini.png">
-                <div style="font-size:.55rem;color:var(--text3);margin-top:3px">Путь относительно хоста или полный URL из Firebase Storage.</div>
-              </div>
-              <div class="mf">
-                <label class="ml">Целевая коллекция Firestore</label>
-                <select class="mi" id="ds-col-inp">
-                  <option value="dastdarozOrders">dastdarozOrders (курьер назначается из дашборда)</option>
-                  <option value="mavsimiOrders">mavsimiOrders (внешний бэкенд, только хранение)</option>
-                </select>
-              </div>
-              <div class="mf">
-                <label class="ml">Порядок отображения</label>
-                <input class="mi" type="number" id="ds-order-inp" placeholder="1" min="1" max="99">
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
-                <input type="checkbox" id="ds-active-chk" checked style="width:16px;height:16px;accent-color:var(--acc)">
-                <label for="ds-active-chk" style="font-size:.72rem;color:var(--text);cursor:pointer">Активна (отображается в корзине)</label>
-              </div>
-            </div>
-            <div class="mo-foot">
-              <button class="btn btn-secondary" onclick="closeDSModal()">Отмена</button>
-              <button class="btn btn-primary" onclick="saveDS()">Сохранить →</button>
-            </div>
-          </div>
         </div>
       </div>
 

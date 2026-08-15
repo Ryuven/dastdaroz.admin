@@ -1276,6 +1276,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           <div class="kpi green"><div class="kpi-label">Доставлено</div><div class="kpi-val" id="kv-done">—</div><div class="kpi-sub">Успешных</div><div class="kpi-ico">✅</div></div>
           <div class="kpi red"><div class="kpi-label">Отменено <span class="kpi-trend down" id="kt-can">—</span></div><div class="kpi-val" id="kv-can">—</div><div class="kpi-sub">Заказов отменено</div><div class="kpi-ico">❌</div></div>
           <div class="kpi acc"><div class="kpi-label">В процессе</div><div class="kpi-val" id="kv-active">—</div><div class="kpi-sub">Готовятся / в пути</div><div class="kpi-ico">🔄</div></div>
+          <div class="kpi yellow" style="border-style:dashed"><div class="kpi-label">🔒 Брони</div><div class="kpi-val" id="kv-reserved">—</div><div class="kpi-sub">Ждут подтверждения клиентом</div><div class="kpi-ico">📋</div></div>
         </div>
         <div class="two-col">
           <div class="panel">
@@ -1329,6 +1330,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           <div class="sh-actions">
             <div class="tabs">
               <button class="tab active" onclick="fOrders('all',this)">Все</button>
+              <button class="tab" onclick="fOrders('reserved',this)">🔒 Брони</button>
               <button class="tab" onclick="fOrders('pending',this)">Ожидают</button>
               <button class="tab" onclick="fOrders('delivering',this)">В пути</button>
               <button class="tab" onclick="fOrders('delivered',this)">Доставлено</button>

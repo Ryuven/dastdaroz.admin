@@ -34,6 +34,7 @@ import {
 
 // Статусы заказов
 const SL = {
+  reserved:  'Забронирован',
   pending:   'Ожидает',
   confirmed: 'Подтверждён',
   preparing: 'Готовится',
@@ -44,6 +45,7 @@ const SL = {
 
 // Цвета статусов заказов
 const SC = {
+  reserved:  'var(--yellow)',
   pending:   'var(--yellow)',
   confirmed: 'var(--acc)',
   preparing: '#a855f7',
@@ -466,21 +468,23 @@ async function loadStaff() {
 // ══════════════════════════════════════════════════════════════
 
 function renderKPI() {
-  const total  = allOrders.length;
-  const done   = allOrders.filter(o => o.status === 'delivered').length;
-  const can    = allOrders.filter(o => o.status === 'cancelled').length;
-  const active = allOrders.filter(o => ['preparing','delivering'].includes(o.status)).length;
-  const rev    = allOrders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (o.total || 0), 0);
-  const pend   = allOrders.filter(o => ['pending','confirmed'].includes(o.status)).length;
+  const total    = allOrders.length;
+  const done     = allOrders.filter(o => o.status === 'delivered').length;
+  const can      = allOrders.filter(o => o.status === 'cancelled').length;
+  const active   = allOrders.filter(o => ['preparing','delivering'].includes(o.status)).length;
+  const rev      = allOrders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (o.total || 0), 0);
+  const pend     = allOrders.filter(o => ['pending','confirmed'].includes(o.status)).length;
+  const reserved = allOrders.filter(o => o.status === 'reserved').length;
 
-  set('kv-ord',    total);
-  set('kv-rev',    rev.toLocaleString('ru-RU') + ' ₽');
-  set('kv-cli',    allClients.length);
-  set('kv-can',    can);
-  set('kv-pend',   pend);
-  set('kv-done',   done);
-  set('kv-active', active);
-  set('kt-can',    total ? Math.round(can / total * 100) + '%' : '0%');
+  set('kv-ord',      total);
+  set('kv-rev',      rev.toLocaleString('ru-RU') + ' ₽');
+  set('kv-cli',      allClients.length);
+  set('kv-can',      can);
+  set('kv-pend',     pend);
+  set('kv-done',     done);
+  set('kv-active',   active);
+  set('kv-reserved', reserved);
+  set('kt-can',      total ? Math.round(can / total * 100) + '%' : '0%');
 
   renderSpark('sp-ord', genData(7));
   renderSpark('sp-rev', genData(7), 'g');
@@ -488,10 +492,12 @@ function renderKPI() {
 }
 
 function updateKPI() {
-  const pend   = liveOrders.filter(o => ['pending','confirmed'].includes(o.status)).length;
-  const active = liveOrders.filter(o => ['preparing','delivering'].includes(o.status)).length;
-  set('kv-pend',   pend);
-  set('kv-active', active);
+  const pend     = liveOrders.filter(o => ['pending','confirmed'].includes(o.status)).length;
+  const active   = liveOrders.filter(o => ['preparing','delivering'].includes(o.status)).length;
+  const reserved = liveOrders.filter(o => o.status === 'reserved').length;
+  set('kv-pend',     pend);
+  set('kv-active',   active);
+  set('kv-reserved', reserved);
   updateOrdBadge();
 }
 
@@ -635,7 +641,6 @@ function oRow(o, live = false) {
         ? `<button class="btn btn-danger btn-sm" onclick="cancelOrder('${o.id}','${o._col}')">✕</button>` : ''}
     </div></td>
   </tr>`;
-}
 }
 
 // ══════════════════════════════════════════════════════════════

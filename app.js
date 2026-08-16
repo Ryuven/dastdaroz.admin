@@ -2101,132 +2101,124 @@ window.viewApplications = async function (vacId) {
 
 // ══════════════════════════════════════════════════════════════
 // DELIVERY SERVICES (Firestore: deliveryServices/)
-// Управление вкладками курьерских служб в корзине клиента.
+// Две дефолтные службы создаются автоматически при первом открытии.
+// Добавление новых — только через Firestore Console.
 // ══════════════════════════════════════════════════════════════
+
+const DEFAULT_DELIVERY_SERVICES = [
+  {
+    id:               'mavsimi',
+    name:             'Мавсими Расон',
+    subtitle:         'Хидмати расонидан',
+    logoUrl:          '/storage/delivery-service/mavsimi_rason_mini.png',
+    targetCollection: 'mavsimiOrders',
+    order:            1,
+    active:           true,
+  },
+  {
+    id:               'dastdaroz',
+    name:             'Dastdaroz Delivery',
+    subtitle:         'Бета · Собственная доставка',
+    logoUrl:          '/storage/delivery-service/dastdaroz_delivery_mini.png',
+    targetCollection: 'dastdarozOrders',
+    order:            2,
+    active:           true,
+  },
+];
 
 async function loadDeliveryServices() {
   try {
-    // Не используем orderBy — Firestore исключает документы без поля 'order'.
-    // Сортируем на клиенте, чтобы показывать все службы независимо от структуры.
+    // Простой getDocs без orderBy — не фильтрует по наличию полей
     const sn = await getDocs(collection(db, 'deliveryServices'));
-    allDeliveryServices = sn.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+
+    if (sn.empty) {
+      // Коллекция пуста — авто-создаём дефолтные службы
+      const b = writeBatch(db);
+      DEFAULT_DELIVERY_SERVICES.forEach(s => {
+        const { id, ...data } = s;
+        b.set(doc(db, 'deliveryServices', id), {
+          ...data,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+      });
+      await b.commit();
+      allDeliveryServices = DEFAULT_DELIVERY_SERVICES.map(s => ({ ...s }));
+      toast('Службы доставки инициализированы в Firestore', 'ok');
+    } else {
+      allDeliveryServices = sn.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+    }
   } catch (e) {
     console.error('loadDeliveryServices:', e);
-    allDeliveryServices = [];
+    // Фоллбэк — показываем дефолты без записи
+    allDeliveryServices = DEFAULT_DELIVERY_SERVICES.map(s => ({ ...s }));
   }
   renderDeliveryServices();
 }
 
 function renderDeliveryServices() {
   const el = document.getElementById('ds-list'); if (!el) return;
-  const active = allDeliveryServices.filter(s => s.active).length;
-  const tot    = allDeliveryServices.length;
 
+  const activeCnt = allDeliveryServices.filter(s => s.active).length;
+  const totalCnt  = allDeliveryServices.length;
   const kva = document.getElementById('ds-kv-active');
   const kvt = document.getElementById('ds-kv-total');
-  if (kva) kva.textContent = active;
-  if (kvt) kvt.textContent = tot;
+  if (kva) kva.textContent = activeCnt;
+  if (kvt) kvt.textContent = totalCnt;
 
-  if (!tot) {
-    el.innerHTML = `<div class="er"><div class="er-ico">🚚</div>Нет курьерских служб. Нажмите «Новая служба».</div>`;
+  if (!totalCnt) {
+    el.innerHTML = `<div class="er"><div class="er-ico">🚚</div>Загрузка служб…</div>`;
     return;
   }
 
   el.innerHTML = allDeliveryServices.map(s => {
-    const colLabel = s.targetCollection === 'mavsimiOrders'
-      ? '<span style="font-size:.5rem;padding:1px 5px;background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630;border-radius:3px">mavsimiOrders</span>'
-      : '<span style="font-size:.5rem;padding:1px 5px;background:var(--acc)20;color:var(--acc);border:1px solid var(--acc)30;border-radius:3px">dastdarozOrders</span>';
-    return `<div style="background:var(--s);border:1px solid var(--b);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px">
-      <img src="${s.logoUrl || ''}" alt="${s.name}"
-           style="width:44px;height:44px;border-radius:8px;object-fit:contain;background:var(--s2);border:1px solid var(--b)"
-           onerror="this.style.opacity='.3'">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:.82rem;font-weight:600;color:var(--text)">${s.name} ${s.active ? '' : '<span style="font-size:.55rem;color:var(--red)">(неактивна)</span>'}</div>
-        <div style="font-size:.62rem;color:var(--text3);margin-top:2px">${s.subtitle || ''}</div>
-        <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
-          <span style="font-size:.5rem;padding:1px 5px;background:var(--s2);border:1px solid var(--b);border-radius:3px;color:var(--text3)">id: ${s.id}</span>
-          ${colLabel}
-          <span style="font-size:.5rem;padding:1px 5px;background:var(--s2);border:1px solid var(--b);border-radius:3px;color:var(--text3)">порядок: ${s.order ?? '—'}</span>
+    const colBadge = s.targetCollection === 'mavsimiOrders'
+      ? `<span style="font-size:.48rem;padding:1px 5px;background:#3b82f615;color:#3b82f6;border:1px solid #3b82f625;border-radius:3px">mavsimiOrders</span>`
+      : `<span style="font-size:.48rem;padding:1px 5px;background:var(--acc-bg,#f0f4ff);color:var(--acc);border:1px solid var(--b);border-radius:3px">dastdarozOrders</span>`;
+
+    const isActive = !!s.active;
+
+    return `
+      <div style="background:var(--s);border:1px solid var(--b);border-radius:10px;padding:16px 18px;
+                  display:flex;align-items:center;gap:14px;opacity:${isActive ? 1 : .55}">
+        <img src="${s.logoUrl || ''}" alt="${s.name}"
+             style="width:48px;height:48px;border-radius:10px;object-fit:contain;background:var(--s2);border:1px solid var(--b);flex-shrink:0"
+             onerror="this.style.opacity='.25'">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.84rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px">
+            ${s.name}
+            ${isActive
+              ? `<span style="font-size:.48rem;padding:1px 5px;background:#10b98115;color:#10b981;border:1px solid #10b98125;border-radius:3px">● Активна</span>`
+              : `<span style="font-size:.48rem;padding:1px 5px;background:var(--red)15;color:var(--red);border:1px solid var(--red)25;border-radius:3px">○ Скрыта</span>`}
+          </div>
+          <div style="font-size:.63rem;color:var(--text3);margin-top:2px">${s.subtitle || ''}</div>
+          <div style="margin-top:6px;display:flex;align-items:center;flex-wrap:wrap;gap:5px">
+            <span style="font-size:.48rem;padding:1px 5px;background:var(--s2);border:1px solid var(--b);border-radius:3px;color:var(--text3)">id: <strong>${s.id}</strong></span>
+            ${colBadge}
+          </div>
         </div>
-      </div>
-      <div style="display:flex;gap:8px;flex-shrink:0">
-        <button class="btn btn-secondary btn-sm" onclick="toggleDSActive('${s.id}',${!s.active})">${s.active ? 'Деактивировать' : 'Активировать'}</button>
-        <button class="btn btn-secondary btn-sm" onclick="openDSModal('${s.id}')">Редактировать</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteDS('${s.id}')">✕</button>
-      </div>
-    </div>`;
+        <div style="flex-shrink:0">
+          <button class="btn ${isActive ? 'btn-danger' : 'btn-primary'} btn-sm"
+                  style="min-width:110px"
+                  onclick="toggleDSActive('${s.id}',${!isActive})">
+            ${isActive ? '⊘ Скрыть' : '✓ Показать'}
+          </button>
+        </div>
+      </div>`;
   }).join('');
 }
 
-window.openDSModal = function (id = null) {
-  _dsEditId = id;
-  const s   = id ? allDeliveryServices.find(x => x.id === id) : null;
-  document.getElementById('ds-modal-title').textContent  = id ? 'Редактировать службу' : 'Новая курьерская служба';
-  document.getElementById('ds-edit-id').value            = id || '';
-  const idInp = document.getElementById('ds-id-inp');
-  idInp.value    = s?.id || '';
-  idInp.disabled = !!id; // нельзя менять ID существующей службы
-  document.getElementById('ds-name-inp').value           = s?.name || '';
-  document.getElementById('ds-sub-inp').value            = s?.subtitle || '';
-  document.getElementById('ds-logo-inp').value           = s?.logoUrl || '';
-  document.getElementById('ds-col-inp').value            = s?.targetCollection || 'dastdarozOrders';
-  document.getElementById('ds-order-inp').value          = s?.order ?? '';
-  document.getElementById('ds-active-chk').checked       = s ? !!s.active : true;
-  openMo('ds-modal');
-};
-
-window.closeDSModal = function () {
-  closeMo('ds-modal');
-  _dsEditId = null;
-};
-
-window.saveDS = async function () {
-  const svcId = (document.getElementById('ds-id-inp').value || '').trim().toLowerCase().replace(/\s+/g, '-');
-  const name  = (document.getElementById('ds-name-inp').value || '').trim();
-  if (!svcId || !name) { toast('Заполните ID и название', 'warn'); return; }
-
-  const data = {
-    name,
-    subtitle:         (document.getElementById('ds-sub-inp').value || '').trim(),
-    logoUrl:          (document.getElementById('ds-logo-inp').value || '').trim(),
-    targetCollection: document.getElementById('ds-col-inp').value || 'dastdarozOrders',
-    order:            parseInt(document.getElementById('ds-order-inp').value) || 99,
-    active:           document.getElementById('ds-active-chk').checked,
-    updatedAt:        serverTimestamp(),
-  };
-
-  try {
-    if (_dsEditId) {
-      await updateDoc(doc(db, 'deliveryServices', _dsEditId), data);
-      toast('Служба обновлена', 'ok');
-    } else {
-      data.createdAt = serverTimestamp();
-      await setDoc(doc(db, 'deliveryServices', svcId), data);
-      toast('Служба добавлена', 'ok');
-    }
-    closeMo('ds-modal');
-    _dsEditId = null;
-    await loadDeliveryServices();
-  } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
-};
-
 window.toggleDSActive = async function (id, val) {
   try {
-    await updateDoc(doc(db, 'deliveryServices', id), { active: val, updatedAt: serverTimestamp() });
-    toast(val ? 'Служба активирована' : 'Служба деактивирована', 'ok');
+    await setDoc(doc(db, 'deliveryServices', id), {
+      active:    val,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+    toast(val ? '✓ Служба активирована' : '○ Служба скрыта в корзине', val ? 'ok' : 'warn');
     await loadDeliveryServices();
-  } catch { toast('Ошибка', 'err'); }
-};
-
-window.deleteDS = async function (id) {
-  if (!confirm(`Удалить курьерскую службу "${id}"? Это не удалит уже созданные заказы.`)) return;
-  try {
-    await deleteDoc(doc(db, 'deliveryServices', id));
-    toast('Служба удалена', 'ok');
-    await loadDeliveryServices();
-  } catch { toast('Ошибка', 'err'); }
+  } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
 };
 
 // ══════════════════════════════════════════════════════════════

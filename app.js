@@ -258,8 +258,13 @@ onAuthStateChanged(auth, async (u) => {
       return;
     }
     AD = snap.data();
-  } catch {
-    AD = { displayName: CU.email, role: 'admin' };
+  } catch (e) {
+    // ⚠️ ВАЖНО: при любой ошибке чтения — выходим.
+    // Никогда не даём доступ если не удалось подтвердить роль.
+    console.error('Auth role check failed:', e);
+    await signOut(auth).catch(() => {});
+    location.href = 'admin-login.html';
+    return;
   }
 
   renderSB();
@@ -477,7 +482,7 @@ function renderKPI() {
   const reserved = allOrders.filter(o => o.status === 'reserved').length;
 
   set('kv-ord',      total);
-  set('kv-rev',      rev.toLocaleString('ru-RU') + ' ₽');
+  set('kv-rev',      rev.toLocaleString('ru-RU') + ' смн.');
   set('kv-cli',      allClients.length);
   set('kv-can',      can);
   set('kv-pend',     pend);
@@ -640,7 +645,7 @@ function oRow(o, live = false) {
     <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${o.address || '—'}</td>
     ${courierCol}
     <td><span class="ostatus" style="color:${c};border-color:${c}30;background:${c}10"><span class="osdot"></span>${l}</span></td>
-    <td><span style="font-family:var(--fm)">${o.total || 0} ₽</span></td>
+    <td><span style="font-family:var(--fm)">${o.total || 0} смн.</span></td>
     <td><div class="oact">
       <button class="btn btn-secondary btn-sm" onclick="openOrderModal('${o.id}')">Детали</button>
       ${canAssign ? `<button class="btn btn-success btn-sm" onclick="openAssign('${o.id}','${o._col}')">Назначить</button>` : ''}
@@ -681,7 +686,7 @@ function renderAllOrders() {
       <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.address || '—'}</td>
       <td style="color:var(--text2)">${o.courierName || '—'}</td>
       <td><span class="ostatus" style="color:${c};border-color:${c}30;background:${c}10"><span class="osdot"></span>${l}</span></td>
-      <td><span style="font-family:var(--fm);color:var(--text2)">${o.total || 0} ₽</span></td>
+      <td><span style="font-family:var(--fm);color:var(--text2)">${o.total || 0} смн.</span></td>
       <td><span class="mono">${date}</span></td>
       <td><div class="oact">
         <button class="btn btn-secondary btn-sm" onclick="openOrderModal('${o.id}')">Детали</button>
@@ -730,28 +735,28 @@ window.openOrderModal = async function (oid) {
   document.getElementById('m-order-body').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <span class="ostatus" style="color:${c};border-color:${c}30;background:${c}10"><span class="osdot"></span>${l}</span>
-      <span style="font-size:.55rem;color:var(--text3)">${svcName}</span>
+      <span style="font-size:.55rem;color:var(--text3)">${escHtml(svcName)}</span>
       <span class="mono" style="font-size:.6rem;color:var(--text3)">${date}</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px">
-      <div><div style="font-size:.44rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:3px">Клиент</div><div style="font-size:.76rem;color:var(--text)">${o.clientName || '—'}</div></div>
-      <div><div style="font-size:.44rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:3px">Курьер</div><div style="font-size:.76rem;color:var(--text)">${o.courierName || 'Не назначен'}</div></div>
-      <div style="grid-column:1/-1"><div style="font-size:.44rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:3px">Адрес</div><div style="font-size:.76rem;color:var(--text)">${o.address || '—'}</div></div>
-      <div><div style="font-size:.44rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:3px">Оплата</div><div style="font-size:.76rem;color:var(--text)">${pay}</div></div>
-      <div><div style="font-size:.44rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:3px">Комментарий</div><div style="font-size:.76rem;color:var(--text)">${o.comment || 'Нет'}</div></div>
+      <div><div style="font-size:.44rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:3px">Клиент</div><div style="font-size:.76rem;color:var(--text)">${escHtml(o.clientName || '—')}</div></div>
+      <div><div style="font-size:.44rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:3px">Курьер</div><div style="font-size:.76rem;color:var(--text)">${escHtml(o.courierName || 'Не назначен')}</div></div>
+      <div style="grid-column:1/-1"><div style="font-size:.44rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:3px">Адрес</div><div style="font-size:.76rem;color:var(--text)">${escHtml(o.address || '—')}</div></div>
+      <div><div style="font-size:.44rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:3px">Оплата</div><div style="font-size:.76rem;color:var(--text)">${escHtml(pay)}</div></div>
+      <div><div style="font-size:.44rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:3px">Комментарий</div><div style="font-size:.76rem;color:var(--text)">${escHtml(o.comment || 'Нет')}</div></div>
     </div>
     <div style="font-size:.48rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:7px">Состав заказа</div>
     <div style="background:var(--s2);border:1px solid var(--b);border-radius:7px;overflow:hidden;margin-bottom:12px">
       ${(o.items || []).map(i =>
         `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 11px;border-bottom:1px solid var(--b);font-size:.72rem">
-          <span style="color:var(--text)">${i.name}</span>
-          <span style="color:var(--text3);font-family:var(--fm)">×${i.quantity}</span>
-          <span style="color:var(--green);font-family:var(--fm)">${i.price * i.quantity} ₽</span>
+          <span style="color:var(--text)">${escHtml(i.name)}</span>
+          <span style="color:var(--text3);font-family:var(--fm)">×${Number(i.quantity) || 0}</span>
+          <span style="color:var(--green);font-family:var(--fm)">${(Number(i.price) || 0) * (Number(i.quantity) || 0)} смн.</span>
         </div>`
       ).join('')}
       <div style="display:flex;justify-content:space-between;padding:9px 11px;font-weight:600;font-size:.78rem">
         <span style="color:var(--text2)">Итого</span>
-        <span style="font-family:var(--fm);color:var(--text)">${o.total} ₽</span>
+        <span style="font-family:var(--fm);color:var(--text)">${Number(o.total) || 0} смн.</span>
       </div>
     </div>
     ${o._col !== 'bookedOrders' ? `
@@ -891,7 +896,7 @@ function renderCouriersPage() {
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--b)">
         <div style="background:var(--s2);padding:9px;text-align:center"><div style="font-family:var(--fd);font-weight:800;font-size:.95rem;color:var(--acc2)">${c.totalDeliveries || 0}</div><div style="font-size:.42rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px">Доставок</div></div>
-        <div style="background:var(--s2);padding:9px;text-align:center"><div style="font-family:var(--fd);font-weight:800;font-size:.95rem;color:var(--green)">${c.earnings || 0}₽</div><div style="font-size:.42rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px">Заработок</div></div>
+        <div style="background:var(--s2);padding:9px;text-align:center"><div style="font-family:var(--fd);font-weight:800;font-size:.95rem;color:var(--green)">${c.earnings || 0} смн.</div><div style="font-size:.42rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px">Заработок</div></div>
         <div style="background:var(--s2);padding:9px;text-align:center"><div style="font-size:.85rem">${{ bicycle:'bike', scooter:'scooter', car:'car', foot:'walk' }[c.vehicle || 'foot'] || 'bike'}</div><div style="font-size:.42rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px">Транспорт</div></div>
       </div>
       <div style="padding:9px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
@@ -1031,14 +1036,14 @@ function renderClients() {
     const spent  = orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (o.total || 0), 0);
     const date   = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleDateString('ru-RU') : '—';
     return `<tr>
-      <td style="color:var(--text);font-weight:500">${c.displayName || '—'}</td>
-      <td class="mono" style="font-size:.64rem">${c.email || '—'}</td>
-      <td>${c.phone || '—'}</td>
-      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.address || '—'}</td>
+      <td style="color:var(--text);font-weight:500">${escHtml(c.displayName || '—')}</td>
+      <td class="mono" style="font-size:.64rem">${escHtml(c.email || '—')}</td>
+      <td>${escHtml(c.phone || '—')}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(c.address || '—')}</td>
       <td style="font-family:var(--fm)">${orders.length}</td>
-      <td style="font-family:var(--fm);color:var(--green)">${spent.toLocaleString('ru-RU')} ₽</td>
+      <td style="font-family:var(--fm);color:var(--green)">${spent.toLocaleString('ru-RU')} смн.</td>
       <td class="mono" style="font-size:.62rem">${date}</td>
-      <td><button class="btn btn-secondary btn-sm" onclick="viewClient('${c.uid}')">Профиль</button></td>
+      <td><button class="btn btn-secondary btn-sm" onclick="viewClient('${escHtml(c.uid)}')">Профиль</button></td>
     </tr>`;
   }).join('');
 }
@@ -1051,19 +1056,19 @@ window.viewClient = function (uid) {
   document.getElementById('m-order-title').textContent = c.displayName || c.email || 'Клиент';
   document.getElementById('m-order-body').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-      <div class="mf"><label class="ml">Email</label><div style="font-size:.76rem;color:var(--text)">${c.email || '—'}</div></div>
-      <div class="mf"><label class="ml">Телефон</label><div style="font-size:.76rem;color:var(--text)">${c.phone || '—'}</div></div>
-      <div class="mf"><label class="ml">Адрес</label><div style="font-size:.76rem;color:var(--text)">${c.address || '—'}</div></div>
-      <div class="mf"><label class="ml">Заказов / Потрачено</label><div style="font-size:.76rem;color:var(--text)">${orders.length} / ${spent.toLocaleString('ru-RU')} ₽</div></div>
+      <div class="mf"><label class="ml">Email</label><div style="font-size:.76rem;color:var(--text)">${escHtml(c.email || '—')}</div></div>
+      <div class="mf"><label class="ml">Телефон</label><div style="font-size:.76rem;color:var(--text)">${escHtml(c.phone || '—')}</div></div>
+      <div class="mf"><label class="ml">Адрес</label><div style="font-size:.76rem;color:var(--text)">${escHtml(c.address || '—')}</div></div>
+      <div class="mf"><label class="ml">Заказов / Потрачено</label><div style="font-size:.76rem;color:var(--text)">${orders.length} / ${spent.toLocaleString('ru-RU')} смн.</div></div>
     </div>
     <div style="font-size:.48rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Последние заказы</div>
     ${orders.slice(0, 6).map(o => {
       const col = SC[o.status] || '#888';
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--b);font-size:.72rem">
         <span class="mono">#${o.id.slice(-6).toUpperCase()}</span>
-        <span style="color:var(--text2);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.address || '—'}</span>
+        <span style="color:var(--text2);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(o.address || '—')}</span>
         <span class="ostatus" style="color:${col};border-color:${col}30;background:${col}10;font-size:.5rem">${SL[o.status] || o.status}</span>
-        <span style="font-family:var(--fm);color:var(--green);font-size:.66rem">${o.total}₽</span>
+        <span style="font-family:var(--fm);color:var(--green);font-size:.66rem">${Number(o.total) || 0} смн.</span>
       </div>`;
     }).join('') || '<div style="color:var(--text3);font-size:.72rem;text-align:center;padding:14px">Нет заказов</div>'}`;
 
@@ -1104,7 +1109,7 @@ function renderCatalog() {
       ${p.name}
     </td>
     <td style="color:var(--text2)">${p.categoryId || '—'}</td>
-    <td style="font-family:var(--fm);color:var(--green)">${p.price} ₽</td>
+    <td style="font-family:var(--fm);color:var(--green)">${p.price} смн.</td>
     <td>
       ${p.barcode
         ? `<span style="font-family:var(--fm);font-size:.62rem;color:var(--acc2);background:var(--accd);border:1px solid var(--accg);padding:2px 7px;border-radius:4px;letter-spacing:.06em">${p.barcode}</span>`
@@ -1135,7 +1140,7 @@ window.openAddProduct = function () {
     <div class="mf"><label class="ml">Название *</label><input class="mi" id="p-nm" placeholder="Бургер Классик"/></div>
     <div class="mf"><label class="ml">Описание</label><input class="mi" id="p-ds" placeholder="Говядина, сыр, салат…"/></div>
     <div class="mr">
-      <div class="mf"><label class="ml">Цена (₽) *</label><input class="mi" type="number" id="p-pr" placeholder="350"/></div>
+      <div class="mf"><label class="ml">Цена (смн.) *</label><input class="mi" type="number" id="p-pr" placeholder="350"/></div>
       <div class="mf"><label class="ml">Категория</label><input class="mi" id="p-ct" placeholder="burgers"/></div>
     </div>
     <div class="mf"><label class="ml">URL изображения</label><input class="mi" id="p-im" placeholder="https://…"/></div>
@@ -1153,7 +1158,7 @@ window.editProduct = function (id) {
     <div class="mf"><label class="ml">Название</label><input class="mi" id="p-nm" value="${p.name || ''}"/></div>
     <div class="mf"><label class="ml">Описание</label><input class="mi" id="p-ds" value="${p.description || ''}"/></div>
     <div class="mr">
-      <div class="mf"><label class="ml">Цена (₽)</label><input class="mi" type="number" id="p-pr" value="${p.price || ''}"/></div>
+      <div class="mf"><label class="ml">Цена (смн.)</label><input class="mi" type="number" id="p-pr" value="${p.price || ''}"/></div>
       <div class="mf"><label class="ml">Категория</label><input class="mi" id="p-ct" value="${p.categoryId || ''}"/></div>
     </div>
     <div class="mf"><label class="ml">URL изображения</label><input class="mi" id="p-im" value="${p.imageUrl || ''}"/></div>
@@ -1516,7 +1521,7 @@ function renderAnalytics() {
         <div style="font-family:var(--fm);font-size:.66rem;color:var(--text3);width:14px">#${i + 1}</div>
         <div style="flex:1;font-size:.72rem;font-weight:500;color:var(--text)">${c.displayName || '—'}</div>
         <div style="font-family:var(--fm);font-size:.66rem;color:var(--acc2)">${c.totalDeliveries || 0} дост.</div>
-        <div style="font-family:var(--fm);font-size:.66rem;color:var(--green)">${c.earnings || 0}₽</div>
+        <div style="font-family:var(--fm);font-size:.66rem;color:var(--green)">${c.earnings || 0} смн.</div>
       </div>`
     ).join('') || '<div style="padding:14px;text-align:center;color:var(--text3);font-size:.7rem">Нет данных</div>';
 
@@ -1530,7 +1535,7 @@ function renderAnalytics() {
       `<div style="display:flex;justify-content:space-between"><span style="color:var(--text3)">${lbl}</span><span style="font-family:var(--fm);color:${col}">${val}</span></div>`;
     ps.innerHTML = `<div style="display:flex;flex-direction:column;gap:11px;font-size:.76rem">
       ${row('Всего заказов',          allOrders.length)}
-      ${row('Выручка',                rev.toLocaleString('ru-RU') + ' ₽', 'var(--green)')}
+      ${row('Выручка',                rev.toLocaleString('ru-RU') + ' смн.', 'var(--green)')}
       ${row('Доставлено',             del, 'var(--acc2)')}
       ${row('Отменено',               can, 'var(--red)')}
       ${row('Клиентов',               allClients.length)}
@@ -1622,7 +1627,10 @@ window.editStaff = function (uid) {
 };
 
 window.updateStaffRole = async function (uid) {
+  // Нельзя изменить собственную роль
+  if (uid === CU?.uid) { toast('Нельзя изменить собственную роль', 'err'); return; }
   const role = document.getElementById('st-rl-ed')?.value;
+  if (!['admin','support','moderator'].includes(role)) { toast('Неверная роль', 'err'); return; }
   try {
     await setDoc(doc(db, 'users', uid), { role, updatedAt: serverTimestamp() }, { merge: true });
     toast('Роль обновлена', 'ok');
@@ -3480,9 +3488,13 @@ window.saveSettings = function () {
 // ══════════════════════════════════════════════════════════════
 
 window.doLogout = async function () {
-  if (unsubOrders)  unsubOrders();
-  if (unsubCouriers) unsubCouriers();
-  if (unsubChats)    unsubChats();
+  // Отписываем ВСЕ onSnapshot слушатели перед выходом
+  if (unsubOrders)   { unsubOrders();   unsubOrders   = null; }
+  if (unsubDast)     { unsubDast();     unsubDast     = null; }
+  if (unsubMav)      { unsubMav();      unsubMav      = null; }
+  if (unsubCouriers) { unsubCouriers(); unsubCouriers = null; }
+  if (unsubChats)    { unsubChats();    unsubChats    = null; }
+  if (unsubChatMsgs) { unsubChatMsgs(); unsubChatMsgs = null; }
   await signOut(auth);
   location.href = 'admin-login.html';
 };

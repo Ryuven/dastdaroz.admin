@@ -63,18 +63,18 @@ const NEWS_CAT_LABELS = {
   'технология':'Технология',
 };
 const NEWS_CAT_EMOJI = {
-  'актуали':   '🔥',
-  'ҷомеа':     '👥',
-  'иқтисод':   '💼',
-  'варзиш':    '⚽',
-  'технология':'💻',
+  'актуали':   '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  'ҷомеа':     '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>',
+  'иқтисод':   '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>',
+  'варзиш':    '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 000 20 14.5 14.5 0 000-20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>',
+  'технология':'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
 };
 
 // Роли сотрудников
 const ROLES = {
-  admin:    '👑 Администратор',
-  support:  '🎧 Поддержка',
-  moderator:'🛡️ Модератор',
+  admin:    'Администратор',
+  support:  'Поддержка',
+  moderator:'Модератор',
 };
 
 // Дефолтный список общего каталога (51 категория)
@@ -225,7 +225,7 @@ function newsCatLabel(c) {
 
 /** Возвращает эмодзи категории новостей */
 function newsCatEmoji(c) {
-  return NEWS_CAT_EMOJI[(c || '').toLowerCase()] || '📰';
+  return NEWS_CAT_EMOJI[(c || '').toLowerCase()] || '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
 }
 
 /** Генерирует массив случайных чисел для спарклайнов */
@@ -311,7 +311,7 @@ function startListeners() {
         const o = ch.doc.data();
         if (ch.type === 'added') {
           pushAct(`Новая бронь <strong>#${ch.doc.id.slice(-6).toUpperCase()}</strong> от ${o.clientName || 'клиента'}`, 'reserved');
-          toast('🔒 Новая бронь: #' + ch.doc.id.slice(-6).toUpperCase(), 'info');
+          toast('Новая бронь: #' + ch.doc.id.slice(-6).toUpperCase(), 'info');
         }
       });
     }
@@ -340,7 +340,7 @@ function startListeners() {
         const o = ch.doc.data();
         if (ch.type === 'added') {
           pushAct(`Заказ dastdaroz <strong>#${ch.doc.id.slice(-6).toUpperCase()}</strong> — ${o.clientName || 'клиент'}`, o.status);
-          toast('📦 Dastdaroz заказ: #' + ch.doc.id.slice(-6).toUpperCase(), 'info');
+          toast('Dastdaroz заказ: #' + ch.doc.id.slice(-6).toUpperCase(), 'info');
         }
         if (ch.type === 'modified') {
           pushAct(`Dastdaroz #${ch.doc.id.slice(-6).toUpperCase()} → ${SL[o.status] || o.status}`, o.status);
@@ -370,7 +370,7 @@ function startListeners() {
       sn.docChanges().forEach((ch) => {
         if (ch.type === 'added') {
           pushAct(`Заказ Мавсими <strong>#${ch.doc.id.slice(-6).toUpperCase()}</strong>`, 'pending');
-          toast('🚚 Mavsimi заказ: #' + ch.doc.id.slice(-6).toUpperCase(), 'info');
+          toast('Mavsimi заказ: #' + ch.doc.id.slice(-6).toUpperCase(), 'info');
         }
       });
     }
@@ -590,11 +590,18 @@ function renderAct() {
     el.innerHTML = '<div style="padding:18px;text-align:center;font-size:.7rem;color:var(--text3)">Ожидаем активность…</div>';
     return;
   }
-  const ico = { pending:'⏳', confirmed:'✅', preparing:'👨‍🍳', delivering:'🚴', delivered:'🎉', cancelled:'❌' };
+  const ico = {
+    pending:   '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    confirmed: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+    preparing: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    delivering:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+    delivered: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    cancelled: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+  };
   const bc  = { pending:'var(--yellowd)', confirmed:'var(--accd)', preparing:'rgba(168,85,247,.1)', delivering:'var(--cyand)', delivered:'var(--greend)', cancelled:'var(--redd)' };
   el.innerHTML = actLog.slice(0, 8).map(a =>
     `<div class="af">
-      <div class="af-ico" style="background:${bc[a.status] || 'var(--s2)'}">${ico[a.status] || '📋'}</div>
+      <div class="af-ico" style="background:${bc[a.status] || 'var(--s2)'}">${ico[a.status] || '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 2H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V4a2 2 0 00-2-2h-2"/></svg>'}</div>
       <div><div class="af-txt">${a.text}</div><div class="af-time">${a.time}</div></div>
     </div>`
   ).join('');
@@ -610,7 +617,7 @@ function renderLiveOrders() {
     (a.createdAt?.toDate?.().getTime() || 0) - (b.createdAt?.toDate?.().getTime() || 0)
   );
   if (!sorted.length) {
-    body.innerHTML = '<tr><td colspan="6"><div class="er"><div class="er-ico">📭</div>Нет активных заказов</div></td></tr>';
+    body.innerHTML = '<tr><td colspan="6"><div class="er"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></div>Нет активных заказов</div></td></tr>';
     return;
   }
   body.innerHTML = sorted.map(o => oRow(o, true)).join('');
@@ -620,7 +627,7 @@ function renderLiveOrders() {
 function oRow(o, live = false) {
   const c   = SC[o.status] || '#888';
   const l   = SL[o.status] || o.status;
-  const svcLabel = o._col === 'bookedOrders'   ? '<span style="font-size:.5rem;padding:1px 4px;background:#f0b44220;color:#f0b442;border:1px solid #f0b44230;border-radius:3px">🔒 Бронь</span>'
+  const svcLabel = o._col === 'bookedOrders'   ? '<span style="font-size:.5rem;padding:1px 4px;background:#f0b44220;color:#f0b442;border:1px solid #f0b44230;border-radius:3px">Бронь</span>'
                  : o._col === 'mavsimiOrders'   ? '<span style="font-size:.5rem;padding:1px 4px;background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630;border-radius:3px">МР</span>'
                  : '<span style="font-size:.5rem;padding:1px 4px;background:var(--acc)20;color:var(--acc);border:1px solid var(--acc)30;border-radius:3px">DD</span>';
   const canAssign = !o.courierId && ['pending','confirmed'].includes(o.status) && o._col === 'dastdarozOrders';
@@ -653,7 +660,7 @@ function renderAllOrders() {
   if (ordFilt !== 'all') list = list.filter(o => o.status === ordFilt);
 
   if (!list.length) {
-    body.innerHTML = '<tr><td colspan="8"><div class="er"><div class="er-ico">📭</div>Нет заказов</div></td></tr>';
+    body.innerHTML = '<tr><td colspan="8"><div class="er"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></div>Нет заказов</div></td></tr>';
     return;
   }
   body.innerHTML = list.map(o => {
@@ -709,12 +716,12 @@ window.openOrderModal = async function (oid) {
   if (!o) { toast('Заказ не найден', 'err'); return; }
 
   const date = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString('ru-RU') : '—';
-  const pay  = o.paymentMethod === 'cash' ? '💵 Наличными' : o.paymentMethod === 'card' ? '💳 Картой' : '🌐 Онлайн';
+  const pay  = o.paymentMethod === 'cash' ? 'Наличными' : o.paymentMethod === 'card' ? 'Картой' : 'Онлайн';
   const c    = SC[o.status] || '#888';
   const l    = SL[o.status] || o.status;
-  const svcName = o._col === 'mavsimiOrders' ? '🚚 Мавсими Расон'
-                : o._col === 'bookedOrders'  ? '🔒 Не подтверждён'
-                : '📦 Dastdaroz Delivery';
+  const svcName = o._col === 'mavsimiOrders' ? 'Мавсими Расон'
+                : o._col === 'bookedOrders'  ? 'Не подтверждён'
+                : 'Dastdaroz Delivery';
   const canAssign = !o.courierId && ['pending','confirmed'].includes(o.status) && o._col === 'dastdarozOrders';
 
   document.getElementById('m-order-title').innerHTML =
@@ -757,7 +764,7 @@ window.openOrderModal = async function (oid) {
       </select>
     </div>` : `
     <div style="background:var(--s2);border:1px solid var(--b);border-radius:6px;padding:10px 12px;font-size:.65rem;color:var(--text3)">
-      ⏳ Ожидает подтверждения клиентом. Статус изменится после подтверждения.
+      Ожидает подтверждения клиентом. Статус изменится после подтверждения.
     </div>`}`;
 
   document.getElementById('m-order-foot').innerHTML = `
@@ -851,7 +858,7 @@ function renderCouriersPage() {
   if (verifFilt !== 'all')     list = list.filter(c => (c.verificationStatus || 'pending') === verifFilt);
 
   if (!list.length) {
-    g.innerHTML = '<div class="er" style="grid-column:1/-1"><div class="er-ico">🚴</div>Нет курьеров</div>';
+    g.innerHTML = '<div class="er" style="grid-column:1/-1"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>Нет курьеров</div>';
     return;
   }
 
@@ -885,7 +892,7 @@ function renderCouriersPage() {
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--b)">
         <div style="background:var(--s2);padding:9px;text-align:center"><div style="font-family:var(--fd);font-weight:800;font-size:.95rem;color:var(--acc2)">${c.totalDeliveries || 0}</div><div style="font-size:.42rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px">Доставок</div></div>
         <div style="background:var(--s2);padding:9px;text-align:center"><div style="font-family:var(--fd);font-weight:800;font-size:.95rem;color:var(--green)">${c.earnings || 0}₽</div><div style="font-size:.42rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px">Заработок</div></div>
-        <div style="background:var(--s2);padding:9px;text-align:center"><div style="font-size:.85rem">${{ bicycle:'🚴', scooter:'🛵', car:'🚗', foot:'🚶' }[c.vehicle || 'foot'] || '🚴'}</div><div style="font-size:.42rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px">Транспорт</div></div>
+        <div style="background:var(--s2);padding:9px;text-align:center"><div style="font-size:.85rem">${{ bicycle:'bike', scooter:'scooter', car:'car', foot:'walk' }[c.vehicle || 'foot'] || 'bike'}</div><div style="font-size:.42rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px">Транспорт</div></div>
       </div>
       <div style="padding:9px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         ${c.currentOrderId ? `<button class="btn btn-secondary btn-sm" onclick="openOrderModal('${c.currentOrderId}')">Заказ</button>` : ''}
@@ -1016,7 +1023,7 @@ window.saveVerifStatus = async function () {
 function renderClients() {
   const body = document.getElementById('cli-ob'); if (!body) return;
   if (!allClients.length) {
-    body.innerHTML = '<tr><td colspan="8"><div class="er"><div class="er-ico">👤</div>Нет клиентов</div></td></tr>';
+    body.innerHTML = '<tr><td colspan="8"><div class="er"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>Нет клиентов</div></td></tr>';
     return;
   }
   body.innerHTML = allClients.map(c => {
@@ -1086,13 +1093,13 @@ window.exportClients = function () {
 function renderCatalog() {
   const body = document.getElementById('cat-ob'); if (!body) return;
   if (!allProducts.length) {
-    body.innerHTML = '<tr><td colspan="6"><div class="er"><div class="er-ico">🍽️</div>Нет товаров</div></td></tr>';
+    body.innerHTML = '<tr><td colspan="6"><div class="er"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></div>Нет товаров</div></td></tr>';
     return;
   }
   body.innerHTML = allProducts.map(p => `<tr>
     <td style="display:flex;align-items:center;gap:9px;color:var(--text);font-weight:500">
       <div style="width:28px;height:28px;background:var(--s2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.76rem;flex-shrink:0;overflow:hidden">
-        ${p.imageUrl ? `<img src="${p.imageUrl}" style="width:100%;height:100%;object-fit:cover">` : '🍽️'}
+        ${p.imageUrl ? `<img src="${p.imageUrl}" style="width:100%;height:100%;object-fit:cover">` : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="opacity:.3"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>'}
       </div>
       ${p.name}
     </td>
@@ -1310,7 +1317,7 @@ function renderNewsTable() {
   renderNewsStats();
   const list = newsFilt === 'all' ? allNews : allNews.filter(a => a.status === newsFilt);
   if (!list.length) {
-    ob.innerHTML = '<tr><td colspan="7"><div class="er"><div class="er-ico">📰</div>Статей нет</div></td></tr>';
+    ob.innerHTML = '<tr><td colspan="7"><div class="er"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>Статей нет</div></td></tr>';
     return;
   }
   ob.innerHTML = list.map(a => {
@@ -1336,9 +1343,9 @@ function renderNewsTable() {
       <td><span class="mono">${(a.views || 0).toLocaleString()}</span></td>
       <td><span class="mono" style="font-size:.6rem">${date}</span></td>
       <td><div class="oact">
-        <button class="btn btn-secondary btn-sm" onclick="editNews('${a.id}')">✏️</button>
-        <button class="btn ${a.status === 'published' ? 'btn-secondary' : 'btn-success'} btn-sm" onclick="toggleNewsPublish('${a.id}','${a.status}')">${a.status === 'published' ? '📥' : '✓'}</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteNews('${a.id}')">🗑</button>
+        <button class="btn btn-secondary btn-sm" onclick="editNews('${a.id}')" style="display:inline-flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Изм.</button>
+        <button class="btn ${a.status === 'published' ? 'btn-secondary' : 'btn-success'} btn-sm" onclick="toggleNewsPublish('${a.id}','${a.status}')" style="display:inline-flex;align-items:center;gap:4px">${a.status === 'published' ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteNews('${a.id}')" style="display:inline-flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
       </div></td>
     </tr>`;
   }).join('');
@@ -1540,7 +1547,7 @@ function renderAnalytics() {
 function renderStaff() {
   const body = document.getElementById('staff-ob'); if (!body) return;
   if (!allStaff.length) {
-    body.innerHTML = '<tr><td colspan="5"><div class="er"><div class="er-ico">👥</div>Нет сотрудников</div></td></tr>';
+    body.innerHTML = '<tr><td colspan="5"><div class="er"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>Нет сотрудников</div></td></tr>';
     return;
   }
   const rc = { admin:'var(--acc2)', support:'var(--green)', moderator:'var(--yellow)' };
@@ -1564,15 +1571,15 @@ window.openAddStaff = function () {
   document.getElementById('m-order-title').textContent = 'Добавить сотрудника';
   document.getElementById('m-order-body').innerHTML = `
     <div style="padding:9px 12px;background:var(--yellowd);border:1px solid rgba(245,158,11,.2);border-radius:7px;font-size:.7rem;color:var(--yellow);margin-bottom:14px">
-      ⚠️ Сотрудник должен сначала зарегистрироваться через страницу входа. Здесь вы меняете роль по email.
+      <div style="display:flex;align-items:flex-start;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Сотрудник должен сначала зарегистрироваться через страницу входа. Здесь вы меняете роль по email.</span></div>
     </div>
     <div class="mf"><label class="ml">Email сотрудника</label><input class="mi" id="st-em" placeholder="admin@galelium.com"/></div>
     <div class="mf">
       <label class="ml">Роль</label>
       <select class="mi" id="st-rl">
-        <option value="support">🎧 Поддержка</option>
-        <option value="moderator">🛡️ Модератор</option>
-        <option value="admin">👑 Администратор</option>
+        <option value="support">Поддержка</option>
+        <option value="moderator">Модератор</option>
+        <option value="admin">Администратор</option>
       </select>
     </div>`;
   document.getElementById('m-order-foot').innerHTML = `
@@ -1603,9 +1610,9 @@ window.editStaff = function (uid) {
     <div class="mf">
       <label class="ml">Роль</label>
       <select class="mi" id="st-rl-ed">
-        <option value="support"  ${s.role === 'support'   ? 'selected' : ''}>🎧 Поддержка</option>
-        <option value="moderator"${s.role === 'moderator' ? 'selected' : ''}>🛡️ Модератор</option>
-        <option value="admin"    ${s.role === 'admin'     ? 'selected' : ''}>👑 Администратор</option>
+        <option value="support"  ${s.role === 'support'   ? 'selected' : ''}>Поддержка</option>
+        <option value="moderator"${s.role === 'moderator' ? 'selected' : ''}>Модератор</option>
+        <option value="admin"    ${s.role === 'admin'     ? 'selected' : ''}>Администратор</option>
       </select>
     </div>`;
   document.getElementById('m-order-foot').innerHTML = `
@@ -1814,7 +1821,7 @@ function renderTgChats() {
       </div>
       ${hasUnread ? `<div class="sc-item-badge">${c.adminUnread}</div>` : ''}
     </div>`;
-  }).join('') || '<div class="er"><div class="er-ico">💬</div>Нет обращений из Telegram</div>';
+  }).join('') || '<div class="er"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>Нет обращений из Telegram</div>';
 }
 
 window.fTgChats = function (f, btn) {
@@ -1957,11 +1964,11 @@ function renderHrTable() {
   const body = document.getElementById('hr-ob'); if (!body) return;
   const list = hrFilt === 'all' ? allVacancies : allVacancies.filter(v => v.status === hrFilt);
   if (!list.length) {
-    body.innerHTML = '<tr><td colspan="8"><div class="er"><div class="er-ico">💼</div>Вакансии не найдены</div></td></tr>';
+    body.innerHTML = '<tr><td colspan="8"><div class="er"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>Вакансии не найдены</div></td></tr>';
     return;
   }
   const TYPE     = { 'full-time':'Полный день', 'part-time':'Частичная', internship:'Стажировка' };
-  const DEPT_ICO = { 'Технологии':'💻','Операции':'⚙️','Маркетинг':'📣','Финансы':'💰','Дизайн':'🎨','HR':'👥' };
+  const DEPT_ICO = { 'Технологии':'','Операции':'','Маркетинг':'','Финансы':'','Дизайн':'','HR':'' };
   body.innerHTML = list.map(v => {
     const date   = v.createdAt?.toDate ? v.createdAt.toDate().toLocaleDateString('ru-RU', { day:'2-digit', month:'short', year:'2-digit' }) : '—';
     const isOpen = v.status === 'open';
@@ -1971,9 +1978,9 @@ function renderHrTable() {
     return `<tr>
       <td style="min-width:150px">
         <div style="font-weight:700;color:var(--text);font-size:.76rem">${escHtml(v.title || '—')}</div>
-        ${v.location ? `<div style="font-size:.6rem;color:var(--text3);margin-top:2px">📍 ${escHtml(v.location)}</div>` : ''}
+        ${v.location ? `<div style="font-size:.6rem;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:3px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> ${escHtml(v.location)}</div>` : ''}
       </td>
-      <td><span style="font-size:.6rem;background:var(--s2);border:1px solid var(--b);padding:2px 8px;border-radius:5px">${DEPT_ICO[v.department] || '💼'} ${escHtml(v.department || '—')}</span></td>
+      <td><span style="font-size:.6rem;background:var(--s2);border:1px solid var(--b);padding:2px 8px;border-radius:5px">${escHtml(v.department || '—')}</span></td>
       <td style="font-size:.66rem;color:var(--text2)">${TYPE[v.type] || v.type || '—'}</td>
       <td style="font-family:var(--fm);font-size:.66rem;color:var(--green);white-space:nowrap">${escHtml(v.salary || '—')}</td>
       <td style="text-align:center"><span style="font-family:var(--fm);font-size:.74rem;color:var(--text2);font-weight:600">${v.applications || 0}</span></td>
@@ -1981,7 +1988,7 @@ function renderHrTable() {
       <td class="mono" style="font-size:.6rem">${date}</td>
       <td><div class="oact">
         <button class="btn btn-secondary btn-sm" onclick="viewApplications('${v.id}')">Заявки (${v.applications || 0})</button>
-        <button class="btn btn-secondary btn-sm" onclick="openHrModal('${v.id}')">✎ Изменить</button>
+        <button class="btn btn-secondary btn-sm" onclick="openHrModal('${v.id}')" style="display:inline-flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Изменить</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -2077,7 +2084,7 @@ window.viewApplications = async function (vacId) {
     const snap = await getDocs(query(collection(db, 'vacancies', vacId, 'applications'), orderBy('createdAt', 'desc')));
     const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (!apps.length) {
-      body.innerHTML = '<div class="er" style="padding:36px"><div class="er-ico">📭</div>Заявок пока нет</div>';
+      body.innerHTML = '<div class="er" style="padding:36px"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></div>Заявок пока нет</div>';
       return;
     }
     body.innerHTML = apps.map(a => {
@@ -2090,8 +2097,8 @@ window.viewApplications = async function (vacId) {
           <span class="mono" style="font-size:.58rem;color:var(--text3)">${date}</span>
         </div>
         <div style="font-size:.68rem;color:var(--text3);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:${a.message ? '7px' : '0'}">
-          ${a.phone ? `<span>📞 ${escHtml(a.phone)}</span>` : ''}
-          ${a.link  ? `<a href="${escHtml(a.link)}" target="_blank" style="color:var(--acc2);text-decoration:underline">🔗 Резюме</a>` : ''}
+          ${a.phone ? `<span style="display:inline-flex;align-items:center;gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>${escHtml(a.phone)}</span>` : ''}
+          ${a.link  ? `<a href="${escHtml(a.link)}" target="_blank" style="color:var(--acc2);text-decoration:underline;display:inline-flex;align-items:center;gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Резюме</a>` : ''}
         </div>
         ${a.message ? `<div style="font-size:.7rem;color:var(--text2);background:var(--s2);border-radius:7px;padding:8px 11px;line-height:1.5">${escHtml(a.message)}</div>` : ''}
       </div>`;
@@ -2169,7 +2176,7 @@ function renderDeliveryServices() {
   if (kvt) kvt.textContent = totalCnt;
 
   if (!totalCnt) {
-    el.innerHTML = `<div class="er"><div class="er-ico">🚚</div>Загрузка служб…</div>`;
+    el.innerHTML = `<div class="er"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>Загрузка служб…</div>`;
     return;
   }
 
@@ -2253,7 +2260,7 @@ window.openStoreModal = function (id) {
     </div>
     <div class="mf" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--b)">
       <input type="checkbox" id="st-restricted" style="width:16px;height:16px;accent-color:var(--yellow)" ${s?.restricted ? 'checked' : ''}>
-      <label for="st-restricted" style="font-size:.72rem;color:var(--text2)">🚫 Ограничен</label>
+      <label for="st-restricted" style="font-size:.72rem;color:var(--text2)">Ограничен</label>
     </div>`;
   document.getElementById('m-order-foot').innerHTML = `
     <button class="btn btn-secondary" onclick="closeMo('order-modal')">Отмена</button>
@@ -2308,7 +2315,7 @@ window.toggleStore = async function (id, val) {
 };
 
 window.toggleStoreRestrict = async function (id, val) {
-  try { await updateDoc(doc(db, 'stores', id), { restricted: val, updatedAt: serverTimestamp() }); toast(val ? '🚫 Ограничен' : '✅ Снято', val ? 'warn' : 'ok'); await loadStores(); }
+  try { await updateDoc(doc(db, 'stores', id), { restricted: val, updatedAt: serverTimestamp() }); toast(val ? ' Ограничен' : 'Снято', val ? 'warn' : 'ok'); await loadStores(); }
   catch { toast('Ошибка', 'err'); }
 };
 
@@ -2374,7 +2381,7 @@ async function renderRetailersPage() {
   kEl('ret-kv-locs',   totalLocs);
 
   if (!_retailers.length) {
-    list.innerHTML = '<div class="pload" style="flex-direction:column;gap:8px;padding:32px"><div style="font-size:2rem;opacity:.12">🏪</div><div style="font-size:.76rem;color:var(--text3)">Ритейлеров пока нет — нажмите «Новый ритейлер»</div></div>';
+    list.innerHTML = '<div class="pload" style="flex-direction:column;gap:8px;padding:32px"><div style="opacity:.12;display:flex"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div style="font-size:.76rem;color:var(--text3)">Ритейлеров пока нет — нажмите «Новый ритейлер»</div></div>';
     return;
   }
 
@@ -2391,8 +2398,8 @@ async function renderRetailersPage() {
         <div class="ret-card-info">
           <div class="ret-card-name">${escHtml(r.name || '—')}</div>
           <div class="ret-card-meta">
-            <span class="ret-card-city">📍 ${escHtml(cityName)}</span>
-            <span class="ret-card-locs-count">🏪 ${cnt} точ${cnt === 1 ? 'ка' : cnt < 5 ? 'ки' : 'ек'}</span>
+            <span class="ret-card-city" style="display:inline-flex;align-items:center;gap:3px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> ${escHtml(cityName)}</span>
+            <span class="ret-card-locs-count" style="display:inline-flex;align-items:center;gap:3px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> ${cnt} точ${cnt === 1 ? 'ка' : cnt < 5 ? 'ки' : 'ек'}</span>
             ${!isActive ? '<span style="font-size:.55rem;color:var(--text3);padding:2px 6px;background:var(--s2);border-radius:99px;border:1px solid var(--b)">скрыт</span>' : ''}
           </div>
         </div>
@@ -2405,7 +2412,7 @@ async function renderRetailersPage() {
       </div>
       <div class="ret-locs-panel" id="ret-locs-${r.id}">
         <div class="ret-locs-head">
-          <div class="ret-locs-title">📍 Точки магазина</div>
+          <div class="ret-locs-title" style="display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Точки магазина</div>
           <button class="btn btn-success btn-sm" onclick="openLocationModal('${r.id}','${escHtml(r.name || '')}')">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Добавить точку
@@ -2677,7 +2684,7 @@ function renderGenCatalogsPage() {
   set('gc-kv-total',  allGenCatalogs.length);
 
   if (!allGenCatalogs.length) {
-    grid.innerHTML = '<div class="er" style="grid-column:1/-1"><div class="er-ico">📂</div>Нет категорий. Нажмите «Инициализировать все»</div>';
+    grid.innerHTML = '<div class="er" style="grid-column:1/-1"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>Нет категорий. Нажмите «Инициализировать все»</div>';
     return;
   }
 
@@ -2716,7 +2723,7 @@ function renderGenCatalogsPage() {
           <button class="btn btn-secondary btn-sm" onclick="openGcModal('${escHtml(c.id || c.slug)}')">✏️ Изменить</button>
           <button class="btn btn-${isActive ? 'danger' : 'success'} btn-sm" onclick="toggleGc('${escHtml(c.id || c.slug)}',${!isActive})">${isActive ? 'Скрыть' : 'Показать'}</button>
         </div>
-        ${c._isDefault ? '<div style="font-size:.5rem;color:var(--yellow);margin-top:6px">⚠ Не сохранено в Firestore</div>' : ''}
+        ${c._isDefault ? '<div style="font-size:.5rem;color:var(--yellow);margin-top:6px;display:flex;align-items:center;gap:3px">⚠ Не сохранено в Firestore</div>' : ''}
       </div>
     </div>`;
   }).join('');
@@ -2911,7 +2918,7 @@ function renderPartnerPage() {
 
   const list = partnerFilt === 'all' ? allPartnerApps : allPartnerApps.filter(a => a.status === partnerFilt);
   if (!list.length) {
-    body.innerHTML = `<tr><td colspan="8"><div class="er"><div class="er-ico">🤝</div>${partnerFilt === 'new' ? 'Нет новых заявок' : 'Заявок не найдено'}</div></td></tr>`;
+    body.innerHTML = `<tr><td colspan="8"><div class="er"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>${partnerFilt === 'new' ? 'Нет новых заявок' : 'Заявок не найдено'}</div></td></tr>`;
     return;
   }
   body.innerHTML = list.map(a => {
@@ -2928,7 +2935,7 @@ function renderPartnerPage() {
     return `<tr>
       <td style="min-width:140px">
         <div style="font-weight:700;color:var(--text);font-size:.76rem">${escHtml(a.company || '—')}</div>
-        ${a.restaurant ? `<div style="font-size:.6rem;color:var(--text3);margin-top:2px">🍽 ${escHtml(a.restaurant)}</div>` : ''}
+        ${a.restaurant ? `<div style="font-size:.6rem;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:3px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg> ${escHtml(a.restaurant)}</div>` : ''}
       </td>
       <td style="font-size:.7rem;color:var(--text2);max-width:160px"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(a.address || '—')}</div></td>
       <td style="font-family:var(--fm);font-size:.68rem;color:var(--acc2);white-space:nowrap">${escHtml(a.phone || '—')}</td>
@@ -3026,8 +3033,8 @@ function renderCities() {
       <td><span class="ostatus" style="color:${col};border-color:${col}30;background:${col}10;font-size:.52rem">${lbl}</span></td>
       <td><div style="display:flex;gap:5px;align-items:center">
         <button class="btn btn-secondary btn-sm" onclick="toggleCity('${c.id}',${ok})" style="font-size:.6rem;padding:4px 9px">${ok ? 'Отключить' : 'Включить'}</button>
-        <button class="btn btn-secondary btn-sm" onclick="openCityModal('${c.id}')" style="font-size:.6rem;padding:4px 9px">✏️</button>
-        <button class="btn btn-sm" onclick="deleteCity('${c.id}','${escHtml((c.name || '').replace(/'/g, "\\'"))}')" style="font-size:.6rem;padding:4px 9px;background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.25)">🗑</button>
+        <button class="btn btn-secondary btn-sm" onclick="openCityModal('${c.id}')" style="font-size:.6rem;padding:4px 9px" style="display:inline-flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn btn-sm" onclick="deleteCity('${c.id}','${escHtml((c.name || '').replace(/'/g, "\\'"))}')" style="font-size:.6rem;padding:4px 9px;background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.25);display:inline-flex;align-items:center;gap:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
       </div></td>
     </tr>`;
   }).join('');
@@ -3094,7 +3101,7 @@ window.saveCity = async function () {
 window.toggleCity = async function (id, currentActive) {
   try {
     await updateDoc(doc(db, 'cities', id), { active: !currentActive });
-    toast(currentActive ? '🔜 Город скрыт' : '✅ Город активирован', 'ok');
+    toast(currentActive ? 'Город скрыт' : 'Город активирован', 'ok');
     await loadAZones();
   } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
 };
@@ -3186,7 +3193,7 @@ function renderRetCatalog() {
     const avail = p.available !== false;
     const img = p.imageUrl
       ? `<img src="${escHtml(p.imageUrl)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
-      : `<span style="font-size:.9rem">📦</span>`;
+      : `<span style="display:flex;align-items:center;justify-content:center;color:var(--text3)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></span>`;
     return `<div class="ret-cat-prod${avail ? '' : ' ret-cat-prod-hidden'}">
       <div class="ret-cat-prod-img">${img}</div>
       <div class="ret-cat-prod-body">

@@ -156,8 +156,8 @@ body::after { display: none; }
   overflow: hidden;
 }
 .sb-av img   { width: 100%; height: 100%; object-fit: cover; }
-.sb-name     { font-size: .7rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sb-role     { font-size: .5rem; color: var(--muted); letter-spacing: .04em; margin-top: 1px; }
+.sb-name     { font-size: .72rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-role     { font-size: .56rem; color: var(--text3); letter-spacing: .03em; margin-top: 1px; }
 
 .sb-rt {
   margin: 0 12px 6px;
@@ -186,11 +186,12 @@ body::after { display: none; }
 
 .sb-nav  { flex: 1; overflow-y: auto; padding: 4px 8px; }
 .nav-grp {
-  font-size: .4rem;
-  letter-spacing: .3em;
+  font-size: .48rem;
+  letter-spacing: .28em;
   text-transform: uppercase;
-  color: var(--muted2);
-  padding: 10px 8px 3px;
+  color: var(--text3);
+  padding: 12px 9px 4px;
+  font-weight: 600;
 }
 
 /* Nav item */
@@ -346,21 +347,21 @@ body::after { display: none; }
   gap: 12px;
   flex-wrap: wrap;
 }
-.sh-tag   { font-size: .4rem; letter-spacing: .3em; text-transform: uppercase; color: var(--muted2); margin-bottom: 3px; }
+.sh-tag   { font-size: .48rem; letter-spacing: .28em; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; font-weight: 500; }
 .sh-title { font-family: var(--fd); font-weight: 800; font-size: 1.15rem; color: #fff; letter-spacing: -.02em; line-height: 1; }
 .sh-title em { color: var(--acc2); font-style: normal; }
 .sh-actions { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
 
 /* Buttons */
 .btn {
-  padding: 6px 13px;
-  border-radius: 6px;
+  padding: 7px 14px;
+  border-radius: 7px;
   font-family: var(--fs);
-  font-size: .66rem;
+  font-size: .68rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--tf);
-  letter-spacing: .02em;
+  letter-spacing: .01em;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -368,9 +369,9 @@ body::after { display: none; }
   white-space: nowrap;
 }
 .btn-primary   { background: #e8e8e8; color: #0a0a0a; }
-.btn-primary:hover { opacity: .88; }
+.btn-primary:hover { background: #ffffff; }
 .btn-secondary { background: var(--s2); border: 1px solid var(--b); color: var(--text2); }
-.btn-secondary:hover { border-color: var(--bh); color: var(--text); }
+.btn-secondary:hover { border-color: var(--bh); color: var(--text); background: var(--s3); }
 .btn-danger    { background: var(--redd); border: 1px solid rgba(244, 63, 94, .2); color: var(--red); }
 .btn-danger:hover    { background: rgba(244, 63, 94, .18); }
 .btn-success   { background: var(--greend); border: 1px solid var(--greeng); color: var(--green); }
@@ -385,13 +386,13 @@ body::after { display: none; }
 .kpi {
   background: var(--s1);
   border: 1px solid var(--b);
-  border-radius: 11px;
-  padding: 14px 16px;
+  border-radius: 12px;
+  padding: 16px 18px;
   position: relative;
   overflow: hidden;
-  transition: border-color var(--tf), transform var(--t);
+  transition: border-color var(--tf), transform var(--t), box-shadow var(--t);
 }
-.kpi:hover          { border-color: var(--bh); transform: translateY(-1px); }
+.kpi:hover          { border-color: var(--bh); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.28); }
 .kpi::before        { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; }
 .kpi.acc::before    { background: linear-gradient(90deg, rgba(255, 255, 255, .2), transparent); }
 .kpi.green::before  { background: linear-gradient(90deg, var(--green), transparent); }
@@ -399,13 +400,13 @@ body::after { display: none; }
 .kpi.red::before    { background: linear-gradient(90deg, var(--red), transparent); }
 .kpi.blue::before   { background: linear-gradient(90deg, var(--blue), transparent); }
 .kpi.cyan::before   { background: linear-gradient(90deg, var(--cyan), transparent); }
-.kpi-label  { font-size: .46rem; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); margin-bottom: 7px; display: flex; align-items: center; justify-content: space-between; }
+.kpi-label  { font-size: .52rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); margin-bottom: 7px; display: flex; align-items: center; justify-content: space-between; font-weight: 500; }
 .kpi-trend  { font-size: .5rem; font-weight: 600; padding: 2px 5px; border-radius: 99px; }
 .kpi-trend.up   { color: var(--green); background: var(--greend); }
 .kpi-trend.down { color: var(--red);   background: var(--redd); }
 .kpi-val  { font-family: var(--fd); font-size: 1.5rem; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -.03em; margin-bottom: 4px; }
 .kpi-sub  { font-size: .56rem; color: var(--text3); }
-.kpi-ico  { position: absolute; right: 12px; bottom: 8px; font-size: 1.6rem; opacity: .05; }
+.kpi-ico  { position: absolute; right: 12px; bottom: 10px; opacity: .1; color: currentColor; display: flex; }
 .kpi-spark { margin-top: 8px; height: 24px; }
 
 /* Layouts */
@@ -429,8 +430,8 @@ body::after { display: none; }
 /* Table */
 .ot { width: 100%; border-collapse: collapse; }
 .ot th {
-  font-size: .46rem;
-  letter-spacing: .2em;
+  font-size: .5rem;
+  letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--text3);
   padding: 9px 14px;
@@ -438,7 +439,7 @@ body::after { display: none; }
   border-bottom: 1px solid var(--b);
   white-space: nowrap;
   background: var(--s2);
-  font-weight: 500;
+  font-weight: 600;
 }
 .ot td             { padding: 10px 14px; font-size: .72rem; color: var(--text2); border-bottom: 1px solid rgba(99, 102, 241, .03); vertical-align: middle; }
 .ot tr:hover td    { background: rgba(99, 102, 241, .025); }
@@ -479,7 +480,7 @@ body::after { display: none; }
 .af { padding: 9px 14px; border-bottom: 1px solid var(--b); display: flex; align-items: flex-start; gap: 10px; }
 .af:last-child  { border-bottom: none; }
 .af:hover       { background: rgba(99, 102, 241, .02); }
-.af-ico  { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: .68rem; flex-shrink: 0; }
+.af-ico  { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .af-txt  { font-size: .7rem; color: var(--text2); line-height: 1.4; margin-bottom: 2px; }
 .af-txt strong { color: var(--text); }
 .af-time { font-family: var(--fm); font-size: .54rem; color: var(--text3); }
@@ -576,50 +577,50 @@ body::after { display: none; }
 .modal {
   background: var(--s1);
   border: 1px solid var(--bh);
-  border-radius: 14px;
+  border-radius: 16px;
   width: 100%;
   max-width: 500px;
   max-height: 90svh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transform: translateY(14px) scale(.97);
+  transform: translateY(16px) scale(.97);
   transition: transform .22s var(--spring);
 }
 .mo.open .modal { transform: none; }
-.modal-head    { padding: 16px 20px; border-bottom: 1px solid var(--b); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.modal-title   { font-family: var(--fd); font-weight: 800; font-size: .86rem; color: #fff; }
-.modal-x       { background: none; border: none; cursor: pointer; color: var(--text3); width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all var(--tf); }
+.modal-head    { padding: 18px 22px; border-bottom: 1px solid var(--b); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.modal-title   { font-family: var(--fd); font-weight: 800; font-size: .9rem; color: #fff; letter-spacing: -.01em; }
+.modal-x       { background: none; border: none; cursor: pointer; color: var(--text3); width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; transition: all var(--tf); }
 .modal-x:hover { background: var(--s2); color: var(--text); }
-.modal-body    { padding: 18px 20px; overflow-y: auto; flex: 1; }
-.modal-foot    { padding: 12px 20px; border-top: 1px solid var(--b); display: flex; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
+.modal-body    { padding: 20px 22px; overflow-y: auto; flex: 1; }
+.modal-foot    { padding: 14px 22px; border-top: 1px solid var(--b); display: flex; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
 
 /* Form fields */
 .mf { margin-bottom: 12px; }
-.ml { font-size: .48rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px; }
+.ml { font-size: .52rem; letter-spacing: .16em; text-transform: uppercase; color: var(--text3); display: block; margin-bottom: 5px; font-weight: 500; }
 .mi {
   width: 100%;
   background: var(--s2);
   border: 1px solid var(--b);
-  border-radius: 7px;
+  border-radius: 8px;
   color: var(--text);
   font-family: var(--fs);
   font-size: .76rem;
-  padding: 8px 11px;
+  padding: 9px 12px;
   outline: none;
-  transition: border-color var(--tf);
+  transition: border-color var(--tf), box-shadow var(--tf);
 }
-.mi:focus       { border-color: var(--bh); box-shadow: 0 0 0 2px rgba(255, 255, 255, .04); }
+.mi:focus       { border-color: rgba(255,255,255,.25); box-shadow: 0 0 0 3px rgba(255, 255, 255, .05); }
 .mi::placeholder { color: var(--muted); }
 select.mi       { cursor: pointer; }
 textarea.mi     { resize: vertical; min-height: 76px; }
 .mr             { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 /* Tabs */
-.tabs { display: flex; gap: 2px; padding: 3px; background: var(--s2); border-radius: 7px; border: 1px solid var(--b); }
-.tab  { padding: 5px 10px; border-radius: 5px; border: none; background: none; cursor: pointer; font-size: .62rem; font-weight: 500; font-family: var(--fs); color: var(--text3); transition: all var(--tf); }
-.tab.active        { background: var(--s3); color: var(--text); border: 1px solid var(--bh); }
-.tab:hover:not(.active) { color: var(--text2); }
+.tabs { display: flex; gap: 2px; padding: 3px; background: var(--s2); border-radius: 8px; border: 1px solid var(--b); }
+.tab  { padding: 5px 11px; border-radius: 6px; border: none; background: none; cursor: pointer; font-size: .64rem; font-weight: 500; font-family: var(--fs); color: var(--text3); transition: all var(--tf); }
+.tab.active        { background: var(--s3); color: var(--text); border: 1px solid var(--bh); box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+.tab:hover:not(.active) { color: var(--text2); background: rgba(255,255,255,.03); }
 
 /* Filter pills */
 .fb { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--b); flex-wrap: wrap; }
@@ -631,28 +632,29 @@ textarea.mi     { resize: vertical; min-height: 76px; }
 
 /* Empty state + loader */
 .er         { text-align: center; padding: 36px 20px; color: var(--text3); }
-.er-ico     { font-size: 1.8rem; opacity: .18; margin-bottom: 7px; }
+.er-ico     { opacity: .18; margin-bottom: 7px; display: flex; align-items: center; justify-content: center; }
 .pload      { display: flex; align-items: center; justify-content: center; padding: 36px; gap: 8px; color: var(--text3); font-size: .7rem; }
 .spin       { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid var(--muted2); border-top-color: var(--text); animation: sp .65s linear infinite; }
 @keyframes sp { to { transform: rotate(360deg); } }
 
 /* Toast */
-.toast-wrap { position: fixed; bottom: 20px; right: 18px; z-index: 9999; display: flex; flex-direction: column; gap: 5px; pointer-events: none; }
+.toast-wrap { position: fixed; bottom: 20px; right: 18px; z-index: 9999; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
 .toast {
-  background: rgba(20, 20, 20, .98);
-  border: 1px solid var(--bh);
-  border-radius: 9px;
-  padding: 9px 13px;
+  background: rgba(24, 24, 24, .98);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: .7rem;
+  gap: 8px;
+  font-size: .72rem;
   color: var(--text);
   animation: tIn .26s var(--ease) both, tOut .26s var(--ease) forwards;
   animation-delay: 0s, 3s;
   pointer-events: all;
-  max-width: 270px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, .6);
+  max-width: 290px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .7), 0 0 0 1px rgba(255,255,255,.04) inset;
+  backdrop-filter: blur(16px);
 }
 @keyframes tIn  { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
 @keyframes tOut { to   { opacity: 0; transform: translateY(6px); } }
@@ -864,18 +866,18 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         <div class="mf">
           <label class="ml">Статус</label>
           <select class="mi" id="ni-status">
-            <option value="published">✓ Опубликовать</option>
-            <option value="draft">📝 Черновик</option>
+            <option value="published">Опубликовать</option>
+            <option value="draft">Черновик</option>
           </select>
         </div>
         <div class="mf">
           <label class="ml">Категория</label>
           <select class="mi" id="ni-cat">
-            <option value="актуали">🔥 Актуалӣ</option>
-            <option value="ҷомеа">👥 Ҷомеа</option>
-            <option value="иқтисод">💼 Иқтисод</option>
-            <option value="варзиш">⚽ Варзиш</option>
-            <option value="технология">💻 Технология</option>
+            <option value="актуали">Актуалӣ</option>
+            <option value="ҷомеа">Ҷомеа</option>
+            <option value="иқтисод">Иқтисод</option>
+            <option value="варзиш">Варзиш</option>
+            <option value="технология">Технология</option>
           </select>
         </div>
       </div>
@@ -917,12 +919,12 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         <div class="mf">
           <label class="ml">Отдел</label>
           <select class="mi" id="hv-dept">
-            <option value="Технологии">💻 Технологии</option>
-            <option value="Операции">⚙️ Операции</option>
-            <option value="Маркетинг">📣 Маркетинг</option>
-            <option value="Финансы">💰 Финансы</option>
-            <option value="Дизайн">🎨 Дизайн</option>
-            <option value="HR">👥 HR</option>
+            <option value="Технологии">Технологии</option>
+            <option value="Операции">Операции</option>
+            <option value="Маркетинг">Маркетинг</option>
+            <option value="Финансы">Финансы</option>
+            <option value="Дизайн">Дизайн</option>
+            <option value="HR">HR</option>
           </select>
         </div>
         <div class="mf">
@@ -940,8 +942,8 @@ textarea.mi     { resize: vertical; min-height: 76px; }
       <div class="mf">
         <label class="ml">Статус</label>
         <select class="mi" id="hv-status">
-          <option value="open">✓ Открытая</option>
-          <option value="closed">✕ Закрытая</option>
+          <option value="open">Открытая</option>
+          <option value="closed">Закрытая</option>
         </select>
       </div>
     </div>
@@ -995,7 +997,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         <div class="mf" style="margin-bottom:0"><label class="ml">Порядок сортировки</label><input class="mi" id="ret-order" type="number" min="1" value="1"></div>
         <div class="mf" style="margin-bottom:0">
           <label class="ml">Статус</label>
-          <select class="mi" id="ret-active"><option value="true">✓ Активен</option><option value="false">✕ Скрыт</option></select>
+          <select class="mi" id="ret-active"><option value="true">Активен</option><option value="false">Скрыт</option></select>
         </div>
       </div>
     </div>
@@ -1062,7 +1064,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
     <!-- Toolbar -->
     <div style="padding:10px 16px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
       <input class="mi" id="ret-cat-search"
-        placeholder="🔍 Поиск по названию…"
+        placeholder="Поиск по названию…"
         oninput="filterRetCatalog()"
         style="flex:1;min-width:140px;margin:0;height:32px;font-size:.72rem"/>
       <select class="mi" id="ret-cat-filter" onchange="filterRetCatalog()"
@@ -1271,15 +1273,15 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           <div><div class="sh-tag">Мониторинг · Реальное время</div><div class="sh-title">Обзор <em>системы</em></div></div>
         </div>
         <div class="kpi-grid">
-          <div class="kpi acc"><div class="kpi-label">Заказов всего</div><div class="kpi-val" id="kv-ord">—</div><div class="kpi-sub">За всё время</div><div class="kpi-ico">📦</div><div class="kpi-spark"><div class="spark" id="sp-ord"></div></div></div>
-          <div class="kpi green"><div class="kpi-label">Выручка</div><div class="kpi-val" id="kv-rev">—</div><div class="kpi-sub">Без отменённых</div><div class="kpi-ico">💰</div><div class="kpi-spark"><div class="spark" id="sp-rev"></div></div></div>
-          <div class="kpi cyan"><div class="kpi-label">Курьеры онлайн</div><div class="kpi-val" id="kv-cur">—</div><div class="kpi-sub">Из <span id="kv-curtot">—</span> всего</div><div class="kpi-ico">🚴</div></div>
-          <div class="kpi blue"><div class="kpi-label">Клиентов</div><div class="kpi-val" id="kv-cli">—</div><div class="kpi-sub">Зарегистрированных</div><div class="kpi-ico">👤</div></div>
-          <div class="kpi yellow"><div class="kpi-label">Очередь</div><div class="kpi-val" id="kv-pend">—</div><div class="kpi-sub">Ждут курьера</div><div class="kpi-ico">⏳</div></div>
-          <div class="kpi green"><div class="kpi-label">Доставлено</div><div class="kpi-val" id="kv-done">—</div><div class="kpi-sub">Успешных</div><div class="kpi-ico">✅</div></div>
-          <div class="kpi red"><div class="kpi-label">Отменено <span class="kpi-trend down" id="kt-can">—</span></div><div class="kpi-val" id="kv-can">—</div><div class="kpi-sub">Заказов отменено</div><div class="kpi-ico">❌</div></div>
-          <div class="kpi acc"><div class="kpi-label">В процессе</div><div class="kpi-val" id="kv-active">—</div><div class="kpi-sub">Готовятся / в пути</div><div class="kpi-ico">🔄</div></div>
-          <div class="kpi yellow" style="border-style:dashed"><div class="kpi-label">🔒 Брони</div><div class="kpi-val" id="kv-reserved">—</div><div class="kpi-sub">Ждут подтверждения клиентом</div><div class="kpi-ico">📋</div></div>
+          <div class="kpi acc"><div class="kpi-label">Заказов всего</div><div class="kpi-val" id="kv-ord">—</div><div class="kpi-sub">За всё время</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><div class="kpi-spark"><div class="spark" id="sp-ord"></div></div></div>
+          <div class="kpi green"><div class="kpi-label">Выручка</div><div class="kpi-val" id="kv-rev">—</div><div class="kpi-sub">Без отменённых</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="kpi-spark"><div class="spark" id="sp-rev"></div></div></div>
+          <div class="kpi cyan"><div class="kpi-label">Курьеры онлайн</div><div class="kpi-val" id="kv-cur">—</div><div class="kpi-sub">Из <span id="kv-curtot">—</span> всего</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg></div></div>
+          <div class="kpi blue"><div class="kpi-label">Клиентов</div><div class="kpi-val" id="kv-cli">—</div><div class="kpi-sub">Зарегистрированных</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div></div>
+          <div class="kpi yellow"><div class="kpi-label">Очередь</div><div class="kpi-val" id="kv-pend">—</div><div class="kpi-sub">Ждут курьера</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div></div>
+          <div class="kpi green"><div class="kpi-label">Доставлено</div><div class="kpi-val" id="kv-done">—</div><div class="kpi-sub">Успешных</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div>
+          <div class="kpi red"><div class="kpi-label">Отменено <span class="kpi-trend down" id="kt-can">—</span></div><div class="kpi-val" id="kv-can">—</div><div class="kpi-sub">Заказов отменено</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div></div>
+          <div class="kpi acc"><div class="kpi-label">В процессе</div><div class="kpi-val" id="kv-active">—</div><div class="kpi-sub">Готовятся / в пути</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></div></div>
+          <div class="kpi yellow" style="border-style:dashed"><div class="kpi-label"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;vertical-align:middle;opacity:.7"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Брони</div><div class="kpi-val" id="kv-reserved">—</div><div class="kpi-sub">Ждут подтверждения клиентом</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div></div>
         </div>
         <div class="two-col">
           <div class="panel">
@@ -1333,7 +1335,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           <div class="sh-actions">
             <div class="tabs">
               <button class="tab active" onclick="fOrders('all',this)">Все</button>
-              <button class="tab" onclick="fOrders('reserved',this)">🔒 Брони</button>
+              <button class="tab" onclick="fOrders('reserved',this)" style="display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Брони</button>
               <button class="tab" onclick="fOrders('pending',this)">Ожидают</button>
               <button class="tab" onclick="fOrders('delivering',this)">В пути</button>
               <button class="tab" onclick="fOrders('delivered',this)">Доставлено</button>
@@ -1367,9 +1369,9 @@ textarea.mi     { resize: vertical; min-height: 76px; }
             </div>
             <div class="tabs">
               <button class="tab active" onclick="fCouriersVerif('all',this)">Все</button>
-              <button class="tab" onclick="fCouriersVerif('pending',this)">⏳ Ожидают</button>
-              <button class="tab" onclick="fCouriersVerif('verified',this)">✓ Верифицированы</button>
-              <button class="tab" onclick="fCouriersVerif('blocked',this)">✕ Заблокированы</button>
+              <button class="tab" onclick="fCouriersVerif('pending',this)" style="display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Ожидают</button>
+              <button class="tab" onclick="fCouriersVerif('verified',this)" style="display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Верифицированы</button>
+              <button class="tab" onclick="fCouriersVerif('blocked',this)" style="display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Заблокированы</button>
             </div>
           </div>
         </div>
@@ -1403,7 +1405,8 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         <!-- Вкладки: Сайт / Telegram -->
         <div style="display:flex;gap:8px;margin-bottom:14px">
           <button class="fp active" id="tab-web-support" onclick="switchSupportTab('web')" style="display:flex;align-items:center;gap:6px">
-            🌐 Сайт
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            Сайт
           </button>
           <button class="fp" id="tab-tg-support" onclick="switchSupportTab('tg')" style="display:flex;align-items:center;gap:6px">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="#2196f3"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.01 9.47c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.873.751z"/></svg>
@@ -1478,8 +1481,8 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           </div>
         </div>
         <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:14px">
-          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="ds-kv-active">—</div><div class="kpi-sub">Отображаются в корзине</div><div class="kpi-ico">🚚</div></div>
-          <div class="kpi acc"><div class="kpi-label">Всего служб</div><div class="kpi-val" id="ds-kv-total">—</div><div class="kpi-sub">В коллекции deliveryServices</div><div class="kpi-ico">🗂️</div></div>
+          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="ds-kv-active">—</div><div class="kpi-sub">Отображаются в корзине</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div></div>
+          <div class="kpi acc"><div class="kpi-label">Всего служб</div><div class="kpi-val" id="ds-kv-total">—</div><div class="kpi-sub">В коллекции deliveryServices</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div></div>
         </div>
         <div id="ds-list" style="display:flex;flex-direction:column;gap:10px">
           <div class="pload"><div class="spin"></div> Загружаем…</div>
@@ -1498,9 +1501,9 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           </div>
         </div>
         <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
-          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="ret-kv-active">—</div><div class="kpi-sub">Показываются на главной</div><div class="kpi-ico">🏪</div></div>
-          <div class="kpi acc"><div class="kpi-label">Всего ритейлеров</div><div class="kpi-val" id="ret-kv-total">—</div><div class="kpi-sub">В коллекции retailers</div><div class="kpi-ico">🗂️</div></div>
-          <div class="kpi blue"><div class="kpi-label">Точек всего</div><div class="kpi-val" id="ret-kv-locs">—</div><div class="kpi-sub">По всем ритейлерам</div><div class="kpi-ico">📍</div></div>
+          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="ret-kv-active">—</div><div class="kpi-sub">Показываются на главной</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div></div>
+          <div class="kpi acc"><div class="kpi-label">Всего ритейлеров</div><div class="kpi-val" id="ret-kv-total">—</div><div class="kpi-sub">В коллекции retailers</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div></div>
+          <div class="kpi blue"><div class="kpi-label">Точек всего</div><div class="kpi-val" id="ret-kv-locs">—</div><div class="kpi-sub">По всем ритейлерам</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div></div>
         </div>
         <div id="retailers-list" style="display:flex;flex-direction:column;gap:10px">
           <div class="pload"><div class="spin"></div> Загружаем ритейлеры…</div>
@@ -1519,9 +1522,9 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           </div>
         </div>
         <div class="kpis" style="margin-bottom:16px">
-          <div class="kpi acc"><div class="kpi-label">Всего городов</div><div class="kpi-val" id="az-kv-total">—</div><div class="kpi-sub">В коллекции cities</div><div class="kpi-ico">🏙️</div></div>
-          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="az-kv-avail">—</div><div class="kpi-sub">Доступны для заказа</div><div class="kpi-ico">✅</div></div>
-          <div class="kpi red"><div class="kpi-label">Скоро</div><div class="kpi-val" id="az-kv-unavail">—</div><div class="kpi-sub">Временно недоступны</div><div class="kpi-ico">🔜</div></div>
+          <div class="kpi acc"><div class="kpi-label">Всего городов</div><div class="kpi-val" id="az-kv-total">—</div><div class="kpi-sub">В коллекции cities</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="14" width="22" height="8" rx="1"/><path d="M17 14V6a2 2 0 00-2-2H9a2 2 0 00-2 2v8"/><rect x="9" y="18" width="6" height="4"/><path d="M5 14V9a2 2 0 012-2h10a2 2 0 012 2v5"/></svg></div></div>
+          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="az-kv-avail">—</div><div class="kpi-sub">Доступны для заказа</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div>
+          <div class="kpi red"><div class="kpi-label">Скоро</div><div class="kpi-val" id="az-kv-unavail">—</div><div class="kpi-sub">Временно недоступны</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div></div>
         </div>
         <div class="panel">
           <div class="panel-head">
@@ -1556,9 +1559,9 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           </div>
         </div>
         <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
-          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="gc-kv-active">—</div><div class="kpi-sub">Показываются на главной</div><div class="kpi-ico">✅</div></div>
-          <div class="kpi red"><div class="kpi-label">Скрытых</div><div class="kpi-val" id="gc-kv-hidden">—</div><div class="kpi-sub">Не отображаются</div><div class="kpi-ico">🙈</div></div>
-          <div class="kpi acc"><div class="kpi-label">Всего</div><div class="kpi-val" id="gc-kv-total">—</div><div class="kpi-sub">Категорий в Firestore</div><div class="kpi-ico">📂</div></div>
+          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="gc-kv-active">—</div><div class="kpi-sub">Показываются на главной</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div>
+          <div class="kpi red"><div class="kpi-label">Скрытых</div><div class="kpi-val" id="gc-kv-hidden">—</div><div class="kpi-sub">Не отображаются</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></div></div>
+          <div class="kpi acc"><div class="kpi-label">Всего</div><div class="kpi-val" id="gc-kv-total">—</div><div class="kpi-sub">Категорий в Firestore</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div></div>
         </div>
         <div id="gen-catalogs-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
           <div class="pload" style="grid-column:1/-1"><div class="spin"></div> Загружаем каталог…</div>
@@ -1656,7 +1659,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
               <div><span style="color:var(--text3)">Версия:</span> Admin v2.0</div>
               <div><span style="color:var(--text3)">База данных:</span> Firebase Firestore</div>
               <div><span style="color:var(--text3)">Проект:</span> dastdaroz</div>
-              <div><span style="color:var(--text3)">Статус:</span> <span style="color:var(--green)">● Работает</span></div>
+              <div><span style="color:var(--text3)">Статус:</span> <span style="color:var(--green);display:inline-flex;align-items:center;gap:5px"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block"></span>Работает</span></div>
             </div>
           </div>
         </div>
@@ -1679,10 +1682,10 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           </div>
         </div>
         <div class="kpi-grid" style="margin-bottom:14px">
-          <div class="kpi green"><div class="kpi-label">Открытых вакансий</div><div class="kpi-val" id="hr-kv-open">—</div><div class="kpi-sub">Активных позиций</div><div class="kpi-ico">💼</div></div>
-          <div class="kpi blue"><div class="kpi-label">Заявок всего</div><div class="kpi-val" id="hr-kv-apps">—</div><div class="kpi-sub">На все вакансии</div><div class="kpi-ico">📩</div></div>
-          <div class="kpi yellow"><div class="kpi-label">Отделов</div><div class="kpi-val" id="hr-kv-depts">—</div><div class="kpi-sub">С открытыми вакансиями</div><div class="kpi-ico">🏢</div></div>
-          <div class="kpi acc"><div class="kpi-label">Закрытых</div><div class="kpi-val" id="hr-kv-closed">—</div><div class="kpi-sub">Позиций закрыто</div><div class="kpi-ico">✅</div></div>
+          <div class="kpi green"><div class="kpi-label">Открытых вакансий</div><div class="kpi-val" id="hr-kv-open">—</div><div class="kpi-sub">Активных позиций</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><path d="M12 12v4M10 14h4"/></svg></div></div>
+          <div class="kpi blue"><div class="kpi-label">Заявок всего</div><div class="kpi-val" id="hr-kv-apps">—</div><div class="kpi-sub">На все вакансии</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></div></div>
+          <div class="kpi yellow"><div class="kpi-label">Отделов</div><div class="kpi-val" id="hr-kv-depts">—</div><div class="kpi-sub">С открытыми вакансиями</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div></div>
+          <div class="kpi acc"><div class="kpi-label">Закрытых</div><div class="kpi-val" id="hr-kv-closed">—</div><div class="kpi-sub">Позиций закрыто</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div></div>
         </div>
         <div class="panel">
           <div style="overflow-x:auto">
@@ -1739,11 +1742,11 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           </div>
           <div class="panel">
             <div class="panel-head"><div class="panel-title">Рекомендации</div></div>
-            <div style="padding:16px;background:var(--s2);margin:16px;border-radius:10px;font-size:.68rem;color:var(--text2);line-height:1.8">
-              📌 Изображение должно быть <strong>984×312 px</strong><br>
-              📌 Поддерживаются форматы: JPG, PNG, WebP, GIF<br>
-              📌 Если баннер неактивен — секция полностью скрыта<br>
-              📌 Ссылка открывается в новой вкладке
+            <div style="padding:16px;background:var(--s2);margin:16px;border-radius:10px;font-size:.68rem;color:var(--text2);line-height:1;display:flex;flex-direction:column;gap:9px">
+              <div style="display:flex;align-items:baseline;gap:8px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;color:var(--text3)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Изображение должно быть <strong>984×312 px</strong></span></div>
+              <div style="display:flex;align-items:baseline;gap:8px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;color:var(--text3)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Поддерживаются форматы: JPG, PNG, WebP, GIF</span></div>
+              <div style="display:flex;align-items:baseline;gap:8px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;color:var(--text3)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Если баннер неактивен — секция полностью скрыта</span></div>
+              <div style="display:flex;align-items:baseline;gap:8px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;color:var(--text3)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Ссылка открывается в новой вкладке</span></div>
             </div>
           </div>
         </div>
@@ -1756,16 +1759,16 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           <div class="sh-actions">
             <div class="tabs">
               <button class="tab active" onclick="fPartners('all',this)">Все</button>
-              <button class="tab" onclick="fPartners('new',this)">🔔 Новые</button>
-              <button class="tab" onclick="fPartners('contacted',this)">✓ Связались</button>
+              <button class="tab" onclick="fPartners('new',this)" style="display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg> Новые</button>
+              <button class="tab" onclick="fPartners('contacted',this)" style="display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Связались</button>
               <button class="tab" onclick="fPartners('archived',this)">Архив</button>
             </div>
           </div>
         </div>
         <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
-          <div class="kpi yellow"><div class="kpi-label">Новые заявки</div><div class="kpi-val" id="partner-kv-new">—</div><div class="kpi-sub">Ждут обработки</div><div class="kpi-ico">📩</div></div>
-          <div class="kpi green"><div class="kpi-label">Связались</div><div class="kpi-val" id="partner-kv-contacted">—</div><div class="kpi-sub">Обработанных</div><div class="kpi-ico">✅</div></div>
-          <div class="kpi acc"><div class="kpi-label">Всего</div><div class="kpi-val" id="partner-kv-total">—</div><div class="kpi-sub">Заявок получено</div><div class="kpi-ico">🤝</div></div>
+          <div class="kpi yellow"><div class="kpi-label">Новые заявки</div><div class="kpi-val" id="partner-kv-new">—</div><div class="kpi-sub">Ждут обработки</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></div></div>
+          <div class="kpi green"><div class="kpi-label">Связались</div><div class="kpi-val" id="partner-kv-contacted">—</div><div class="kpi-sub">Обработанных</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div>
+          <div class="kpi acc"><div class="kpi-label">Всего</div><div class="kpi-val" id="partner-kv-total">—</div><div class="kpi-sub">Заявок получено</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div></div>
         </div>
         <div class="panel">
           <div style="overflow-x:auto">

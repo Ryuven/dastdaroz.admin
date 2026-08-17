@@ -3372,6 +3372,7 @@ window.goPage = function (page) {
   if (page === 'ads')               renderAdsPage();
   if (page === 'gen-catalogs')      renderGenCatalogsPage();
   if (page === 'partners')          renderPartnerPage();
+  if (page === 'tg-bot')            renderTgBotPage();
   if (page === 'addresses')         loadAZones();
   if (page === 'delivery-services') loadDeliveryServices();
 
@@ -3497,4 +3498,124 @@ window.doLogout = async function () {
   if (unsubChatMsgs) { unsubChatMsgs(); unsubChatMsgs = null; }
   await signOut(auth);
   location.href = 'admin-login.html';
+};
+
+// ══════════════════════════════════════════════════════════════
+// TELEGRAM BOT — рассылка и управление
+// ══════════════════════════════════════════════════════════════
+
+async function renderTgBotPage() {
+  // Загружаем пользователей бота
+  try {
+    const [usersSnap, chatsSnap, broadcastsSnap] = await Promise.all([
+      getDocs(query(collection(db, 'tgUsers'), orderBy('createdAt', 'desc'))),
+      getDocs(collection(db, 'tgChats')),
+      getDocs(query(collection(db, 'tgBroadcasts'), orderBy('createdAt', 'desc'), limit(1))),
+    ]);
+
+    const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // KPI
+    document.getElementById('tg-kpi-users').textContent  = users.length;
+    document.getElementById('tg-kpi-chats').textContent  = chatsSnap.size;
+    document.getElementById('sb-tg-users-b').textContent = users.length;
+    document.getElementById('sb-tg-users-b').style.display = users.length > 0 ? '' : 'none';
+
+    // Последняя рассылка
+    if (!broadcastsSnap.empty) {
+      const last = broadcastsSnap.docs[0].data();
+      document.getElementById('tg-kpi-last-broadcast').textContent = `${last.sent || 0} чел.`;
+      const d = last.createdAt?.toDate?.();
+      document.getElementById('tg-kpi-last-broadcast-date').textContent = d
+        ? d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+        : '—';
+    }
+
+    // Список пользователей
+    const el = document.getElementById('tg-users-list');
+    if (!users.length) {
+      el.innerHTML = '<div class="er"><div class="er-ico">💬</div>Ещё никто не запустил бота</div>';
+      return;
+    }
+    el.innerHTML = users.map(u => {
+      const time = u.createdAt?.toDate?.()
+        ? u.createdAt.toDate().toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })
+        : '—';
+      const init = (u.userName || 'TG').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border)">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2196f3,#1565c0);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.65rem;font-weight:700;flex-shrink:0">${escHtml(init)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.78rem;font-weight:600;color:var(--text1)">${escHtml(u.userName || 'Пользователь')}</div>
+          <div style="font-size:.68rem;color:var(--text3)">ID: ${escHtml(String(u.tgChatId || u.id))}</div>
+        </div>
+        <div style="font-size:.68rem;color:var(--text3);flex-shrink:0">${time}</div>
+      </div>`;
+    }).join('');
+
+  } catch (err) {
+    console.error('renderTgBotPage error:', err);
+  }
+}
+
+// Предпросмотр сообщения
+window.previewBroadcast = function () {
+  const text = document.getElementById('broadcast-text').value.trim();
+  if (!text) return;
+  const prev = document.getElementById('broadcast-preview');
+  document.getElementById('broadcast-preview-text').textContent = text;
+  prev.style.display = '';
+};
+
+// Рассылка всем пользователям
+window.sendBroadcast = async function () {
+  const text = document.getElementById('broadcast-text').value.trim();
+  if (!text) { toast('Введи текст рассылки', 'err'); return; }
+
+  const btn = document.getElementById('broadcast-btn');
+  const res = document.getElementById('broadcast-result');
+  btn.disabled = true;
+  btn.textContent = '⏳ Отправляем…';
+  res.style.display = 'none';
+
+  try {
+    // Берём всех пользователей бота
+    const snap  = await getDocs(collection(db, 'tgUsers'));
+    const users = snap.docs.map(d => d.data());
+
+    if (!users.length) {
+      toast('Нет пользователей бота', 'err');
+      btn.disabled = false;
+      btn.innerHTML = '📢 Отправить всем';
+      return;
+    }
+
+    // Сохраняем рассылку в Firestore — бот прочитает и отправит
+    const broadcastRef = await addDoc(collection(db, 'tgBroadcasts'), {
+      text,
+      status:    'pending',
+      total:     users.length,
+      sent:      0,
+      failed:    0,
+      createdAt: serverTimestamp(),
+      createdBy: CU.uid,
+    });
+
+    res.style.display = '';
+    res.innerHTML = `<div style="color:var(--green)">✅ Рассылка создана! Бот отправит сообщение ${users.length} пользователям.<br><small style="color:var(--text3)">ID: ${broadcastRef.id}</small></div>`;
+    document.getElementById('broadcast-text').value = '';
+    document.getElementById('broadcast-preview').style.display = 'none';
+    toast(`Рассылка запущена → ${users.length} чел.`, 'ok');
+
+    // Обновляем KPI
+    renderTgBotPage();
+
+  } catch (err) {
+    console.error('broadcast error:', err);
+    res.style.display = '';
+    res.innerHTML = `<div style="color:var(--red)">❌ Ошибка: ${err.message}</div>`;
+    toast('Ошибка рассылки', 'err');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '📢 Отправить всем';
 };

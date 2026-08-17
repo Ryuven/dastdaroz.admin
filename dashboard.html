@@ -1267,6 +1267,12 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         <span class="ni-badge" id="sb-partner-b" style="display:none;background:var(--yellow)">0</span>
       </button>
 
+      <button class="ni" data-page="tg-bot" onclick="goPage('tg-bot')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="#2196f3"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.01 9.47c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.873.751z"/></svg>
+        Telegram Бот
+        <span class="ni-badge info" id="sb-tg-users-b" style="display:none">0</span>
+      </button>
+
       <div class="nav-grp">Система</div>
       <button class="ni" data-page="staff" onclick="goPage('staff')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1816,6 +1822,76 @@ textarea.mi     { resize: vertical; min-height: 76px; }
               <thead><tr><th>Компания / Ресторан</th><th>Адрес</th><th>Телефон</th><th>Доп. телефон</th><th>Комментарий</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead>
               <tbody id="partner-ob"><tr><td colspan="8"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TELEGRAM BOT ─────────────────────────────────── -->
+      <div class="page" id="page-tg-bot">
+        <div class="sh">
+          <div><div class="sh-tag">Telegram</div><div class="sh-title">Управление <em>ботом</em></div></div>
+        </div>
+
+        <!-- KPI -->
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px">
+          <div class="kpi acc">
+            <div class="kpi-label">Пользователей бота</div>
+            <div class="kpi-val" id="tg-kpi-users">—</div>
+            <div class="kpi-sub">Всего запустили бота</div>
+            <div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="#2196f3"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.01 9.47c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.873.751z"/></svg></div>
+          </div>
+          <div class="kpi green">
+            <div class="kpi-label">Последняя рассылка</div>
+            <div class="kpi-val" id="tg-kpi-last-broadcast">—</div>
+            <div class="kpi-sub" id="tg-kpi-last-broadcast-date">Не было</div>
+            <div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+          </div>
+          <div class="kpi yellow">
+            <div class="kpi-label">Чатов поддержки</div>
+            <div class="kpi-val" id="tg-kpi-chats">—</div>
+            <div class="kpi-sub">Обращений из Telegram</div>
+            <div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <!-- Рассылка -->
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">📢 Рассылка всем пользователям</div></div>
+            <div style="padding:16px 20px">
+              <div style="margin-bottom:12px">
+                <label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px">Сообщение</label>
+                <textarea id="broadcast-text" rows="5" placeholder="Введи текст рассылки…" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);color:var(--text1);font-size:.8rem;resize:vertical;font-family:inherit;box-sizing:border-box"></textarea>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                <label style="font-size:.72rem;color:var(--text2);font-weight:600">Формат:</label>
+                <label style="font-size:.75rem;display:flex;align-items:center;gap:4px;cursor:pointer">
+                  <input type="radio" name="broadcast-format" value="plain" checked> Обычный
+                </label>
+                <label style="font-size:.75rem;display:flex;align-items:center;gap:4px;cursor:pointer">
+                  <input type="radio" name="broadcast-format" value="markdown"> Markdown
+                </label>
+              </div>
+              <div id="broadcast-preview" style="display:none;background:var(--bg3);border-radius:10px;padding:10px 12px;font-size:.78rem;margin-bottom:12px;border-left:3px solid #2196f3">
+                <div style="font-size:.65rem;color:var(--text3);margin-bottom:4px">Предпросмотр:</div>
+                <div id="broadcast-preview-text"></div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-secondary btn-sm" onclick="previewBroadcast()">👁 Предпросмотр</button>
+                <button class="btn btn-sm" id="broadcast-btn" onclick="sendBroadcast()" style="background:#2196f3;color:#fff;flex:1">
+                  📢 Отправить всем
+                </button>
+              </div>
+              <div id="broadcast-result" style="margin-top:12px;font-size:.75rem;display:none"></div>
+            </div>
+          </div>
+
+          <!-- Список пользователей -->
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">👥 Пользователи бота</div></div>
+            <div id="tg-users-list" style="max-height:420px;overflow-y:auto">
+              <div class="pload"><div class="spin"></div></div>
+            </div>
           </div>
         </div>
       </div>

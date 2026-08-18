@@ -3578,35 +3578,25 @@ window.sendBroadcast = async function () {
   res.style.display = 'none';
 
   try {
-    // Берём всех пользователей бота
-    const snap  = await getDocs(collection(db, 'tgUsers'));
-    const users = snap.docs.map(d => d.data());
-
-    if (!users.length) {
-      toast('Нет пользователей бота', 'err');
-      btn.disabled = false;
-      btn.innerHTML = '📢 Отправить всем';
-      return;
-    }
-
-    // Сохраняем рассылку в Firestore — бот прочитает и отправит
-    const broadcastRef = await addDoc(collection(db, 'tgBroadcasts'), {
-      text,
-      status:    'pending',
-      total:     users.length,
-      sent:      0,
-      failed:    0,
-      createdAt: serverTimestamp(),
-      createdBy: CU.uid,
+    // Шлём напрямую на бэкенд → бот рассылает
+    const response = await fetch('https://api.dastdaroz.shop/api/broadcast', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ text }),
     });
 
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Ошибка сервера');
+    }
+
     res.style.display = '';
-    res.innerHTML = `<div style="color:var(--green)">✅ Рассылка создана! Бот отправит сообщение ${users.length} пользователям.<br><small style="color:var(--text3)">ID: ${broadcastRef.id}</small></div>`;
+    res.innerHTML = `<div style="color:var(--green)">✅ Рассылка завершена!<br>Отправлено: <b>${data.sent}</b> чел. / Ошибок: ${data.failed}</div>`;
     document.getElementById('broadcast-text').value = '';
     document.getElementById('broadcast-preview').style.display = 'none';
-    toast(`Рассылка запущена → ${users.length} чел.`, 'ok');
+    toast(`Отправлено ${data.sent} пользователям`, 'ok');
 
-    // Обновляем KPI
     renderTgBotPage();
 
   } catch (err) {

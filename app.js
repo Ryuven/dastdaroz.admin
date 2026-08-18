@@ -3575,34 +3575,36 @@ window.sendBroadcast = async function () {
   const res = document.getElementById('broadcast-result');
   btn.disabled = true;
   btn.textContent = '⏳ Отправляем…';
-  res.style.display = 'none';
+  res.style.display = '';
+  res.innerHTML = '<div style="color:var(--text2)">⏳ Рассылка выполняется, подожди…</div>';
 
   try {
-    // Шлём напрямую на бэкенд → бот рассылает
+    const controller = new AbortController();
+    const timeout    = setTimeout(() => controller.abort(), 60_000); // 60 секунд
+
     const response = await fetch('https://api.dastdaroz.shop/api/broadcast', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ text }),
+      signal:  controller.signal,
     });
+
+    clearTimeout(timeout);
 
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || 'Ошибка сервера');
-    }
+    if (!response.ok) throw new Error(data.error || 'Ошибка сервера');
 
-    res.style.display = '';
     res.innerHTML = `<div style="color:var(--green)">✅ Рассылка завершена!<br>Отправлено: <b>${data.sent}</b> чел. / Ошибок: ${data.failed}</div>`;
     document.getElementById('broadcast-text').value = '';
     document.getElementById('broadcast-preview').style.display = 'none';
     toast(`Отправлено ${data.sent} пользователям`, 'ok');
-
     renderTgBotPage();
 
   } catch (err) {
     console.error('broadcast error:', err);
-    res.style.display = '';
-    res.innerHTML = `<div style="color:var(--red)">❌ Ошибка: ${err.message}</div>`;
+    const msg = err.name === 'AbortError' ? 'Превышено время ожидания (60 сек)' : err.message;
+    res.innerHTML = `<div style="color:var(--red)">❌ Ошибка: ${msg}</div>`;
     toast('Ошибка рассылки', 'err');
   }
 

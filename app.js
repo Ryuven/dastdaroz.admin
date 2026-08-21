@@ -77,60 +77,7 @@ const ROLES = {
   moderator:'Модератор',
 };
 
-// Дефолтный список общего каталога (51 категория)
-const GC_DEFAULTS = [
-  {slug:'american',      name:'Американская'},
-  {slug:'asian',         name:'Азиатская'},
-  {slug:'baby',          name:'Детское'},
-  {slug:'bakery',        name:'Выпечка'},
-  {slug:'bbq',           name:'BBQ'},
-  {slug:'beauty',        name:'Красота'},
-  {slug:'box-catering',  name:'Кейтеринг'},
-  {slug:'breakfast',     name:'Завтраки'},
-  {slug:'bubble-tea',    name:'Чай с пузырьками'},
-  {slug:'burgers',       name:'Бургеры'},
-  {slug:'caribbean',     name:'Карибская'},
-  {slug:'chinese',       name:'Китайская'},
-  {slug:'coffee',        name:'Кофе'},
-  {slug:'comfort-food',  name:'Домашняя'},
-  {slug:'desserts',      name:'Десерты'},
-  {slug:'electronics',   name:'Электроника'},
-  {slug:'fast-food',     name:'Фастфуд'},
-  {slug:'flowers',       name:'Цветы'},
-  {slug:'gifts',         name:'Подарки'},
-  {slug:'greek',         name:'Греческая'},
-  {slug:'halal',         name:'Халяль'},
-  {slug:'hawaiin',       name:'Гавайская'},
-  {slug:'healthy',       name:'Здоровое'},
-  {slug:'ice-cream',     name:'Мороженое'},
-  {slug:'indian',        name:'Индийская'},
-  {slug:'italian',       name:'Итальянская'},
-  {slug:'japanese',      name:'Японская'},
-  {slug:'korean',        name:'Корейская'},
-  {slug:'kosher',        name:'Кошерное'},
-  {slug:'mexican',       name:'Мексиканская'},
-  {slug:'personal-care', name:'Уход'},
-  {slug:'pet-supplies',  name:'Зоотовары'},
-  {slug:'pharmacy',      name:'Аптека'},
-  {slug:'pizza',         name:'Пицца'},
-  {slug:'poke',          name:'Поке'},
-  {slug:'retail',        name:'Ритейл'},
-  {slug:'salads',        name:'Салаты'},
-  {slug:'sandwiches',    name:'Сэндвичи'},
-  {slug:'seafood',       name:'Морепродукты'},
-  {slug:'smoothies',     name:'Смузи'},
-  {slug:'soul-food',     name:'Соул-фуд'},
-  {slug:'soup',          name:'Супы'},
-  {slug:'specialty',     name:'Особое'},
-  {slug:'street-food',   name:'Уличная еда'},
-  {slug:'sushi',         name:'Суши'},
-  {slug:'sweets',        name:'Сладости'},
-  {slug:'taiwanese',     name:'Тайваньская'},
-  {slug:'thai',          name:'Тайская'},
-  {slug:'vegan',         name:'Веган'},
-  {slug:'vietnamese',    name:'Вьетнамская'},
-  {slug:'wings',         name:'Крылья'},
-];
+
 
 // ══════════════════════════════════════════════════════════════
 // STATE
@@ -2671,15 +2618,11 @@ async function loadGenCatalogs() {
   try {
     const q    = query(collection(db, 'generalCatalogs'), orderBy('order', 'asc'));
     const snap = await getDocs(q);
-    if (snap.empty) {
-      allGenCatalogs = GC_DEFAULTS.map((c, i) => ({ id: c.slug, ...c, order: i, active: true, _isDefault: true }));
-    } else {
-      allGenCatalogs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    }
+    allGenCatalogs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (document.getElementById('page-gen-catalogs')?.classList.contains('active')) renderGenCatalogsPage();
   } catch (e) {
     console.error('GenCatalogs:', e);
-    allGenCatalogs = GC_DEFAULTS.map((c, i) => ({ id: c.slug, ...c, order: i, active: true, _isDefault: true }));
+    allGenCatalogs = [];
   }
 }
 
@@ -2692,7 +2635,7 @@ function renderGenCatalogsPage() {
   set('gc-kv-total',  allGenCatalogs.length);
 
   if (!allGenCatalogs.length) {
-    grid.innerHTML = '<div class="er" style="grid-column:1/-1"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>Нет категорий. Нажмите «Инициализировать все»</div>';
+    grid.innerHTML = '<div class="er" style="grid-column:1/-1"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>Нет категорий в Firestore</div>';
     return;
   }
 
@@ -2731,7 +2674,7 @@ function renderGenCatalogsPage() {
           <button class="btn btn-secondary btn-sm" onclick="openGcModal('${escHtml(c.id || c.slug)}')">✏️ Изменить</button>
           <button class="btn btn-${isActive ? 'danger' : 'success'} btn-sm" onclick="toggleGc('${escHtml(c.id || c.slug)}',${!isActive})">${isActive ? 'Скрыть' : 'Показать'}</button>
         </div>
-        ${c._isDefault ? '<div style="font-size:.5rem;color:var(--yellow);margin-top:6px;display:flex;align-items:center;gap:3px">⚠ Не сохранено в Firestore</div>' : ''}
+
       </div>
     </div>`;
   }).join('');
@@ -2803,8 +2746,7 @@ window.saveGc = async function (id) {
     updatedAt: serverTimestamp(),
   };
   try {
-    const existing = allGenCatalogs.find(x => (x.id || x.slug) === id && !x._isDefault);
-    if (existing) {
+    if (id) {
       await updateDoc(doc(db, 'generalCatalogs', id), data);
     } else {
       data.createdAt = serverTimestamp();
@@ -2819,45 +2761,16 @@ window.saveGc = async function (id) {
 
 window.toggleGc = async function (id, val) {
   try {
-    const existing = allGenCatalogs.find(x => (x.id || x.slug) === id && !x._isDefault);
-    if (existing) {
-      await updateDoc(doc(db, 'generalCatalogs', id), { active: val, updatedAt: serverTimestamp() });
-    } else {
-      const def = GC_DEFAULTS.find(x => x.slug === id);
-      if (!def) { toast('Не найдено', 'warn'); return; }
-      await setDoc(doc(db, 'generalCatalogs', id), {
-        slug: def.slug, name: def.name, order: GC_DEFAULTS.findIndex(x => x.slug === id),
-        active: val, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
-      });
-    }
+    const existing = allGenCatalogs.find(x => (x.id || x.slug) === id);
+    if (!existing) { toast('Категория не найдена в Firestore', 'warn'); return; }
+    await updateDoc(doc(db, 'generalCatalogs', id), { active: val, updatedAt: serverTimestamp() });
     toast(val ? 'Активирована' : 'Скрыта', 'ok');
     await loadGenCatalogs();
     renderGenCatalogsPage();
   } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
 };
 
-window.initGenCatalogs = async function () {
-  if (!confirm('Создать все 51 категорию в Firestore? Уже существующие будут пропущены.')) return;
-  toast('Инициализация…', 'info');
-  let created = 0, skipped = 0;
-  try {
-    const snap     = await getDocs(collection(db, 'generalCatalogs'));
-    const existing = new Set(snap.docs.map(d => d.id));
-    const batch    = [];
-    GC_DEFAULTS.forEach((c, i) => {
-      if (existing.has(c.slug)) { skipped++; return; }
-      batch.push(setDoc(doc(db, 'generalCatalogs', c.slug), {
-        slug: c.slug, name: c.name, order: i, active: true,
-        cityIds: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
-      }));
-      created++;
-    });
-    await Promise.all(batch);
-    toast(`✓ Создано: ${created}, пропущено: ${skipped}`, 'ok');
-    await loadGenCatalogs();
-    renderGenCatalogsPage();
-  } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
-};
+
 
 // ══════════════════════════════════════════════════════════════
 // ADS / PROMO

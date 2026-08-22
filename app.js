@@ -2447,11 +2447,14 @@ window.openRetailerModal = async function (rid = null) {
       v('ret-id', r.id); v('ret-name', r.name || ''); v('ret-desc', r.description || '');
       v('ret-image', r.imageUrl || ''); v('ret-order', r.order ?? 1);
       v('ret-active', String(r.active !== false));
+      v('ret-extra-banner', r.extraBannerUrl || '');
       fillRetCitySelect('ret-city', r.primaryCityId || '');
       if (r.imageUrl) _showRetPreview(r.imageUrl);
+      if (r.extraBannerUrl) _showRetExtraBannerPreview(r.extraBannerUrl); else _showRetExtraBannerPreview('');
     }
   } else {
-    ['ret-id','ret-name','ret-desc','ret-image'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+    ['ret-id','ret-name','ret-desc','ret-image','ret-extra-banner'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+    _showRetExtraBannerPreview('');
     const ord = document.getElementById('ret-order'); if (ord) ord.value = _retailers.length + 1;
     const act = document.getElementById('ret-active'); if (act) act.value = 'true';
   }
@@ -2468,15 +2471,25 @@ function _showRetPreview(url) {
   i.src = url; w.style.display = 'block';
 }
 
+function _showRetExtraBannerPreview(url) {
+  const w = document.getElementById('ret-extra-banner-preview');
+  const i = document.getElementById('ret-extra-banner-preview-img');
+  if (!w || !i) return;
+  if (!url) { w.style.display = 'none'; i.src = ''; return; }
+  i.src = url; w.style.display = 'block';
+}
+
 document.getElementById('ret-image')?.addEventListener('input', e => _showRetPreview(e.target.value));
+document.getElementById('ret-extra-banner')?.addEventListener('input', e => _showRetExtraBannerPreview(e.target.value));
 
 window.saveRetailer = async function () {
-  const name   = document.getElementById('ret-name')?.value.trim() || '';
-  const cityId = document.getElementById('ret-city')?.value || '';
-  const imgUrl = document.getElementById('ret-image')?.value.trim() || '';
-  const desc   = document.getElementById('ret-desc')?.value.trim() || '';
-  const order  = parseInt(document.getElementById('ret-order')?.value || '1');
-  const active = document.getElementById('ret-active')?.value === 'true';
+  const name           = document.getElementById('ret-name')?.value.trim() || '';
+  const cityId         = document.getElementById('ret-city')?.value || '';
+  const imgUrl         = document.getElementById('ret-image')?.value.trim() || '';
+  const extraBannerUrl = document.getElementById('ret-extra-banner')?.value.trim() || '';
+  const desc           = document.getElementById('ret-desc')?.value.trim() || '';
+  const order          = parseInt(document.getElementById('ret-order')?.value || '1');
+  const active         = document.getElementById('ret-active')?.value === 'true';
 
   if (!name)   { toast('Введите название ритейлера', 'warn'); return; }
   if (!cityId) { toast('Выберите город', 'warn'); return; }
@@ -2485,7 +2498,7 @@ window.saveRetailer = async function () {
   if (btn) { btn.disabled = true; btn.textContent = 'Сохраняем…'; }
 
   try {
-    const data = { name, primaryCityId: cityId, imageUrl: imgUrl, description: desc, order: isNaN(order) ? 1 : order, active, updatedAt: serverTimestamp() };
+    const data = { name, primaryCityId: cityId, imageUrl: imgUrl, extraBannerUrl, description: desc, order: isNaN(order) ? 1 : order, active, updatedAt: serverTimestamp() };
     if (_editRetId) {
       await updateDoc(doc(db, 'retailers', _editRetId), data);
       toast(`Ритейлер «${name}» обновлён`, 'ok');

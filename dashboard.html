@@ -1033,6 +1033,13 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           <img id="ret-img-preview-img" src="" style="width:80px;height:80px;border-radius:10px;object-fit:cover;border:1px solid var(--b)">
         </div>
       </div>
+      <div class="mf">
+        <label class="ml">URL доп-баннера <span style="color:var(--text3);font-weight:400">(необязательно)</span></label>
+        <input class="mi" id="ret-extra-banner" type="url" placeholder="https://…/banner.jpg">
+        <div id="ret-extra-banner-preview" style="margin-top:7px;display:none;border-radius:10px;overflow:hidden;border:1px solid var(--b)">
+          <img id="ret-extra-banner-preview-img" src="" style="width:100%;max-height:90px;object-fit:cover;display:block">
+        </div>
+      </div>
       <div class="mf"><label class="ml">Описание <span style="color:var(--text3);font-weight:400">(необязательно)</span></label><textarea class="mi" id="ret-desc" rows="2" placeholder="Краткое описание…"></textarea></div>
       <div class="mr">
         <div class="mf" style="margin-bottom:0"><label class="ml">Порядок сортировки</label><input class="mi" id="ret-order" type="number" min="1" value="1"></div>

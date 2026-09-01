@@ -93,7 +93,7 @@ let allCouriers  = [];
 let allClients   = [];
 let allProducts  = [];
 let allStaff     = [];
-let allGenCatalogs = [];
+
 let allNews      = [];
 let allVacancies = [];
 let allPartnerApps = [];
@@ -358,7 +358,6 @@ async function loadAll() {
     loadNewsAdmin(),
     loadVacancies(),
     loadStores(),       // Legacy: коллекция stores/ (не отображается в дашборде)
-    loadGenCatalogs(),
     loadPartnerApps(),
     loadDeliveryServices(),
   ]);
@@ -1587,6 +1586,186 @@ window.updateStaffRole = async function (uid) {
 };
 
 // ══════════════════════════════════════════════════════════════
+// PARTNER STAFF — Сотрудники магазинов (users-partner)
+// ══════════════════════════════════════════════════════════════
+
+let partnerStaffList = [];
+
+// Переключение вкладок
+window.switchStaffTab = function (tab) {
+  const isPartner = tab === 'partner';
+  document.getElementById('staff-panel-admin').style.display   = isPartner ? 'none'  : 'block';
+  document.getElementById('staff-panel-partner').style.display = isPartner ? 'block' : 'none';
+  document.getElementById('staff-tab-admin').classList.toggle('active',   !isPartner);
+  document.getElementById('staff-tab-partner').classList.toggle('active',  isPartner);
+  document.getElementById('staff-sh-actions').innerHTML = isPartner
+    ? '<button class="btn btn-primary" onclick="openAddPartnerStaff()">+ Сотрудник магазина</button>'
+    : '<button class="btn btn-primary" onclick="openAddStaff()">+ Сотрудник</button>';
+  if (isPartner) loadPartnerStaff();
+};
+
+// Загрузка списка
+async function loadPartnerStaff() {
+  const tbody = document.getElementById('partner-staff-ob');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="7"><div class="pload"><div class="spin"></div></div></td></tr>';
+  try {
+    const snap = await getDocs(collection(db, 'users-partner'));
+    partnerStaffList = snap.docs.map(d => ({ phone: d.id, ...d.data() }));
+    renderPartnerStaff();
+  } catch (err) {
+    console.error('loadPartnerStaff:', err);
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="color:var(--red);text-align:center">Ошибка загрузки</td></tr>';
+  }
+}
+
+function renderPartnerStaff() {
+  const tbody = document.getElementById('partner-staff-ob');
+  if (!tbody) return;
+  if (!partnerStaffList.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3)">Сотрудников нет</td></tr>';
+    return;
+  }
+  tbody.innerHTML = partnerStaffList.map(p => `
+    <tr>
+      <td><div style="font-weight:600">${escHtml(p.name || '—')}</div></td>
+      <td><code style="font-size:.7rem">+${p.phone}</code></td>
+      <td>${escHtml(p.storeName || p.storeId || '—')}</td>
+      <td>${p.role === 'manager' ? 'Менеджер' : 'Сотрудник'}</td>
+      <td>${p.telegramId ? `<span style="color:var(--green)">✓ ${p.telegramId}</span>` : '<span style="color:var(--text3)">Не привязан</span>'}</td>
+      <td>
+        <label class="tog" style="margin:0">
+          <input type="checkbox" ${p.active ? 'checked' : ''} onchange="togglePartnerActive('${p.phone}', this.checked)">
+          <span class="tog-track"><span class="tog-thumb"></span></span>
+        </label>
+      </td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" onclick="editPartnerStaff('${p.phone}')">Изменить</button>
+          <button class="btn btn-danger btn-sm"    onclick="deletePartnerStaff('${p.phone}')">Удалить</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Открытие модала создания
+window.openAddPartnerStaff = function () {
+  document.getElementById('m-order-title').textContent = 'Новый сотрудник магазина';
+  document.getElementById('m-order-body').innerHTML = `
+    <div class="mf"><label class="ml">Имя *</label><input class="mi" id="ps-name" placeholder="Алишер Рахимов"/></div>
+    <div class="mf"><label class="ml">Номер телефона * (doc ID)</label><input class="mi" id="ps-phone" placeholder="992977123456" maxlength="12"/></div>
+    <div class="mf">
+      <label class="ml">ID магазина</label>
+      <input class="mi" id="ps-store-id" placeholder="store_001 (заглушка — выбор позже)"/>
+    </div>
+    <div class="mf"><label class="ml">Название магазина</label><input class="mi" id="ps-store-name" placeholder="dastdaroz Центр"/></div>
+    <div class="mf">
+      <label class="ml">Роль</label>
+      <select class="mi" id="ps-role">
+        <option value="staff">Сотрудник</option>
+        <option value="manager">Менеджер</option>
+      </select>
+    </div>`;
+  document.getElementById('m-order-foot').innerHTML = `
+    <button class="btn btn-secondary" onclick="closeMo('order-modal')">Отмена</button>
+    <button class="btn btn-primary"   onclick="saveNewPartnerStaff()">Создать</button>`;
+  openMo('order-modal');
+};
+
+// Сохранение
+window.saveNewPartnerStaff = async function () {
+  const name      = document.getElementById('ps-name')?.value.trim();
+  const phone     = document.getElementById('ps-phone')?.value.replace(/\D/g, '');
+  const storeId   = document.getElementById('ps-store-id')?.value.trim()   || 'store_tbd';
+  const storeName = document.getElementById('ps-store-name')?.value.trim() || '—';
+  const role      = document.getElementById('ps-role')?.value;
+
+  if (!name)  { toast('Введите имя', 'warn'); return; }
+  if (!phone || phone.length < 9) { toast('Введите корректный номер', 'warn'); return; }
+
+  const normalizedPhone = phone.length === 9 ? '992' + phone : phone;
+  if (normalizedPhone.length !== 12) { toast('Номер должен быть 12 цифр (992XXXXXXXXX)', 'warn'); return; }
+
+  try {
+    // Проверяем — вдруг уже существует
+    const existing = await getDoc(doc(db, 'users-partner', normalizedPhone));
+    if (existing.exists()) { toast('Сотрудник с этим номером уже существует', 'err'); return; }
+
+    await setDoc(doc(db, 'users-partner', normalizedPhone), {
+      name, storeId, storeName, role,
+      active:      true,
+      telegramId:  null,
+      createdAt:   serverTimestamp(),
+      lastLoginAt: null,
+    });
+
+    toast(`Сотрудник ${name} создан`, 'ok');
+    closeMo('order-modal');
+    await loadPartnerStaff();
+  } catch (err) {
+    console.error(err);
+    toast('Ошибка создания: ' + err.message, 'err');
+  }
+};
+
+// Редактирование
+window.editPartnerStaff = function (phone) {
+  const p = partnerStaffList.find(x => x.phone === phone);
+  if (!p) return;
+  document.getElementById('m-order-title').textContent = 'Изменить: ' + (p.name || phone);
+  document.getElementById('m-order-body').innerHTML = `
+    <div class="mf"><label class="ml">Имя</label><input class="mi" id="ps-e-name" value="${escHtml(p.name || '')}"/></div>
+    <div class="mf"><label class="ml">ID магазина</label><input class="mi" id="ps-e-store-id" value="${escHtml(p.storeId || '')}"/></div>
+    <div class="mf"><label class="ml">Название магазина</label><input class="mi" id="ps-e-store-name" value="${escHtml(p.storeName || '')}"/></div>
+    <div class="mf">
+      <label class="ml">Роль</label>
+      <select class="mi" id="ps-e-role">
+        <option value="staff"   ${p.role === 'staff'   ? 'selected' : ''}>Сотрудник</option>
+        <option value="manager" ${p.role === 'manager' ? 'selected' : ''}>Менеджер</option>
+      </select>
+    </div>`;
+  document.getElementById('m-order-foot').innerHTML = `
+    <button class="btn btn-secondary" onclick="closeMo('order-modal')">Отмена</button>
+    <button class="btn btn-primary"   onclick="updatePartnerStaff('${phone}')">Сохранить</button>`;
+  openMo('order-modal');
+};
+
+window.updatePartnerStaff = async function (phone) {
+  const name      = document.getElementById('ps-e-name')?.value.trim();
+  const storeId   = document.getElementById('ps-e-store-id')?.value.trim();
+  const storeName = document.getElementById('ps-e-store-name')?.value.trim();
+  const role      = document.getElementById('ps-e-role')?.value;
+  if (!name) { toast('Введите имя', 'warn'); return; }
+  try {
+    await setDoc(doc(db, 'users-partner', phone), { name, storeId, storeName, role, updatedAt: serverTimestamp() }, { merge: true });
+    toast('Обновлено', 'ok');
+    closeMo('order-modal');
+    await loadPartnerStaff();
+  } catch { toast('Ошибка', 'err'); }
+};
+
+// Переключение активности
+window.togglePartnerActive = async function (phone, active) {
+  try {
+    await setDoc(doc(db, 'users-partner', phone), { active, updatedAt: serverTimestamp() }, { merge: true });
+    const p = partnerStaffList.find(x => x.phone === phone);
+    if (p) p.active = active;
+    toast(active ? 'Активирован' : 'Деактивирован', 'ok');
+  } catch { toast('Ошибка', 'err'); }
+};
+
+// Удаление
+window.deletePartnerStaff = async function (phone) {
+  const p = partnerStaffList.find(x => x.phone === phone);
+  if (!confirm(`Удалить сотрудника ${p?.name || phone}?`)) return;
+  try {
+    await deleteDoc(doc(db, 'users-partner', phone));
+    toast('Удалено', 'ok');
+    await loadPartnerStaff();
+  } catch { toast('Ошибка', 'err'); }
+};
+
+// ══════════════════════════════════════════════════════════════
 // SUPPORT CHATS (admin side)
 // ══════════════════════════════════════════════════════════════
 
@@ -2624,168 +2803,6 @@ window.deleteLocation = async function () {
 };
 
 // ══════════════════════════════════════════════════════════════
-// GENERAL CATALOGS
-// ══════════════════════════════════════════════════════════════
-
-async function loadGenCatalogs() {
-  try {
-    const q    = query(collection(db, 'generalCatalogs'), orderBy('order', 'asc'));
-    const snap = await getDocs(q);
-    allGenCatalogs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if (document.getElementById('page-gen-catalogs')?.classList.contains('active')) renderGenCatalogsPage();
-  } catch (e) {
-    console.error('GenCatalogs:', e);
-    allGenCatalogs = [];
-  }
-}
-
-function renderGenCatalogsPage() {
-  const grid = document.getElementById('gen-catalogs-grid'); if (!grid) return;
-  const active = allGenCatalogs.filter(c => c.active !== false).length;
-  const hidden = allGenCatalogs.filter(c => c.active === false).length;
-  set('gc-kv-active', active);
-  set('gc-kv-hidden', hidden);
-  set('gc-kv-total',  allGenCatalogs.length);
-
-  if (!allGenCatalogs.length) {
-    grid.innerHTML = '<div class="er" style="grid-column:1/-1"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>Нет категорий в Firestore</div>';
-    return;
-  }
-
-  grid.innerHTML = allGenCatalogs.map(c => {
-    const isActive    = c.active !== false;
-    const statusColor = isActive ? 'var(--green)' : 'var(--text3)';
-    const statusBg    = isActive ? 'var(--greend)' : 'var(--muted2)';
-    const cityIds     = c.cityIds || [];
-    const citiesSnip  = cityIds.length === 0
-      ? `<div style="font-size:.52rem;color:var(--cyan);margin-top:5px;display:flex;align-items:center;gap:3px">
-           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
-           Все города
-         </div>`
-      : `<div style="font-size:.52rem;color:var(--text3);margin-top:5px;display:flex;align-items:center;gap:3px;flex-wrap:wrap">
-           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-           ${cityIds.map(cid => {
-             const cn = (_retCities || []).find(x => x.id === cid)?.name || cid;
-             return `<span style="padding:1px 5px;background:var(--s2);border:1px solid var(--b);border-radius:99px">${escHtml(cn)}</span>`;
-           }).join('')}
-         </div>`;
-    return `<div class="gc-card${isActive ? '' : ' gc-card-hidden'}">
-      <div class="gc-card-img">
-        <img src="storage/general-catalogs/${escHtml(c.slug)}.png" alt="${escHtml(c.name || c.slug)}"
-             style="width:100%;height:100%;object-fit:cover;display:block"
-             onerror="this.style.display='none';this.parentElement.classList.add('gc-img-err')"/>
-        <div class="gc-card-status" style="color:${statusColor};background:${statusBg};border-color:${statusColor}">
-          <div style="width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0"></div>
-          ${isActive ? 'Активна' : 'Скрыта'}
-        </div>
-      </div>
-      <div class="gc-card-body">
-        <div class="gc-card-name" title="${escHtml(c.name || c.slug)}">${escHtml(c.name || c.slug)}</div>
-        <div class="gc-card-slug">${escHtml(c.slug)}</div>
-        ${citiesSnip}
-        <div class="gc-card-foot">
-          <button class="btn btn-secondary btn-sm" onclick="openGcModal('${escHtml(c.id || c.slug)}')">✏️ Изменить</button>
-          <button class="btn btn-${isActive ? 'danger' : 'success'} btn-sm" onclick="toggleGc('${escHtml(c.id || c.slug)}',${!isActive})">${isActive ? 'Скрыть' : 'Показать'}</button>
-        </div>
-
-      </div>
-    </div>`;
-  }).join('');
-}
-
-window.openGcModal = async function (id) {
-  const c = allGenCatalogs.find(x => (x.id || x.slug) === id);
-  if (!c) { toast('Не найдено', 'warn'); return; }
-
-  await loadRetCities();
-  const selCityIds = c.cityIds || [];
-  const citiesHtml = _retCities.length
-    ? _retCities.map(city => `
-        <label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;cursor:pointer;border:1px solid var(--b);background:var(--s2);transition:border-color .15s"
-               onmouseenter="this.style.borderColor='var(--bh)'" onmouseleave="this.style.borderColor='var(--b)'">
-          <input type="checkbox" class="gc-city-cb" value="${escHtml(city.id)}"
-                 style="width:15px;height:15px;accent-color:var(--acc);cursor:pointer;flex-shrink:0"
-                 ${selCityIds.includes(city.id) ? 'checked' : ''}>
-          <span style="font-size:.72rem;color:var(--text)">${escHtml(city.name)}${city.region ? ` <span style="color:var(--text3);font-size:.6rem">· ${escHtml(city.region)}</span>` : ''}</span>
-        </label>`).join('')
-    : '<div style="font-size:.68rem;color:var(--text3)">Города не загружены</div>';
-
-  document.getElementById('gc-modal-title').textContent = 'Редактировать категорию';
-  document.getElementById('gc-modal-body').innerHTML = `
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="storage/general-catalogs/${escHtml(c.slug)}.png" alt=""
-           style="width:72px;height:72px;border-radius:12px;object-fit:cover;border:1px solid var(--b);background:var(--s2)"
-           onerror="this.style.display='none'"/>
-      <div>
-        <div style="font-family:var(--fm);font-size:.66rem;color:var(--text3);margin-bottom:3px">${escHtml(c.slug)}.png</div>
-        <div style="font-size:.62rem;color:var(--text3)">Иконка: storage/general-catalogs/</div>
-      </div>
-    </div>
-    <div class="mf"><label class="ml">Отображаемое название *</label><input class="mi" id="gc-edit-name" value="${escHtml(c.name || c.slug)}" placeholder="Например: Суши"/></div>
-    <div class="mf"><label class="ml">Порядок отображения</label><input class="mi" type="number" id="gc-edit-order" value="${c.order ?? 0}" min="0"/></div>
-    <div class="mf" style="display:flex;align-items:center;gap:10px;padding:8px 0">
-      <input type="checkbox" id="gc-edit-active" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer" ${c.active !== false ? 'checked' : ''}>
-      <label for="gc-edit-active" style="font-size:.72rem;color:var(--text2);cursor:pointer">Активна (показывается на главной)</label>
-    </div>
-    <div class="mf" style="margin-top:4px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <label class="ml" style="margin-bottom:0">Города показа</label>
-        <span style="font-size:.56rem;color:var(--text3)">Пусто = все города</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:5px" id="gc-cities-list">${citiesHtml}</div>
-      <div style="font-size:.58rem;color:var(--text3);margin-top:8px;display:flex;align-items:center;gap:4px">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Если ни один город не отмечен — категория показывается во всех городах
-      </div>
-    </div>
-    <input type="hidden" id="gc-edit-slug" value="${escHtml(c.slug)}"/>`;
-
-  document.getElementById('gc-modal-foot').innerHTML = `
-    <button class="btn btn-secondary" onclick="closeMo('gc-modal')">Отмена</button>
-    <button class="btn btn-primary"   onclick="saveGc('${escHtml(c.id || c.slug)}')">Сохранить</button>`;
-  openMo('gc-modal');
-};
-
-window.saveGc = async function (id) {
-  const name = document.getElementById('gc-edit-name')?.value.trim();
-  const slug = document.getElementById('gc-edit-slug')?.value.trim();
-  if (!name) { toast('Введите название', 'warn'); return; }
-  const cityIds = [...document.querySelectorAll('.gc-city-cb:checked')].map(cb => cb.value);
-  const data = {
-    slug, name,
-    order:     parseInt(document.getElementById('gc-edit-order')?.value || '0'),
-    active:    document.getElementById('gc-edit-active')?.checked ?? true,
-    cityIds,
-    updatedAt: serverTimestamp(),
-  };
-  try {
-    if (id) {
-      await updateDoc(doc(db, 'generalCatalogs', id), data);
-    } else {
-      data.createdAt = serverTimestamp();
-      await setDoc(doc(db, 'generalCatalogs', slug), data);
-    }
-    toast('Сохранено ✓', 'ok');
-    closeMo('gc-modal');
-    await loadGenCatalogs();
-    renderGenCatalogsPage();
-  } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
-};
-
-window.toggleGc = async function (id, val) {
-  try {
-    const existing = allGenCatalogs.find(x => (x.id || x.slug) === id);
-    if (!existing) { toast('Категория не найдена в Firestore', 'warn'); return; }
-    await updateDoc(doc(db, 'generalCatalogs', id), { active: val, updatedAt: serverTimestamp() });
-    toast(val ? 'Активирована' : 'Скрыта', 'ok');
-    await loadGenCatalogs();
-    renderGenCatalogsPage();
-  } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
-};
-
-
-
-// ══════════════════════════════════════════════════════════════
 // ADS / PROMO
 // ══════════════════════════════════════════════════════════════
 
@@ -3268,7 +3285,6 @@ const PAGE_TITLES = {
   'delivery-services':  'Курьерские службы',
   stores:               'Ритейлеры',
   addresses:            'Адреса доставки',
-  'gen-catalogs':       'Общий каталог',
   news:                 'Новости',
   analytics:            'Аналитика',
   staff:                'Сотрудники',
@@ -3296,7 +3312,6 @@ window.goPage = function (page) {
   if (page === 'hr')                renderHrPage();
   if (page === 'stores')            renderRetailersPage();
   if (page === 'ads')               renderAdsPage();
-  if (page === 'gen-catalogs')      renderGenCatalogsPage();
   if (page === 'partners')          renderPartnerPage();
   if (page === 'tg-bot')            renderTgBotPage();
   if (page === 'addresses')         loadAZones();

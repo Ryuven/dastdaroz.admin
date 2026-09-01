@@ -763,21 +763,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
 .ret-cat-badge-cat    { font-size:.52rem; padding:1px 6px; background:var(--accd); border:1px solid var(--accg); border-radius:4px; color:var(--acc); }
 .ret-cat-badge-hid    { font-size:.52rem; padding:1px 6px; background:var(--redd); border:1px solid rgba(244,63,94,.2); border-radius:4px; color:var(--red); }
 
-/* ══════════════════════════════════════════════════════
-   GEN CATALOG CARDS
-══════════════════════════════════════════════════════ */
-.gc-card { background: var(--s1); border: 1px solid var(--b); border-radius: 14px; overflow: hidden; transition: border-color var(--tf), box-shadow var(--tf); }
-.gc-card:hover       { border-color: var(--bh); box-shadow: 0 4px 16px rgba(0,0,0,.2); }
-.gc-card-img         { width: 100%; aspect-ratio: 1/1; background: var(--s2); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-.gc-card-img img     { width: 100%; height: 100%; object-fit: cover; display: block; }
-.gc-card-img-ph      { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: var(--text3); opacity: .25; }
-.gc-card-body        { padding: 9px 11px 10px; }
-.gc-card-name        { font-size: .72rem; font-weight: 700; color: var(--text); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gc-card-slug        { font-family: var(--fm); font-size: .56rem; color: var(--text3); margin-bottom: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gc-card-foot        { display: flex; gap: 5px; flex-wrap: wrap; }
-.gc-card-hidden      { opacity: .5; }
-.gc-card-status      { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 99px; font-size: .5rem; font-weight: 700; border: 1px solid; white-space: nowrap; position: absolute; top: 7px; right: 7px; }
-@media (max-width: 900px) { #gen-catalogs-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+
 
 /* ══════════════════════════════════════════════════════
    ADS PAGE
@@ -1133,20 +1119,6 @@ textarea.mi     { resize: vertical; min-height: 76px; }
   </div>
 </div>
 
-<!-- Gen Catalog Modal -->
-<div class="mo" id="gc-modal">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-head">
-      <div class="modal-title" id="gc-modal-title">Редактировать категорию</div>
-      <button class="modal-x" onclick="closeMo('gc-modal')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="modal-body" id="gc-modal-body"></div>
-    <div class="modal-foot" id="gc-modal-foot"></div>
-  </div>
-</div>
-
 <!-- City Modal -->
 <div class="mo" id="az-modal" onclick="if(event.target===this)closeCityModal()">
   <div class="modal" style="max-width:480px">
@@ -1246,10 +1218,6 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
         Адреса
         <span class="ni-badge" id="sb-az-b" style="display:none;background:var(--red)">!</span>
-      </button>
-      <button class="ni" data-page="gen-catalogs" onclick="goPage('gen-catalogs')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
-        Общий каталог
       </button>
       <button class="ni" data-page="ads" onclick="goPage('ads')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-4 0v2M8 12h8M8 16h5"/></svg>
@@ -1601,22 +1569,6 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         </div>
       </div>
 
-      <!-- ── GEN CATALOGS ── -->
-      <div class="page" id="page-gen-catalogs">
-        <div class="sh">
-          <div><div class="sh-tag">Управление</div><div class="sh-title">Общий <em>каталог</em></div></div>
-
-        </div>
-        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
-          <div class="kpi green"><div class="kpi-label">Активных</div><div class="kpi-val" id="gc-kv-active">—</div><div class="kpi-sub">Показываются на главной</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div>
-          <div class="kpi red"><div class="kpi-label">Скрытых</div><div class="kpi-val" id="gc-kv-hidden">—</div><div class="kpi-sub">Не отображаются</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></div></div>
-          <div class="kpi acc"><div class="kpi-label">Всего</div><div class="kpi-val" id="gc-kv-total">—</div><div class="kpi-sub">Категорий в Firestore</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div></div>
-        </div>
-        <div id="gen-catalogs-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
-          <div class="pload" style="grid-column:1/-1"><div class="spin"></div> Загружаем каталог…</div>
-        </div>
-      </div>
-
       <!-- ── NEWS ── -->
       <div class="page" id="page-news">
         <div class="sh">
@@ -1677,14 +1629,38 @@ textarea.mi     { resize: vertical; min-height: 76px; }
       <div class="page" id="page-staff">
         <div class="sh">
           <div><div class="sh-tag">Администрирование</div><div class="sh-title">Сотрудники</div></div>
-          <div class="sh-actions"><button class="btn btn-primary" onclick="openAddStaff()">+ Сотрудник</button></div>
+          <div class="sh-actions" id="staff-sh-actions">
+            <button class="btn btn-primary" onclick="openAddStaff()">+ Сотрудник</button>
+          </div>
         </div>
-        <div class="panel">
-          <div style="overflow-x:auto">
-            <table class="ot">
-              <thead><tr><th>Сотрудник</th><th>Email</th><th>Роль</th><th>Последний вход</th><th>Действия</th></tr></thead>
-              <tbody id="staff-ob"><tr><td colspan="5"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
-            </table>
+
+        <!-- Вкладки -->
+        <div class="tabs" style="margin-bottom:16px;width:fit-content">
+          <button class="tab active" id="staff-tab-admin"   onclick="switchStaffTab('admin')">Администраторы</button>
+          <button class="tab"        id="staff-tab-partner" onclick="switchStaffTab('partner')">Сотрудники магазинов</button>
+        </div>
+
+        <!-- Администраторы -->
+        <div id="staff-panel-admin">
+          <div class="panel">
+            <div style="overflow-x:auto">
+              <table class="ot">
+                <thead><tr><th>Сотрудник</th><th>Email</th><th>Роль</th><th>Последний вход</th><th>Действия</th></tr></thead>
+                <tbody id="staff-ob"><tr><td colspan="5"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Сотрудники магазинов -->
+        <div id="staff-panel-partner" style="display:none">
+          <div class="panel">
+            <div style="overflow-x:auto">
+              <table class="ot">
+                <thead><tr><th>Имя</th><th>Телефон</th><th>Магазин</th><th>Роль</th><th>Telegram</th><th>Статус</th><th>Действия</th></tr></thead>
+                <tbody id="partner-staff-ob"><tr><td colspan="7"><div class="pload"><div class="spin"></div></div></td></tr></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

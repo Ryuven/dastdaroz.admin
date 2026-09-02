@@ -2589,7 +2589,7 @@ function renderLocationsPanel(rid, locs) {
   el.innerHTML = locs.map(loc => {
     const cName  = _retCities.find(c => c.id === loc.cityId)?.name || loc.cityId || '—';
     const coords = (loc.lat && loc.lng) ? `${(+loc.lat).toFixed(5)}, ${(+loc.lng).toFixed(5)}` : '';
-    return `<div class="ret-loc-row" style="cursor:pointer" onclick="openRetCatalog('${rid}','${escHtml(rName)}')">
+    return `<div class="ret-loc-row" style="cursor:pointer" onclick="openRetCatalog('${rid}','${escHtml(rName)}','${loc.id}','${escHtml(loc.address||'')}')">
       <div class="ret-loc-ico">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
       </div>
@@ -2597,7 +2597,7 @@ function renderLocationsPanel(rid, locs) {
         <div class="ret-loc-addr">${escHtml(loc.address || '—')}</div>
         <div class="ret-loc-meta">${escHtml(cName)}${coords ? ' · ' + coords : ''}</div>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openRetCatalog('${rid}','${escHtml(rName)}')" title="Каталог товаров">
+      <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openRetCatalog('${rid}','${escHtml(rName)}','${loc.id}',decodeURIComponent('${locAddrSafe}'))" title="Каталог товаров">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       </button>
       <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openLocationModal('${rid}','${escHtml(rName)}','${loc.id}')" title="Редактировать точку">
@@ -3071,15 +3071,20 @@ window.deleteCity = async function (id, name) {
 // ══════════════════════════════════════════════════════════════
 
 let _retCatRid   = null;
+let _retCatLocId = null;
+let _retCatLocAddr = '';
 let _retCatName  = '';
 let _retCatProds = [];
 
-window.openRetCatalog = async function (rid, rName) {
-  _retCatRid   = rid;
-  _retCatName  = rName;
-  _retCatProds = [];
+window.openRetCatalog = async function (rid, rName, locId, locAddr) {
+  _retCatRid     = rid;
+  _retCatLocId   = locId;
+  _retCatLocAddr = locAddr || '';
+  _retCatName    = rName;
+  _retCatProds   = [];
 
-  document.getElementById('ret-cat-title').textContent = rName;
+  const titleEl = document.getElementById('ret-cat-title');
+  if (titleEl) titleEl.textContent = locAddr ? `${rName} — ${locAddr}` : rName;
   const search = document.getElementById('ret-cat-search');
   const filter = document.getElementById('ret-cat-filter');
   if (search) search.value = '';
@@ -3088,7 +3093,10 @@ window.openRetCatalog = async function (rid, rName) {
   openMo('ret-catalog-modal');
 
   try {
-    const snap = await getDocs(collection(db, 'retailers', rid, 'catalog'));
+    const path = locId
+      ? collection(db, 'retailers', rid, 'locations', locId, 'catalog')
+      : collection(db, 'retailers', rid, 'catalog');
+    const snap = await getDocs(path);
     _retCatProds = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     _retCatProds.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
     _fillRetCatFilter();
@@ -3181,7 +3189,7 @@ window.openRetProdModal = function (id = null) {
     <div style="padding:8px 10px;background:var(--s2);border:1px solid var(--b);border-radius:8px;font-size:.62rem;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;gap:6px">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       <strong style="color:var(--text)">${escHtml(_retCatName)}</strong>
-      <code style="color:var(--text3);font-size:.58rem">retailers/${_retCatRid}/catalog/</code>
+      <code style="color:var(--text3);font-size:.58rem">retailers/${_retCatRid}/locations/${_retCatLocId}/catalog/</code>
     </div>
     <div class="mf">
       <label class="ml">Название *</label>
@@ -3220,7 +3228,10 @@ window.saveRetNewProd = async function () {
   if (!name)  { toast('Укажите название', 'warn'); return; }
   if (!price) { toast('Укажите цену', 'warn'); return; }
   try {
-    await addDoc(collection(db, 'retailers', _retCatRid, 'catalog'), {
+    const catCol = _retCatLocId
+      ? collection(db, 'retailers', _retCatRid, 'locations', _retCatLocId, 'catalog')
+      : collection(db, 'retailers', _retCatRid, 'catalog');
+    await addDoc(catCol, {
       name,
       description: document.getElementById('rp-ds')?.value.trim() || '',
       price,
@@ -3232,13 +3243,16 @@ window.saveRetNewProd = async function () {
     });
     toast('Товар добавлен', 'ok');
     closeMo('order-modal');
-    await openRetCatalog(_retCatRid, _retCatName);
+    await openRetCatalog(_retCatRid, _retCatName, _retCatLocId, _retCatLocAddr);
   } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
 };
 
 window.saveRetEditProd = async function (id) {
   try {
-    await updateDoc(doc(db, 'retailers', _retCatRid, 'catalog', id), {
+    const catPath = _retCatLocId
+      ? doc(db, 'retailers', _retCatRid, 'locations', _retCatLocId, 'catalog', id)
+      : doc(db, 'retailers', _retCatRid, 'catalog', id);
+    await updateDoc(catPath, {
       name:        document.getElementById('rp-nm')?.value.trim() || '',
       description: document.getElementById('rp-ds')?.value.trim() || '',
       price:       parseFloat(document.getElementById('rp-pr')?.value || '0'),
@@ -3248,26 +3262,31 @@ window.saveRetEditProd = async function (id) {
     });
     toast('Товар обновлён', 'ok');
     closeMo('order-modal');
-    await openRetCatalog(_retCatRid, _retCatName);
+    await openRetCatalog(_retCatRid, _retCatName, _retCatLocId, _retCatLocAddr);
   } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
 };
 
 window.toggleRetProd = async function (id, val) {
   try {
-    await updateDoc(doc(db, 'retailers', _retCatRid, 'catalog', id),
-      { available: val, updatedAt: serverTimestamp() });
+    const tPath = _retCatLocId
+      ? doc(db, 'retailers', _retCatRid, 'locations', _retCatLocId, 'catalog', id)
+      : doc(db, 'retailers', _retCatRid, 'catalog', id);
+    await updateDoc(tPath, { available: val, updatedAt: serverTimestamp() });
     toast(val ? 'Товар показан' : 'Товар скрыт', 'ok');
-    await openRetCatalog(_retCatRid, _retCatName);
+    await openRetCatalog(_retCatRid, _retCatName, _retCatLocId, _retCatLocAddr);
   } catch (e) { toast('Ошибка', 'err'); }
 };
 
 window.deleteRetProd = async function (id) {
   if (!confirm('Удалить товар из каталога?')) return;
   try {
-    await deleteDoc(doc(db, 'retailers', _retCatRid, 'catalog', id));
+    const dPath = _retCatLocId
+      ? doc(db, 'retailers', _retCatRid, 'locations', _retCatLocId, 'catalog', id)
+      : doc(db, 'retailers', _retCatRid, 'catalog', id);
+    await deleteDoc(dPath);
     toast('Удалён', 'ok');
     closeMo('order-modal');
-    await openRetCatalog(_retCatRid, _retCatName);
+    await openRetCatalog(_retCatRid, _retCatName, _retCatLocId, _retCatLocAddr);
   } catch (e) { toast('Ошибка', 'err'); }
 };
 

@@ -2597,7 +2597,7 @@ function renderLocationsPanel(rid, locs) {
         <div class="ret-loc-addr">${escHtml(loc.address || '—')}</div>
         <div class="ret-loc-meta">${escHtml(cName)}${coords ? ' · ' + coords : ''}</div>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openRetCatalog('${rid}','${escHtml(rName)}','${loc.id}',decodeURIComponent('${locAddrSafe}'))" title="Каталог товаров">
+      <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openRetCatalog('${rid}','${escHtml(rName)}','${loc.id}','${escHtml(loc.address||'')}')" title="Каталог товаров">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       </button>
       <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openLocationModal('${rid}','${escHtml(rName)}','${loc.id}')" title="Редактировать точку">

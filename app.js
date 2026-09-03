@@ -88,7 +88,7 @@ let CU = null; // Firebase User
 let AD = null; // Данные из Firestore (users/{uid})
 
 // Основные коллекции
-let allOrders    = [];  // объединяет bookedOrders + dastdarozOrders + mavsimiOrders
+let allOrders    = [];  // объединяет bookedOrders + dastdarozOrders + mavsimiOrders + retailerOrders
 let allCouriers  = [];
 let allClients   = [];
 let allProducts  = [];
@@ -377,13 +377,14 @@ async function loadOrders() {
       } catch { return []; }
     };
 
-    const [booked, dast, mav] = await Promise.all([
+    const [booked, dast, mav, ret] = await Promise.all([
       safeGet('bookedOrders'),
       safeGet('dastdarozOrders'),
       safeGet('mavsimiOrders'),
+      safeGet('retailerOrders'),
     ]);
 
-    allOrders = [...booked, ...dast, ...mav].sort(
+    allOrders = [...booked, ...dast, ...mav, ...ret].sort(
       (a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0)
     );
     renderAllOrders();
@@ -580,6 +581,7 @@ function oRow(o, live = false) {
   const l   = SL[o.status] || o.status;
   const svcLabel = o._col === 'bookedOrders'   ? '<span style="font-size:.5rem;padding:1px 4px;background:#f0b44220;color:#f0b442;border:1px solid #f0b44230;border-radius:3px">Бронь</span>'
                  : o._col === 'mavsimiOrders'   ? '<span style="font-size:.5rem;padding:1px 4px;background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630;border-radius:3px">МР</span>'
+                 : o._col === 'retailerOrders'  ? '<span style="font-size:.5rem;padding:1px 4px;background:#10b98120;color:#10b981;border:1px solid #10b98130;border-radius:3px">Ритейлер</span>'
                  : '<span style="font-size:.5rem;padding:1px 4px;background:var(--acc)20;color:var(--acc);border:1px solid var(--acc)30;border-radius:3px">DD</span>';
   const canAssign = !o.courierId && ['pending','confirmed'].includes(o.status) && o._col === 'dastdarozOrders';
   const courierCol = live
@@ -657,7 +659,7 @@ window.openOrderModal = async function (oid) {
   let o = allOrders.find(x => x.id === oid) || liveOrders.find(x => x.id === oid);
   if (!o) {
     // Ищем последовательно во всех коллекциях
-    for (const col of ['bookedOrders', 'dastdarozOrders', 'mavsimiOrders', 'orders']) {
+    for (const col of ['bookedOrders', 'dastdarozOrders', 'mavsimiOrders', 'retailerOrders', 'orders']) {
       try {
         const snap = await getDoc(doc(db, col, oid));
         if (snap.exists()) { o = { id: snap.id, ...snap.data(), _col: col }; break; }
@@ -670,7 +672,8 @@ window.openOrderModal = async function (oid) {
   const pay  = o.paymentMethod === 'cash' ? 'Наличными' : o.paymentMethod === 'card' ? 'Картой' : 'Онлайн';
   const c    = SC[o.status] || '#888';
   const l    = SL[o.status] || o.status;
-  const svcName = o._col === 'mavsimiOrders' ? 'Мавсими Расон'
+  const svcName = o._col === 'retailerOrders' ? (o.retailerName || 'Ритейлер')
+                : o._col === 'mavsimiOrders' ? 'Мавсими Расон'
                 : o._col === 'bookedOrders'  ? 'Не подтверждён'
                 : 'Dastdaroz Delivery';
   const canAssign = !o.courierId && ['pending','confirmed'].includes(o.status) && o._col === 'dastdarozOrders';

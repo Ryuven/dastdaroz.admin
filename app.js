@@ -1632,7 +1632,7 @@ function renderPartnerStaff() {
     <tr>
       <td><div style="font-weight:600">${escHtml(p.name || '—')}</div></td>
       <td><code style="font-size:.7rem">+${p.phone}</code></td>
-      <td>${escHtml(p.storeName || p.storeId || '—')}</td>
+      <td>${escHtml(p.retailerName || '—')} / ${escHtml(p.storeName || p.storeId || '—')}</td>
       <td>${p.role === 'manager' ? 'Менеджер' : 'Сотрудник'}</td>
       <td>${p.telegramId ? `<span style="color:var(--green)">✓ ${p.telegramId}</span>` : '<span style="color:var(--text3)">Не привязан</span>'}</td>
       <td>
@@ -1652,16 +1652,23 @@ function renderPartnerStaff() {
 }
 
 // Открытие модала создания
-window.openAddPartnerStaff = function () {
+window.openAddPartnerStaff = async function () {
   document.getElementById('m-order-title').textContent = 'Новый сотрудник магазина';
   document.getElementById('m-order-body').innerHTML = `
     <div class="mf"><label class="ml">Имя *</label><input class="mi" id="ps-name" placeholder="Алишер Рахимов"/></div>
-    <div class="mf"><label class="ml">Номер телефона * (doc ID)</label><input class="mi" id="ps-phone" placeholder="992977123456" maxlength="12"/></div>
+    <div class="mf"><label class="ml">Номер телефона *</label><input class="mi" id="ps-phone" placeholder="992977123456" maxlength="12"/></div>
     <div class="mf">
-      <label class="ml">ID магазина</label>
-      <input class="mi" id="ps-store-id" placeholder="store_001 (заглушка — выбор позже)"/>
+      <label class="ml">Ритейлер *</label>
+      <select class="mi" id="ps-retailer" onchange="window.loadPartnerLocations()">
+        <option value="">— Загрузка... —</option>
+      </select>
     </div>
-    <div class="mf"><label class="ml">Название магазина</label><input class="mi" id="ps-store-name" placeholder="dastdaroz Центр"/></div>
+    <div class="mf">
+      <label class="ml">Точка (магазин) *</label>
+      <select class="mi" id="ps-location" disabled>
+        <option value="">— Сначала выберите ритейлер —</option>
+      </select>
+    </div>
     <div class="mf">
       <label class="ml">Роль</label>
       <select class="mi" id="ps-role">
@@ -1673,36 +1680,91 @@ window.openAddPartnerStaff = function () {
     <button class="btn btn-secondary" onclick="closeMo('order-modal')">Отмена</button>
     <button class="btn btn-primary"   onclick="saveNewPartnerStaff()">Создать</button>`;
   openMo('order-modal');
+
+  // Загружаем ритейлеров
+  try {
+    const snap = await getDocs(collection(db, 'retailers'));
+    const sel  = document.getElementById('ps-retailer');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— Выберите ритейлер —</option>' +
+      snap.docs.map(d => `<option value="${d.id}" data-name="${escHtml(d.data().name||'')}">${escHtml(d.data().name||d.id)}</option>`).join('');
+  } catch (e) {
+    const sel = document.getElementById('ps-retailer');
+    if (sel) sel.innerHTML = '<option value="">Ошибка загрузки</option>';
+  }
+};
+
+// Загружаем точки выбранного ритейлера
+window.loadPartnerLocations = async function () {
+  const retSel  = document.getElementById('ps-retailer');
+  const locSel  = document.getElementById('ps-location');
+  if (!retSel || !locSel) return;
+
+  const rid = retSel.value;
+  if (!rid) {
+    locSel.innerHTML = '<option value="">— Сначала выберите ритейлер —</option>';
+    locSel.disabled  = true;
+    return;
+  }
+
+  locSel.innerHTML = '<option value="">Загрузка...</option>';
+  locSel.disabled  = true;
+
+  try {
+    const snap = await getDocs(collection(db, 'retailers', rid, 'locations'));
+    if (snap.empty) {
+      locSel.innerHTML = '<option value="">Нет точек у этого ритейлера</option>';
+      return;
+    }
+    locSel.innerHTML = '<option value="">— Выберите точку —</option>' +
+      snap.docs.map(d => {
+        const addr = d.data().address || d.id;
+        return `<option value="${d.id}" data-addr="${escHtml(addr)}">${escHtml(addr)}</option>`;
+      }).join('');
+    locSel.disabled = false;
+  } catch (e) {
+    locSel.innerHTML = '<option value="">Ошибка загрузки</option>';
+  }
 };
 
 // Сохранение
 window.saveNewPartnerStaff = async function () {
-  const name      = document.getElementById('ps-name')?.value.trim();
-  const phone     = document.getElementById('ps-phone')?.value.replace(/\D/g, '');
-  const storeId   = document.getElementById('ps-store-id')?.value.trim()   || 'store_tbd';
-  const storeName = document.getElementById('ps-store-name')?.value.trim() || '—';
-  const role      = document.getElementById('ps-role')?.value;
+  const name    = document.getElementById('ps-name')?.value.trim();
+  const phone   = document.getElementById('ps-phone')?.value.replace(/\D/g, '');
+  const role    = document.getElementById('ps-role')?.value;
+  const retSel  = document.getElementById('ps-retailer');
+  const locSel  = document.getElementById('ps-location');
 
-  if (!name)  { toast('Введите имя', 'warn'); return; }
+  const retailerId   = retSel?.value || '';
+  const retailerName = retSel?.options[retSel.selectedIndex]?.dataset?.name || '';
+  const storeId      = locSel?.value || '';
+  const storeName    = locSel?.options[locSel.selectedIndex]?.dataset?.addr || '';
+
+  if (!name)       { toast('Введите имя', 'warn'); return; }
   if (!phone || phone.length < 9) { toast('Введите корректный номер', 'warn'); return; }
+  if (!retailerId) { toast('Выберите ритейлера', 'warn'); return; }
+  if (!storeId)    { toast('Выберите точку', 'warn'); return; }
 
   const normalizedPhone = phone.length === 9 ? '992' + phone : phone;
   if (normalizedPhone.length !== 12) { toast('Номер должен быть 12 цифр (992XXXXXXXXX)', 'warn'); return; }
 
   try {
-    // Проверяем — вдруг уже существует
     const existing = await getDoc(doc(db, 'users-partner', normalizedPhone));
     if (existing.exists()) { toast('Сотрудник с этим номером уже существует', 'err'); return; }
 
     await setDoc(doc(db, 'users-partner', normalizedPhone), {
-      name, storeId, storeName, role,
+      name, role,
+      retailerId,
+      retailerName,
+      storeId,      // locationId точки
+      storeName,    // адрес точки
       active:      true,
       telegramId:  null,
       createdAt:   serverTimestamp(),
       lastLoginAt: null,
     });
 
-    toast(`Сотрудник ${name} создан`, 'ok');
+    toast(`Сотрудник ${name} создан → ${retailerName} / ${storeName}`, 'ok');
     closeMo('order-modal');
     await loadPartnerStaff();
   } catch (err) {
@@ -1718,8 +1780,15 @@ window.editPartnerStaff = function (phone) {
   document.getElementById('m-order-title').textContent = 'Изменить: ' + (p.name || phone);
   document.getElementById('m-order-body').innerHTML = `
     <div class="mf"><label class="ml">Имя</label><input class="mi" id="ps-e-name" value="${escHtml(p.name || '')}"/></div>
-    <div class="mf"><label class="ml">ID магазина</label><input class="mi" id="ps-e-store-id" value="${escHtml(p.storeId || '')}"/></div>
-    <div class="mf"><label class="ml">Название магазина</label><input class="mi" id="ps-e-store-name" value="${escHtml(p.storeName || '')}"/></div>
+    <div class="mf">
+      <label class="ml">Ритейлер</label>
+      <input class="mi" value="${escHtml(p.retailerName || p.storeId || '—')}" disabled style="opacity:.6"/>
+    </div>
+    <div class="mf">
+      <label class="ml">Точка</label>
+      <input class="mi" value="${escHtml(p.storeName || p.storeId || '—')}" disabled style="opacity:.6"/>
+      <div style="font-size:.6rem;color:var(--text3);margin-top:3px">ID: ${p.storeId || '—'} · Для смены точки удалите и создайте заново</div>
+    </div>
     <div class="mf">
       <label class="ml">Роль</label>
       <select class="mi" id="ps-e-role">
@@ -1734,13 +1803,11 @@ window.editPartnerStaff = function (phone) {
 };
 
 window.updatePartnerStaff = async function (phone) {
-  const name      = document.getElementById('ps-e-name')?.value.trim();
-  const storeId   = document.getElementById('ps-e-store-id')?.value.trim();
-  const storeName = document.getElementById('ps-e-store-name')?.value.trim();
-  const role      = document.getElementById('ps-e-role')?.value;
+  const name = document.getElementById('ps-e-name')?.value.trim();
+  const role = document.getElementById('ps-e-role')?.value;
   if (!name) { toast('Введите имя', 'warn'); return; }
   try {
-    await setDoc(doc(db, 'users-partner', phone), { name, storeId, storeName, role, updatedAt: serverTimestamp() }, { merge: true });
+    await setDoc(doc(db, 'users-partner', phone), { name, role, updatedAt: serverTimestamp() }, { merge: true });
     toast('Обновлено', 'ok');
     closeMo('order-modal');
     await loadPartnerStaff();

@@ -15,12 +15,12 @@
    CSS VARIABLES
 ══════════════════════════════════════════════════════ */
 :root {
-  --bg:    #0a0a0a;
-  --s1:    #111111;
-  --s2:    #181818;
-  --s3:    #1f1f1f;
-  --b:     rgba(255, 255, 255, .06);
-  --bh:    rgba(255, 255, 255, .12);
+  --bg:    #181818;
+  --s1:    #212121;
+  --s2:    #2a2a2a;
+  --s3:    #2f2f2f;
+  --b:     rgba(255, 255, 255, .07);
+  --bh:    rgba(255, 255, 255, .14);
 
   --acc:   #e8e8e8;
   --acc2:  #ffffff;
@@ -36,9 +36,9 @@
   --text:   #e8e8e8;
   --text2:  #888888;
   --text3:  #555555;
-  --muted:  #444444;
-  --muted2: #2a2a2a;
-  --muted3: #1a1a1a;
+  --muted:  #555555;
+  --muted2: #3a3a3a;
+  --muted3: #252525;
 
   --fd:    'Syne',    sans-serif;
   --fm:    'DM Mono', monospace;
@@ -50,7 +50,7 @@
   --tf:     .12s;
 
   --sw: 248px;
-  --th: 54px;
+  --th: 54px;  /* высота топбара — одинакова для .topbar и .sb-logo */
   --r:  12px;
 }
 
@@ -119,7 +119,9 @@ body::after { display: none; }
 }
 
 .sb-logo {
-  padding: 18px 20px 16px;
+  height: var(--th); /* = 54px, совпадает с .topbar */
+  flex-shrink: 0;
+  padding: 0 20px;
   border-bottom: 1px solid var(--b);
   display: flex;
   align-items: center;
@@ -135,65 +137,43 @@ body::after { display: none; }
 }
 
 .sb-admin {
-  margin: 8px 12px;
-  padding: 8px 10px;
+  margin: 10px 12px;
+  padding: 12px 14px;
   background: var(--s2);
   border: 1px solid var(--b);
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 11px;
+  cursor: pointer;
+  transition: background var(--tf), border-color var(--tf);
 }
+.sb-admin:hover { background: var(--s3); border-color: var(--bh); }
 .sb-av {
-  width: 26px; height: 26px;
+  width: 38px; height: 38px;
   border-radius: 50%;
   background: var(--accd);
   border: 1.5px solid var(--accg);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: .56rem;
+  font-size: .7rem;
   font-weight: 700;
   color: var(--acc2);
   flex-shrink: 0;
   overflow: hidden;
 }
 .sb-av img   { width: 100%; height: 100%; object-fit: cover; }
-.sb-name     { font-size: .72rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sb-role     { font-size: .56rem; color: var(--text3); letter-spacing: .03em; margin-top: 1px; }
-
-.sb-rt {
-  margin: 0 12px 6px;
-  padding: 6px 10px;
-  background: var(--greend);
-  border: 1px solid var(--greeng);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: .56rem;
-  color: var(--green);
-  font-weight: 600;
-}
-.rt-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--green);
-  animation: rtP 2s ease-in-out infinite;
-  flex-shrink: 0;
-}
-@keyframes rtP {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, .6); }
-  50%       { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); }
-}
+.sb-name     { font-size: .82rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-role     { font-size: .64rem; color: var(--text3); letter-spacing: .03em; margin-top: 2px; }
 
 .sb-nav  { flex: 1; overflow-y: auto; padding: 4px 8px; }
 .nav-grp {
-  font-size: .48rem;
-  letter-spacing: .28em;
+  font-size: .52rem;
+  letter-spacing: .26em;
   text-transform: uppercase;
   color: var(--text3);
-  padding: 12px 9px 4px;
+  padding: 14px 10px 5px;
   font-weight: 600;
 }
 
@@ -201,11 +181,11 @@ body::after { display: none; }
 .ni {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 8px 10px;
+  gap: 11px;
+  padding: 10px 12px;
   cursor: pointer;
   color: var(--text3);
-  font-size: .73rem;
+  font-size: .8rem;
   font-weight: 500;
   border-radius: 8px;
   position: relative;
@@ -270,7 +250,7 @@ body::after { display: none; }
 .topbar {
   height: var(--th);
   flex-shrink: 0;
-  background: rgba(10, 10, 10, .97);
+  background: rgba(24, 24, 24, .97);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--b);
   display: flex;
@@ -372,7 +352,7 @@ body::after { display: none; }
   border: none;
   white-space: nowrap;
 }
-.btn-primary   { background: #e8e8e8; color: #0a0a0a; }
+.btn-primary   { background: #e8e8e8; color: #181818; }
 .btn-primary:hover { background: #ffffff; }
 .btn-secondary { background: var(--s2); border: 1px solid var(--b); color: var(--text2); }
 .btn-secondary:hover { border-color: var(--bh); color: var(--text); background: var(--s3); }
@@ -445,8 +425,8 @@ body::after { display: none; }
   background: var(--s2);
   font-weight: 600;
 }
-.ot td             { padding: 10px 14px; font-size: .72rem; color: var(--text2); border-bottom: 1px solid rgba(99, 102, 241, .03); vertical-align: middle; }
-.ot tr:hover td    { background: rgba(99, 102, 241, .025); }
+.ot td             { padding: 10px 14px; font-size: .72rem; color: var(--text2); border-bottom: 1px solid rgba(255, 255, 255, .04); vertical-align: middle; }
+.ot tr:hover td    { background: rgba(255, 255, 255, .025); }
 .ot tr:last-child td { border-bottom: none; }
 .mono   { font-family: var(--fm); font-size: .66rem; color: var(--text3); }
 .ostatus {
@@ -465,7 +445,7 @@ body::after { display: none; }
 
 /* Courier card */
 .cc { padding: 11px 14px; border-bottom: 1px solid var(--b); display: flex; align-items: center; gap: 10px; transition: background var(--tf); }
-.cc:hover       { background: rgba(99, 102, 241, .025); }
+.cc:hover       { background: rgba(255, 255, 255, .025); }
 .cc:last-child  { border-bottom: none; }
 .cav {
   width: 32px; height: 32px;
@@ -483,7 +463,7 @@ body::after { display: none; }
 /* Activity feed */
 .af { padding: 9px 14px; border-bottom: 1px solid var(--b); display: flex; align-items: flex-start; gap: 10px; }
 .af:last-child  { border-bottom: none; }
-.af:hover       { background: rgba(99, 102, 241, .02); }
+.af:hover       { background: rgba(255, 255, 255, .02); }
 .af-ico  { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .af-txt  { font-size: .7rem; color: var(--text2); line-height: 1.4; margin-bottom: 2px; }
 .af-txt strong { color: var(--text); }
@@ -521,9 +501,9 @@ body::after { display: none; }
   cursor: pointer;
   transition: background var(--tf);
 }
-.sc-item:hover       { background: rgba(99, 102, 241, .03); }
+.sc-item:hover       { background: rgba(255, 255, 255, .025); }
 .sc-item:last-child  { border-bottom: none; }
-.sc-item.active      { background: rgba(99, 102, 241, .06); }
+.sc-item.active      { background: rgba(255, 255, 255, .05); }
 .sc-item-av {
   width: 36px; height: 36px;
   border-radius: 50%;
@@ -553,7 +533,7 @@ body::after { display: none; }
 .sc-msgs          { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 7px; min-height: 160px; max-height: 340px; }
 .sc-msg           { max-width: 78%; padding: 7px 11px; border-radius: 11px; font-size: .72rem; line-height: 1.5; word-wrap: break-word; white-space: pre-wrap; }
 .sc-msg-client    { align-self: flex-start; background: var(--s2); border: 1px solid var(--b); color: var(--text); }
-.sc-msg-admin     { align-self: flex-end; background: #e8e8e8; color: #0a0a0a; }
+.sc-msg-admin     { align-self: flex-end; background: #e8e8e8; color: #181818; }
 .sc-msg-name      { font-size: .54rem; font-weight: 700; color: var(--acc2); margin-bottom: 2px; display: block; text-align: right; }
 .sc-msg-time      { font-size: .54rem; opacity: .6; margin-top: 3px; display: block; }
 .sc-msg-admin .sc-msg-time { text-align: right; }
@@ -641,11 +621,15 @@ textarea.mi     { resize: vertical; min-height: 76px; }
 .pload      { display: flex; align-items: center; justify-content: center; padding: 36px; gap: 8px; color: var(--text3); font-size: .7rem; }
 .spin       { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid var(--muted2); border-top-color: var(--text); animation: sp .65s linear infinite; }
 @keyframes sp { to { transform: rotate(360deg); } }
+@keyframes rtP {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,.35); }
+  50%       { box-shadow: 0 0 0 4px rgba(255,255,255,0); }
+}
 
 /* Toast */
 .toast-wrap { position: fixed; bottom: 20px; right: 18px; z-index: 9999; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
 .toast {
-  background: rgba(24, 24, 24, .98);
+  background: rgba(33, 33, 33, .98);
   border: 1px solid rgba(255,255,255,.1);
   border-radius: 10px;
   padding: 10px 14px;
@@ -813,7 +797,9 @@ textarea.mi     { resize: vertical; min-height: 76px; }
   .tabs           { flex-wrap: wrap; }
 }
 @media (max-width: 500px) {
-  :root { --th: 50px; }
+  :root { --th: 50px; --sw: 100vw; }
+  .sb.open        { box-shadow: none; }
+  .sb-overlay.open { display: none; }
   .kpi-grid       { grid-template-columns: 1fr 1fr; gap: 8px; }
   .three-col      { grid-template-columns: 1fr; }
   .two-col        { grid-template-columns: 1fr; }
@@ -850,34 +836,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
   </div>
 </div>
 
-<!-- Assign Courier Modal -->
-<div class="mo" id="assign-modal">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">Назначить курьера</div>
-      <button class="modal-x" onclick="closeMo('assign-modal')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="mf">
-        <label class="ml">Курьер</label>
-        <select class="mi" id="assign-sel"><option value="">— Загрузка —</option></select>
-      </div>
-      <div class="mf">
-        <label class="ml">Комментарий диспетчера</label>
-        <input class="mi" type="text" id="assign-comment" placeholder="Приоритетный заказ…"/>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-secondary" onclick="closeMo('assign-modal')">Отмена</button>
-      <button class="btn btn-primary"   onclick="doAssign()">Назначить →</button>
-    </div>
-  </div>
-</div>
 
-  </div>
-</div>
 
 <!-- News Modal -->
 <div class="mo" id="news-modal">
@@ -1166,14 +1125,14 @@ textarea.mi     { resize: vertical; min-height: 76px; }
     <div class="sb-logo">
       <img src="dastdaroz.png" alt="Dastdaroz"/>
     </div>
-    <div class="sb-admin">
+    <div class="sb-admin" onclick="Sheet.open('profile')">
       <div class="sb-av" id="sb-av">A</div>
       <div style="flex:1;min-width:0">
         <div class="sb-name" id="sb-name">Загрузка…</div>
         <div class="sb-role" id="sb-role">—</div>
       </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text3);flex-shrink:0;opacity:.6"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
-    <div class="sb-rt"><div class="rt-dot"></div>Realtime · Firebase</div>
 
     <nav class="sb-nav">
       <div class="nav-grp">Мониторинг</div>
@@ -1186,11 +1145,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         Заказы
         <span class="ni-badge info" id="sb-ord-b" style="display:none">0</span>
       </button>
-      <button class="ni" data-page="couriers" onclick="goPage('couriers')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
-        Курьеры
-        <span class="ni-badge" id="sb-cur-b" style="display:none;background:var(--green)">0</span>
-      </button>
+
       <button class="ni" data-page="clients" onclick="goPage('clients')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
         Клиенты
@@ -1277,7 +1232,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
       <div class="tb-title" id="tb-title">Обзор</div>
       <div class="tb-search">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" id="search-inp" placeholder="Поиск заказов, клиентов, курьеров…" oninput="onSearch(this.value)"/>
+        <input type="text" id="search-inp" placeholder="Поиск заказов, клиентов…" oninput="onSearch(this.value)"/>
       </div>
       <div class="tb-sep"></div>
       <button class="tb-btn" onclick="refreshAll()" title="Обновить">
@@ -1297,7 +1252,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         <div class="kpi-grid">
           <div class="kpi acc"><div class="kpi-label">Заказов всего</div><div class="kpi-val" id="kv-ord">—</div><div class="kpi-sub">За всё время</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><div class="kpi-spark"><div class="spark" id="sp-ord"></div></div></div>
           <div class="kpi green"><div class="kpi-label">Выручка</div><div class="kpi-val" id="kv-rev">—</div><div class="kpi-sub">Без отменённых</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="kpi-spark"><div class="spark" id="sp-rev"></div></div></div>
-          <div class="kpi cyan"><div class="kpi-label">Курьеры онлайн</div><div class="kpi-val" id="kv-cur">—</div><div class="kpi-sub">Из <span id="kv-curtot">—</span> всего</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg></div></div>
+
           <div class="kpi blue"><div class="kpi-label">Клиентов</div><div class="kpi-val" id="kv-cli">—</div><div class="kpi-sub">Зарегистрированных</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div></div>
           <div class="kpi yellow"><div class="kpi-label">Очередь</div><div class="kpi-val" id="kv-pend">—</div><div class="kpi-sub">Ждут курьера</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div></div>
           <div class="kpi green"><div class="kpi-label">Доставлено</div><div class="kpi-val" id="kv-done">—</div><div class="kpi-sub">Успешных</div><div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div></div>
@@ -1335,13 +1290,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
                 <div id="d-legend" style="flex:1"></div>
               </div>
             </div>
-            <div class="panel">
-              <div class="panel-head">
-                <div class="panel-title"><div class="pdot" style="background:var(--green);animation:rtP 2s infinite"></div>Курьеры онлайн</div>
-                <button class="btn btn-secondary btn-sm" onclick="goPage('couriers')">Все →</button>
-              </div>
-              <div id="online-clist"><div class="pload"><div class="spin"></div></div></div>
-            </div>
+
           </div>
         </div>
         <div class="panel" style="margin-bottom:12px">
@@ -1378,27 +1327,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         </div>
       </div>
 
-      <!-- ── COURIERS ── -->
-      <div class="page" id="page-couriers">
-        <div class="sh">
-          <div><div class="sh-tag">Управление</div><div class="sh-title">Курьеры</div></div>
-          <div class="sh-actions">
-            <div class="tabs">
-              <button class="tab active" onclick="fCouriers('all',this)">Все</button>
-              <button class="tab" onclick="fCouriers('online',this)">Онлайн</button>
-              <button class="tab" onclick="fCouriers('busy',this)">Заняты</button>
-              <button class="tab" onclick="fCouriers('offline',this)">Офлайн</button>
-            </div>
-            <div class="tabs">
-              <button class="tab active" onclick="fCouriersVerif('all',this)">Все</button>
-              <button class="tab" onclick="fCouriersVerif('pending',this)" style="display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Ожидают</button>
-              <button class="tab" onclick="fCouriersVerif('verified',this)" style="display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Верифицированы</button>
-              <button class="tab" onclick="fCouriersVerif('blocked',this)" style="display:flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Заблокированы</button>
-            </div>
-          </div>
-        </div>
-        <div class="three-col" id="couriers-grid"><div class="pload" style="grid-column:1/-1"><div class="spin"></div></div></div>
-      </div>
+
 
       <!-- ── CLIENTS ── -->
       <div class="page" id="page-clients">
@@ -1619,10 +1548,7 @@ textarea.mi     { resize: vertical; min-height: 76px; }
             <div id="top-cats"></div>
           </div>
         </div>
-        <div class="two-col">
-          <div class="panel"><div class="panel-head"><div class="panel-title">Топ курьеров</div></div><div id="top-couriers"></div></div>
-          <div class="panel"><div class="panel-head"><div class="panel-title">Сводка</div></div><div id="period-sum" style="padding:14px 16px"></div></div>
-        </div>
+        <div class="panel" style="margin-bottom:12px"><div class="panel-head"><div class="panel-title">Сводка</div></div><div id="period-sum" style="padding:14px 16px"></div></div>
       </div>
 
       <!-- ── STAFF ── -->

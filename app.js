@@ -16,6 +16,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import { auth, db } from './firebase.js';
+import { Sheet }    from './sheet.js';
 
 import {
   onAuthStateChanged,
@@ -89,7 +90,6 @@ let AD = null; // Данные из Firestore (users/{uid})
 
 // Основные коллекции
 let allOrders    = [];  // объединяет bookedOrders + dastdarozOrders + mavsimiOrders + retailerOrders
-let allCouriers  = [];
 let allClients   = [];
 let allProducts  = [];
 let allStaff     = [];
@@ -122,16 +122,12 @@ let liveOrders = [];
 
 // Состояние фильтров
 let ordFilt   = 'all';
-let curFilt   = 'all';
-let verifFilt = 'all';
 let tktFilt   = 'all';
 let newsFilt  = 'all';
 let hrFilt    = 'all';
 let partnerFilt = 'all';
 
 // Редактирование
-let assignOid      = null;
-let assignCol      = null;  // коллекция заказа при назначении курьера
 let editingNewsId  = null;
 let editingVacId   = null;
 
@@ -139,7 +135,6 @@ let editingVacId   = null;
 let unsubOrders   = null;  // bookedOrders listener
 let unsubDast     = null;  // dastdarozOrders listener
 let unsubMav      = null;  // mavsimiOrders listener (активные)
-let unsubCouriers = null;
 
 // Лента активности
 const actLog = [];
@@ -234,6 +229,12 @@ function renderSB() {
       ? `<img src="${AD.avatarUrl}" alt=""/>`
       : init;
   }
+
+  // Делаем Sheet доступным глобально (onclick в HTML)
+  window.Sheet = Sheet;
+
+  // Регистрируем sheet профиля (вызов безопасен повторно — есть guard внутри)
+  Sheet.define({ id: 'profile', title: 'Профиль', zIndex: 800 });
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -328,17 +329,6 @@ function startListeners() {
     }
     firstMav = false;
     updateOrdBadge();
-  });
-
-  // ── Couriers ────────────────────────────────────────────────
-  if (unsubCouriers) unsubCouriers();
-  unsubCouriers = onSnapshot(query(collection(db, 'couriers')), (sn) => {
-    allCouriers = sn.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderOnlineCouriers();
-    updateCurKPI();
-    if (document.getElementById('page-couriers').classList.contains('active')) {
-      renderCouriersPage();
-    }
   });
 
   // Слушаем чаты поддержки
@@ -453,13 +443,6 @@ function updateKPI() {
   updateOrdBadge();
 }
 
-function updateCurKPI() {
-  const online = allCouriers.filter(c => c.isOnline).length;
-  set('kv-cur',    online);
-  set('kv-curtot', allCouriers.length);
-  const b = document.getElementById('sb-cur-b');
-  if (b) { b.style.display = online > 0 ? '' : 'none'; b.textContent = online; }
-}
 
 function updateOrdBadge() {
   const pend = liveOrders.filter(o => ['pending','confirmed'].includes(o.status)).length;
@@ -583,7 +566,6 @@ function oRow(o, live = false) {
                  : o._col === 'mavsimiOrders'   ? '<span style="font-size:.5rem;padding:1px 4px;background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630;border-radius:3px">МР</span>'
                  : o._col === 'retailerOrders'  ? '<span style="font-size:.5rem;padding:1px 4px;background:#10b98120;color:#10b981;border:1px solid #10b98130;border-radius:3px">Ритейлер</span>'
                  : '<span style="font-size:.5rem;padding:1px 4px;background:var(--acc)20;color:var(--acc);border:1px solid var(--acc)30;border-radius:3px">DD</span>';
-  const canAssign = !o.courierId && ['pending','confirmed'].includes(o.status) && o._col === 'dastdarozOrders';
   const courierCol = live
     ? ''
     : `<td>${o.courierName || '<span style="color:var(--text3)">—</span>'}</td>`;
@@ -596,7 +578,6 @@ function oRow(o, live = false) {
     <td><span style="font-family:var(--fm)">${o.total || 0} смн.</span></td>
     <td><div class="oact">
       <button class="btn btn-secondary btn-sm" onclick="openOrderModal('${o.id}')">Детали</button>
-      ${canAssign ? `<button class="btn btn-success btn-sm" onclick="openAssign('${o.id}','${o._col}')">Назначить</button>` : ''}
       ${['pending','confirmed'].includes(o.status) && o._col !== 'mavsimiOrders'
         ? `<button class="btn btn-danger btn-sm" onclick="cancelOrder('${o.id}','${o._col}')">✕</button>` : ''}
     </div></td>
@@ -627,7 +608,6 @@ function renderAllOrders() {
       : o._col === 'mavsimiOrders'
       ? '<span style="font-size:.5rem;padding:1px 4px;background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630;border-radius:3px">МР</span>'
       : '<span style="font-size:.5rem;padding:1px 4px;background:var(--acc)20;color:var(--acc);border:1px solid var(--acc)30;border-radius:3px">DD</span>';
-    const canAssign = !o.courierId && ['pending','confirmed'].includes(o.status) && o._col === 'dastdarozOrders';
     return `<tr>
       <td><span class="mono">#${o.id.slice(-6).toUpperCase()}</span> ${svcLabel}</td>
       <td style="color:var(--text);font-weight:500">${o.clientName || '—'}</td>
@@ -638,7 +618,6 @@ function renderAllOrders() {
       <td><span class="mono">${date}</span></td>
       <td><div class="oact">
         <button class="btn btn-secondary btn-sm" onclick="openOrderModal('${o.id}')">Детали</button>
-        ${canAssign ? `<button class="btn btn-success btn-sm" onclick="openAssign('${o.id}','${o._col}')">+Курьер</button>` : ''}
       </div></td>
     </tr>`;
   }).join('');
@@ -676,8 +655,6 @@ window.openOrderModal = async function (oid) {
                 : o._col === 'mavsimiOrders' ? 'Мавсими Расон'
                 : o._col === 'bookedOrders'  ? 'Не подтверждён'
                 : 'Dastdaroz Delivery';
-  const canAssign = !o.courierId && ['pending','confirmed'].includes(o.status) && o._col === 'dastdarozOrders';
-
   document.getElementById('m-order-title').innerHTML =
     `Заказ <span style="font-family:var(--fm);color:var(--acc2)">#${o.id.slice(-6).toUpperCase()}</span>`;
 
@@ -723,7 +700,6 @@ window.openOrderModal = async function (oid) {
 
   document.getElementById('m-order-foot').innerHTML = `
     <button class="btn btn-secondary" onclick="closeMo('order-modal')">Закрыть</button>
-    ${canAssign ? `<button class="btn btn-success" onclick="closeMo('order-modal');openAssign('${o.id}','${o._col}')">+ Курьер</button>` : ''}
     ${o._col !== 'bookedOrders' ? `<button class="btn btn-primary" onclick="saveOrderStatus('${o.id}','${o._col}')">Сохранить →</button>` : ''}`;
 
   openMo('order-modal');
@@ -756,219 +732,11 @@ window.cancelOrder = async function (oid, col) {
   } catch { toast('Ошибка', 'err'); }
 };
 
-// ══════════════════════════════════════════════════════════════
-// ASSIGN COURIER  (только для dastdarozOrders)
-// ══════════════════════════════════════════════════════════════
 
-window.openAssign = function (oid, col) {
-  assignOid = oid;
-  assignCol = col || 'dastdarozOrders';
-  const sel  = document.getElementById('assign-sel');
-  const free = allCouriers.filter(c => c.isOnline && !c.currentOrderId);
-  sel.innerHTML = free.length
-    ? `<option value="">— Выберите курьера —</option>` + free.map(c =>
-        `<option value="${c.id}">${c.displayName || c.id} · ${c.totalDeliveries || 0} доставок</option>`
-      ).join('')
-    : '<option value="">Нет свободных курьеров</option>';
-  document.getElementById('assign-comment').value = '';
-  openMo('assign-modal');
-};
 
-window.doAssign = async function () {
-  const cid = document.getElementById('assign-sel')?.value;
-  if (!cid || !assignOid) { toast('Выберите курьера', 'warn'); return; }
-  if (assignCol !== 'dastdarozOrders') {
-    toast('Назначение курьера доступно только для Dastdaroz Delivery', 'warn');
-    return;
-  }
-  const courier = allCouriers.find(c => c.id === cid);
-  try {
-    await updateDoc(doc(db, 'dastdarozOrders', assignOid), {
-      courierId:   cid,
-      courierName: courier?.displayName || '',
-      status:      'delivering',
-      updatedAt:   serverTimestamp(),
-    });
-    await setDoc(doc(db, 'couriers', cid), {
-      currentOrderId: assignOid,
-      isActive:       true,
-      updatedAt:      serverTimestamp(),
-    }, { merge: true });
-    toast('Курьер назначен: ' + (courier?.displayName || cid), 'ok');
-    closeMo('assign-modal');
-  } catch { toast('Ошибка назначения', 'err'); }
-};
 
-// ══════════════════════════════════════════════════════════════
-// COURIERS
-// ══════════════════════════════════════════════════════════════
 
-function renderCouriersPage() {
-  const g = document.getElementById('couriers-grid'); if (!g) return;
-  let list = [...allCouriers];
-  if (curFilt   === 'online')  list = list.filter(c => c.isOnline);
-  if (curFilt   === 'busy')    list = list.filter(c => c.currentOrderId);
-  if (curFilt   === 'offline') list = list.filter(c => !c.isOnline);
-  if (verifFilt !== 'all')     list = list.filter(c => (c.verificationStatus || 'pending') === verifFilt);
 
-  if (!list.length) {
-    g.innerHTML = '<div class="er" style="grid-column:1/-1"><div class="er-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>Нет курьеров</div>';
-    return;
-  }
-
-  const VS = {
-    verified: { label:'Верифицирован', color:'var(--green)',  bg:'var(--greend)',  border:'var(--greeng)' },
-    pending:  { label:'На проверке',   color:'var(--yellow)', bg:'var(--yellowd)', border:'rgba(245,158,11,.25)' },
-    blocked:  { label:'Заблокирован',  color:'var(--red)',    bg:'var(--redd)',    border:'rgba(244,63,94,.25)' },
-  };
-
-  g.innerHTML = list.map(c => {
-    const init = (c.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    const st   = c.currentOrderId ? 'В доставке' : c.isOnline ? 'Онлайн' : 'Офлайн';
-    const sc   = c.currentOrderId ? 'var(--yellow)' : c.isOnline ? 'var(--green)' : 'var(--text3)';
-    const vs   = VS[c.verificationStatus || 'pending'] || VS.pending;
-    return `<div class="panel" style="overflow:hidden">
-      <div style="padding:14px 16px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:10px">
-        <div style="width:40px;height:40px;border-radius:50%;background:var(--accd);border:1.5px solid var(--accg);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--acc2);flex-shrink:0;overflow:hidden">
-          ${c.avatarUrl ? `<img src="${c.avatarUrl}" style="width:100%;height:100%;object-fit:cover">` : `<span>${init}</span>`}
-        </div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:.78rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.displayName || '—'}</div>
-          <div style="font-size:.62rem;color:var(--text3);margin-top:2px">${c.phone || c.email || '—'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
-          <div style="display:flex;align-items:center;gap:4px;font-size:.58rem;font-weight:600;color:${sc}">
-            <div style="width:5px;height:5px;border-radius:50%;background:${sc}"></div>${st}
-          </div>
-          <span style="font-size:.5rem;font-weight:700;padding:2px 7px;border-radius:99px;background:${vs.bg};color:${vs.color};border:1px solid ${vs.border};letter-spacing:.04em">${vs.label}</span>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--b)">
-        <div style="background:var(--s2);padding:9px;text-align:center"><div style="font-family:var(--fd);font-weight:800;font-size:.95rem;color:var(--acc2)">${c.totalDeliveries || 0}</div><div style="font-size:.42rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px">Доставок</div></div>
-        <div style="background:var(--s2);padding:9px;text-align:center"><div style="font-family:var(--fd);font-weight:800;font-size:.95rem;color:var(--green)">${c.earnings || 0} смн.</div><div style="font-size:.42rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px">Заработок</div></div>
-        <div style="background:var(--s2);padding:9px;text-align:center"><div style="font-size:.85rem">${{ bicycle:'bike', scooter:'scooter', car:'car', foot:'walk' }[c.vehicle || 'foot'] || 'bike'}</div><div style="font-size:.42rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px">Транспорт</div></div>
-      </div>
-      <div style="padding:9px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-        ${c.currentOrderId ? `<button class="btn btn-secondary btn-sm" onclick="openOrderModal('${c.currentOrderId}')">Заказ</button>` : ''}
-        <button class="btn btn-${c.isOnline ? 'danger' : 'success'} btn-sm" onclick="toggleCOnline('${c.id}',${!c.isOnline})">${c.isOnline ? 'Офлайн' : 'Онлайн'}</button>
-        <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="openVerifModal('${c.id}','${c.verificationStatus || 'pending'}','${(c.displayName || '').replace(/'/g, '')}')">Статус ▾</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderOnlineCouriers() {
-  const el   = document.getElementById('online-clist'); if (!el) return;
-  const list = allCouriers.filter(c => c.isOnline).slice(0, 5);
-  if (!list.length) {
-    el.innerHTML = '<div style="padding:14px;text-align:center;font-size:.7rem;color:var(--text3)">Нет курьеров онлайн</div>';
-    return;
-  }
-  el.innerHTML = list.map(c => {
-    const init = (c.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    const st   = c.currentOrderId ? 'В доставке' : 'Свободен';
-    const sc   = c.currentOrderId ? 'var(--yellow)' : 'var(--green)';
-    return `<div class="cc">
-      <div class="cav">${c.avatarUrl ? `<img src="${c.avatarUrl}" alt="">` : `<span>${init}</span>`}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:.72rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.displayName || '—'}</div>
-        <div style="font-size:.6rem;color:var(--text3);margin-top:1px">${c.totalDeliveries || 0} доставок</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:4px;font-size:.58rem;font-weight:600;color:${sc};flex-shrink:0">
-        <div style="width:5px;height:5px;border-radius:50%;background:${sc}"></div>${st}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-window.fCouriers = function (f, btn) {
-  curFilt = f;
-  document.querySelectorAll('#page-couriers .tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  renderCouriersPage();
-};
-
-window.fCouriersVerif = function (f, btn) {
-  verifFilt = f;
-  document.querySelectorAll('#page-couriers .sh-actions .tabs:last-child .tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  renderCouriersPage();
-};
-
-window.toggleCOnline = async function (id, val) {
-  try {
-    await setDoc(doc(db, 'couriers', id), { isOnline: val, updatedAt: serverTimestamp() }, { merge: true });
-    toast(val ? 'Курьер онлайн' : 'Курьер офлайн', 'ok');
-  } catch { toast('Ошибка', 'err'); }
-};
-
-window.openVerifModal = function (id, current, name) {
-  const vs = {
-    verified: { label:'Верифицирован', color:'var(--green)',  bg:'var(--greend)',  border:'var(--greeng)',       dot:'var(--green)' },
-    pending:  { label:'На проверке',   color:'var(--yellow)', bg:'var(--yellowd)', border:'rgba(245,158,11,.25)',dot:'var(--yellow)' },
-    blocked:  { label:'Заблокирован',  color:'var(--red)',    bg:'var(--redd)',    border:'rgba(244,63,94,.25)', dot:'var(--red)' },
-  };
-
-  const optHtml = Object.entries(vs).map(([key, s]) => {
-    const active = key === current;
-    return `<label onclick="selectVerif('${key}')" id="vo-${key}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:8px;border:1px solid ${active ? s.border : 'var(--b)'};background:${active ? s.bg : 'var(--s2)'};cursor:pointer;transition:all .15s">
-      <div style="width:16px;height:16px;border-radius:50%;border:2px solid ${active ? s.dot : 'var(--muted)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        ${active ? `<div style="width:8px;height:8px;border-radius:50%;background:${s.dot}"></div>` : ''}
-      </div>
-      <div>
-        <div style="font-size:.74rem;font-weight:600;color:${s.color}">${s.label}</div>
-        <div style="font-size:.62rem;color:var(--text3);margin-top:1px">${
-          key === 'verified' ? 'Курьер прошёл проверку, может принимать заказы' :
-          key === 'pending'  ? 'Документы на рассмотрении, заказы недоступны' :
-          'Аккаунт заблокирован, доступ запрещён'
-        }</div>
-      </div>
-    </label>`;
-  }).join('');
-
-  document.getElementById('m-order-title').textContent = 'Статус верификации';
-  document.getElementById('m-order-body').innerHTML = `
-    <div style="font-size:.76rem;color:var(--text2);margin-bottom:16px">Курьер: <strong style="color:var(--text)">${name}</strong></div>
-    <div style="display:flex;flex-direction:column;gap:8px">${optHtml}</div>
-    <input type="hidden" id="verif-selected"  value="${current}"/>
-    <input type="hidden" id="verif-courier-id" value="${id}"/>`;
-
-  document.getElementById('m-order-foot').innerHTML = `
-    <button class="btn btn-secondary" onclick="closeMo('order-modal')">Отмена</button>
-    <button class="btn btn-primary"   onclick="saveVerifStatus()">Сохранить</button>`;
-  openMo('order-modal');
-};
-
-window.selectVerif = function (val) {
-  const colors = {
-    verified: { border:'var(--greeng)',           bg:'var(--greend)',  dot:'var(--green)',  rb:'var(--green)' },
-    pending:  { border:'rgba(245,158,11,.25)',    bg:'var(--yellowd)', dot:'var(--yellow)', rb:'var(--yellow)' },
-    blocked:  { border:'rgba(244,63,94,.25)',     bg:'var(--redd)',    dot:'var(--red)',    rb:'var(--red)' },
-  };
-  ['verified','pending','blocked'].forEach(s => {
-    const el = document.getElementById('vo-' + s); if (!el) return;
-    const c  = colors[s];
-    const on = s === val;
-    el.style.borderColor = on ? c.border : 'var(--b)';
-    el.style.background  = on ? c.bg     : 'var(--s2)';
-    const rb = el.querySelector('div');
-    rb.style.borderColor = on ? c.rb : 'var(--muted)';
-    rb.innerHTML = on ? `<div style="width:8px;height:8px;border-radius:50%;background:${c.dot}"></div>` : '';
-  });
-  document.getElementById('verif-selected').value = val;
-};
-
-window.saveVerifStatus = async function () {
-  const id     = document.getElementById('verif-courier-id')?.value;
-  const status = document.getElementById('verif-selected')?.value;
-  if (!id || !status) return;
-  const labels = { verified:'Верифицирован', pending:'На проверке', blocked:'Заблокирован' };
-  try {
-    await setDoc(doc(db, 'couriers', id), { verificationStatus: status, updatedAt: serverTimestamp() }, { merge: true });
-    toast('Статус: ' + labels[status], 'ok');
-    closeMo('order-modal');
-  } catch { toast('Ошибка сохранения', 'err'); }
-};
 
 // ══════════════════════════════════════════════════════════════
 // CLIENTS
@@ -1461,19 +1229,6 @@ function renderAnalytics() {
       </div>`
     ).join('') || '<div style="padding:14px;text-align:center;color:var(--text3);font-size:.7rem">Нет данных</div>';
 
-  // Топ курьеров
-  const topC = document.getElementById('top-couriers');
-  if (topC) topC.innerHTML = [...allCouriers]
-    .sort((a, b) => (b.totalDeliveries || 0) - (a.totalDeliveries || 0)).slice(0, 6)
-    .map((c, i) =>
-      `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--b)">
-        <div style="font-family:var(--fm);font-size:.66rem;color:var(--text3);width:14px">#${i + 1}</div>
-        <div style="flex:1;font-size:.72rem;font-weight:500;color:var(--text)">${c.displayName || '—'}</div>
-        <div style="font-family:var(--fm);font-size:.66rem;color:var(--acc2)">${c.totalDeliveries || 0} дост.</div>
-        <div style="font-family:var(--fm);font-size:.66rem;color:var(--green)">${c.earnings || 0} смн.</div>
-      </div>`
-    ).join('') || '<div style="padding:14px;text-align:center;color:var(--text3);font-size:.7rem">Нет данных</div>';
-
   // Сводка
   const ps = document.getElementById('period-sum');
   if (ps) {
@@ -1489,7 +1244,6 @@ function renderAnalytics() {
       ${row('Отменено',               can, 'var(--red)')}
       ${row('Клиентов',               allClients.length)}
       ${row('Статей опубликовано',    allNews.filter(a => a.status === 'published').length, 'var(--cyan)')}
-      ${row('Курьеров',               allCouriers.length)}
     </div>`;
   }
 }
@@ -3367,7 +3121,6 @@ window.deleteRetProd = async function (id) {
 const PAGE_TITLES = {
   overview:             'Обзор',
   orders:               'Заказы',
-  couriers:             'Курьеры',
   clients:              'Клиенты',
   support:              'Поддержка',
   catalog:              'Каталог',
@@ -3392,7 +3145,6 @@ window.goPage = function (page) {
   const el = document.getElementById('tb-title');
   if (el) el.textContent = PAGE_TITLES[page] || page;
 
-  if (page === 'couriers')          renderCouriersPage();
   if (page === 'support')           { renderSupportChats(); listenTgChats(); }
   if (page === 'analytics')         renderAnalytics();
   if (page === 'staff')             renderStaff();
@@ -3470,9 +3222,6 @@ window.onSearch = function (v) {
   const fc = allClients.find(c => c.displayName?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q));
   if (fc) { goPage('clients'); toast('Клиент найден: ' + fc.displayName, 'info'); return; }
 
-  const fr = allCouriers.find(c => c.displayName?.toLowerCase().includes(q));
-  if (fr) { goPage('couriers'); toast('Курьер найден: ' + fr.displayName, 'info'); return; }
-
   const fn = allNews.find(a => a.title?.toLowerCase().includes(q));
   if (fn) { goPage('news'); toast('Статья: ' + fn.title, 'info'); return; }
 
@@ -3523,7 +3272,6 @@ window.doLogout = async function () {
   if (unsubOrders)   { unsubOrders();   unsubOrders   = null; }
   if (unsubDast)     { unsubDast();     unsubDast     = null; }
   if (unsubMav)      { unsubMav();      unsubMav      = null; }
-  if (unsubCouriers) { unsubCouriers(); unsubCouriers = null; }
   if (unsubChats)    { unsubChats();    unsubChats    = null; }
   if (unsubChatMsgs) { unsubChatMsgs(); unsubChatMsgs = null; }
   await signOut(auth);

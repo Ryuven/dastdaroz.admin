@@ -235,6 +235,30 @@ function renderSB() {
 
   // Регистрируем sheet профиля (вызов безопасен повторно — есть guard внутри)
   Sheet.define({ id: 'profile', title: 'Профиль', zIndex: 800 });
+
+  // Sheet создания / редактирования ритейлера
+  _initRetSheet();
+
+  // Sheet создания / редактирования точки
+  _initLocSheet();
+
+  // Sheet каталога товаров точки
+  _initRetCatSheet();
+
+  // Sheet создания / редактирования товара
+  _initRetProdSheet();
+
+  // Sheet создания / редактирования города
+  _initCitySheet();
+
+  // Sheet создания / редактирования новости
+  _initNewsSheet();
+
+  // Sheet создания / редактирования вакансии
+  _initHrSheet();
+
+  // Sheet заявок по вакансии
+  _initHrAppsSheet();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1082,10 +1106,57 @@ window.fNews = function (f, btn) {
   renderNewsTable();
 };
 
+function _initNewsSheet() {
+  Sheet.define({ id: 'news-sheet', title: 'Новая статья', zIndex: 900 });
+
+  Sheet.body('news-sheet').innerHTML = `
+    <div style="padding:20px 18px 8px;display:flex;flex-direction:column;gap:12px">
+      <div class="mr">
+        <div class="mf">
+          <label class="ml">Статус</label>
+          <select class="mi" id="ni-status">
+            <option value="published">Опубликовать</option>
+            <option value="draft">Черновик</option>
+          </select>
+        </div>
+        <div class="mf">
+          <label class="ml">Категория</label>
+          <select class="mi" id="ni-cat">
+            <option value="актуали">Актуалӣ</option>
+            <option value="ҷомеа">Ҷомеа</option>
+            <option value="иқтисод">Иқтисод</option>
+            <option value="варзиш">Варзиш</option>
+            <option value="технология">Технология</option>
+          </select>
+        </div>
+      </div>
+      <div class="mf"><label class="ml">Заголовок *</label><input class="mi" id="ni-title" placeholder="Введите заголовок…"/></div>
+      <div class="mf"><label class="ml">Подзаголовок</label><input class="mi" id="ni-subtitle" placeholder="Краткое описание…"/></div>
+      <div class="mr">
+        <div class="mf"><label class="ml">Автор</label><input class="mi" id="ni-author" placeholder="Имя автора"/></div>
+        <div class="mf"><label class="ml">Время чтения (мин)</label><input class="mi" type="number" id="ni-rtime" value="3" min="1" max="120"/></div>
+      </div>
+      <div class="mf">
+        <label class="ml">Обложка — URL</label>
+        <input class="mi" id="ni-cover" placeholder="https://…" oninput="previewNewscover(this.value)"/>
+      </div>
+      <img id="ni-cover-preview" class="cover-preview-box" src="" alt="Превью" style="display:none"/>
+      <div class="mf">
+        <label class="ml">Текст статьи *</label>
+        <textarea class="mi" id="ni-content" rows="10" style="min-height:180px" placeholder="Первый абзац…&#10;&#10;Второй абзац…"></textarea>
+      </div>
+      <div class="modal-foot" style="padding-left:0;padding-right:0">
+        <button class="btn btn-secondary" onclick="Sheet.close('news-sheet')">Отмена</button>
+        <button class="btn btn-primary" id="ni-save-btn" onclick="saveNews()">Опубликовать</button>
+      </div>
+    </div>
+  `;
+}
+
 window.openNewsModal = function () {
   editingNewsId = null;
-  document.getElementById('news-modal-title').textContent = 'Новая статья';
-  document.getElementById('ni-save-btn').textContent      = 'Опубликовать';
+  Sheet.setTitle('news-sheet', 'Новая статья');
+  document.getElementById('ni-save-btn').textContent = 'Опубликовать';
   ['ni-title','ni-subtitle','ni-cover','ni-content'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
@@ -1095,14 +1166,14 @@ window.openNewsModal = function () {
   document.getElementById('ni-cat').value     = 'актуали';
   const prev = document.getElementById('ni-cover-preview');
   if (prev) { prev.style.display = 'none'; prev.src = ''; }
-  openMo('news-modal');
+  Sheet.open('news-sheet');
 };
 
 window.editNews = function (id) {
   const a = allNews.find(x => x.id === id); if (!a) return;
   editingNewsId = id;
-  document.getElementById('news-modal-title').textContent = 'Редактировать статью';
-  document.getElementById('ni-save-btn').textContent      = 'Сохранить';
+  Sheet.setTitle('news-sheet', 'Редактировать статью');
+  document.getElementById('ni-save-btn').textContent = 'Сохранить';
   document.getElementById('ni-title').value    = a.title || '';
   document.getElementById('ni-subtitle').value = a.subtitle || '';
   document.getElementById('ni-author').value   = a.author || '';
@@ -1112,7 +1183,7 @@ window.editNews = function (id) {
   document.getElementById('ni-status').value   = a.status || 'draft';
   document.getElementById('ni-cat').value      = a.category || 'актуали';
   previewNewscover(a.coverUrl || '');
-  openMo('news-modal');
+  Sheet.open('news-sheet');
 };
 
 window.previewNewscover = function (url) {
@@ -1156,7 +1227,7 @@ window.saveNews = async function () {
       await addDoc(collection(db, 'news'), data);
       toast('Статья опубликована ✓', 'ok');
     }
-    closeMo('news-modal');
+    Sheet.close('news-sheet');
     await loadNewsAdmin();
   } catch (e) { console.error(e); toast('Ошибка: ' + e.message, 'err'); }
   btn.disabled = false;
@@ -1961,10 +2032,72 @@ window.fHr = function (filter, btn) {
   renderHrTable();
 };
 
+function _initHrSheet() {
+  Sheet.define({ id: 'hr-sheet', title: 'Новая вакансия', zIndex: 900 });
+
+  Sheet.body('hr-sheet').innerHTML = `
+    <div style="padding:20px 18px 8px;display:flex;flex-direction:column;gap:12px">
+      <div class="mr">
+        <div class="mf"><label class="ml">Должность *</label><input class="mi" id="hv-title" placeholder="Frontend Developer"/></div>
+        <div class="mf"><label class="ml">Зарплата</label><input class="mi" id="hv-salary" placeholder="2 000 – 3 000 смн."/></div>
+      </div>
+      <div class="mr">
+        <div class="mf">
+          <label class="ml">Отдел</label>
+          <select class="mi" id="hv-dept">
+            <option value="Технологии">Технологии</option>
+            <option value="Операции">Операции</option>
+            <option value="Маркетинг">Маркетинг</option>
+            <option value="Финансы">Финансы</option>
+            <option value="Дизайн">Дизайн</option>
+            <option value="HR">HR</option>
+          </select>
+        </div>
+        <div class="mf">
+          <label class="ml">Тип занятости</label>
+          <select class="mi" id="hv-type">
+            <option value="full-time">Полный день</option>
+            <option value="part-time">Частичная занятость</option>
+            <option value="internship">Стажировка</option>
+          </select>
+        </div>
+      </div>
+      <div class="mf"><label class="ml">Локация</label><input class="mi" id="hv-location" placeholder="Душанбе / Remote"/></div>
+      <div class="mf"><label class="ml">Описание</label><textarea class="mi" id="hv-desc" rows="3" placeholder="Краткое описание задач и обязанностей…"></textarea></div>
+      <div class="mf"><label class="ml">Требования</label><textarea class="mi" id="hv-req" rows="3" placeholder="Необходимые навыки и опыт…"></textarea></div>
+      <div class="mf">
+        <label class="ml">Статус</label>
+        <select class="mi" id="hv-status">
+          <option value="open">Открытая</option>
+          <option value="closed">Закрытая</option>
+        </select>
+      </div>
+      <div class="modal-foot" style="padding-left:0;padding-right:0">
+        <button class="btn btn-danger btn-sm" id="hv-del-btn" onclick="deleteVacancy()" style="display:none;margin-right:auto">Удалить</button>
+        <button class="btn btn-secondary" onclick="Sheet.close('hr-sheet')">Отмена</button>
+        <button class="btn btn-primary" onclick="saveVacancy()">Сохранить</button>
+      </div>
+    </div>
+  `;
+}
+
+function _initHrAppsSheet() {
+  Sheet.define({ id: 'hr-apps-sheet', title: 'Заявки', zIndex: 900 });
+
+  const body = Sheet.body('hr-apps-sheet');
+  body.style.cssText = 'overflow:hidden;display:flex;flex-direction:column;padding:0';
+  body.innerHTML = `
+    <div id="hr-apps-body" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(env(safe-area-inset-bottom,0px)+16px)"></div>
+    <div class="modal-foot" style="flex-shrink:0;border-top:1px solid var(--b)">
+      <button class="btn btn-secondary" onclick="Sheet.close('hr-apps-sheet')">Закрыть</button>
+    </div>
+  `;
+}
+
 window.openHrModal = function (id) {
   editingVacId = id || null;
   const isEdit = !!id;
-  document.getElementById('hr-modal-title').textContent = isEdit ? 'Редактировать вакансию' : 'Новая вакансия';
+  Sheet.setTitle('hr-sheet', isEdit ? 'Редактировать вакансию' : 'Новая вакансия');
   const delBtn = document.getElementById('hv-del-btn');
   if (delBtn) delBtn.style.display = isEdit ? '' : 'none';
 
@@ -1988,7 +2121,7 @@ window.openHrModal = function (id) {
     document.getElementById('hv-type').value   = 'full-time';
     document.getElementById('hv-status').value = 'open';
   }
-  openMo('hr-modal');
+  Sheet.open('hr-sheet');
 };
 
 window.saveVacancy = async function () {
@@ -2015,7 +2148,7 @@ window.saveVacancy = async function () {
       await addDoc(collection(db, 'vacancies'), data);
       toast('Вакансия создана ✓', 'ok');
     }
-    closeMo('hr-modal');
+    Sheet.close('hr-sheet');
     await loadVacancies();
     renderHrPage();
   } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
@@ -2028,7 +2161,7 @@ window.deleteVacancy = async function () {
   try {
     await deleteDoc(doc(db, 'vacancies', editingVacId));
     toast('Вакансия удалена', 'ok');
-    closeMo('hr-modal');
+    Sheet.close('hr-sheet');
     await loadVacancies();
     renderHrPage();
   } catch (e) { toast('Ошибка удаления: ' + e.message, 'err'); }
@@ -2036,10 +2169,10 @@ window.deleteVacancy = async function () {
 
 window.viewApplications = async function (vacId) {
   const v = allVacancies.find(x => x.id === vacId);
-  document.getElementById('hr-apps-title').textContent = (v?.title || 'Вакансия') + ' — заявки';
+  Sheet.setTitle('hr-apps-sheet', (v?.title || 'Вакансия') + ' — заявки');
   const body = document.getElementById('hr-apps-body');
   body.innerHTML = '<div class="pload"><div class="spin"></div></div>';
-  openMo('hr-apps-modal');
+  Sheet.open('hr-apps-sheet');
   try {
     const snap = await getDocs(query(collection(db, 'vacancies', vacId, 'applications'), orderBy('createdAt', 'desc')));
     const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -2433,17 +2566,73 @@ function renderLocationsPanel(rid, locs) {
   }).join('');
 }
 
+function _initRetSheet() {
+  Sheet.define({ id: 'ret-sheet', title: 'Новый ритейлер', zIndex: 900 });
+
+  Sheet.body('ret-sheet').innerHTML = `
+    <div style="padding:20px 18px 8px;display:flex;flex-direction:column;gap:12px">
+      <input type="hidden" id="ret-id">
+      <div class="mf"><label class="ml">Название ритейлера *</label><input class="mi" id="ret-name" type="text" placeholder="Напр. Carrefour, Gloria Jeans…"></div>
+      <div class="mf">
+        <label class="ml">Город (основной) *</label>
+        <select class="mi" id="ret-city"><option value="">— Загружаем города… —</option></select>
+      </div>
+      <div class="mf">
+        <label class="ml">URL изображения / логотипа</label>
+        <input class="mi" id="ret-image" type="url" placeholder="https://…/logo.png">
+        <div id="ret-img-preview" style="margin-top:7px;display:none">
+          <img id="ret-img-preview-img" src="" style="width:80px;height:80px;border-radius:10px;object-fit:cover;border:1px solid var(--b)">
+        </div>
+      </div>
+      <div class="mf">
+        <label class="ml">URL доп-баннера <span style="color:var(--text3);font-weight:400">(необязательно)</span></label>
+        <input class="mi" id="ret-extra-banner" type="url" placeholder="https://…/banner.jpg">
+        <div id="ret-extra-banner-preview" style="margin-top:7px;display:none;border-radius:10px;overflow:hidden;border:1px solid var(--b)">
+          <img id="ret-extra-banner-preview-img" src="" style="width:100%;max-height:90px;object-fit:cover;display:block">
+        </div>
+      </div>
+      <div class="mf">
+        <label class="ml">URL логотипа 1:1 <span style="color:var(--text3);font-weight:400">(квадратный, необязательно)</span></label>
+        <input class="mi" id="ret-logo-square" type="url" placeholder="https://…/logo-square.png">
+        <div id="ret-logo-square-preview" style="margin-top:7px;display:none">
+          <img id="ret-logo-square-preview-img" src="" style="width:80px;height:80px;border-radius:12px;object-fit:cover;border:1px solid var(--b)">
+        </div>
+      </div>
+      <div class="mf">
+        <label class="ml">Описание <span style="color:var(--text3);font-weight:400">(необязательно)</span></label>
+        <textarea class="mi" id="ret-desc" rows="2" placeholder="Краткое описание…"></textarea>
+      </div>
+      <div class="mr">
+        <div class="mf" style="margin-bottom:0"><label class="ml">Порядок сортировки</label><input class="mi" id="ret-order" type="number" min="1" value="1"></div>
+        <div class="mf" style="margin-bottom:0">
+          <label class="ml">Статус</label>
+          <select class="mi" id="ret-active"><option value="true">Активен</option><option value="false">Скрыт</option></select>
+        </div>
+      </div>
+      <div class="modal-foot" style="padding-left:0;padding-right:0">
+        <button class="btn btn-danger btn-sm" id="ret-del-btn" style="display:none;margin-right:auto" onclick="deleteRetailer()">Удалить</button>
+        <button class="btn btn-secondary" onclick="closeRetailerModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="saveRetailer()">Сохранить</button>
+      </div>
+    </div>
+  `;
+
+  // Превью при вводе URL (вешаем здесь, т.к. элементы уже в DOM)
+  document.getElementById('ret-image')?.addEventListener('input', e => _showRetPreview(e.target.value));
+  document.getElementById('ret-extra-banner')?.addEventListener('input', e => _showRetExtraBannerPreview(e.target.value));
+  document.getElementById('ret-logo-square')?.addEventListener('input', e => _showRetLogoSquarePreview(e.target.value));
+}
+
 window.openRetailerModal = async function (rid = null) {
   _editRetId = rid;
   await loadRetCities();
   fillRetCitySelect('ret-city');
 
-  const title   = document.getElementById('ret-modal-title');
+  Sheet.setTitle('ret-sheet', rid ? 'Редактировать ритейлер' : 'Новый ритейлер');
   const delBtn  = document.getElementById('ret-del-btn');
   const preview = document.getElementById('ret-img-preview');
-  if (title)   title.textContent       = rid ? 'Редактировать ритейлер' : 'Новый ритейлер';
-  if (delBtn)  delBtn.style.display    = rid ? 'inline-flex' : 'none';
-  if (preview) preview.style.display   = 'none';
+  if (delBtn)  delBtn.style.display  = rid ? 'inline-flex' : 'none';
+  if (preview) preview.style.display = 'none';
 
   if (rid) {
     const r = _retailers.find(x => x.id === rid);
@@ -2453,20 +2642,23 @@ window.openRetailerModal = async function (rid = null) {
       v('ret-image', r.imageUrl || ''); v('ret-order', r.order ?? 1);
       v('ret-active', String(r.active !== false));
       v('ret-extra-banner', r.extraBannerUrl || '');
+      v('ret-logo-square', r.logoSquareUrl || '');
       fillRetCitySelect('ret-city', r.primaryCityId || '');
       if (r.imageUrl) _showRetPreview(r.imageUrl);
       if (r.extraBannerUrl) _showRetExtraBannerPreview(r.extraBannerUrl); else _showRetExtraBannerPreview('');
+      if (r.logoSquareUrl) _showRetLogoSquarePreview(r.logoSquareUrl); else _showRetLogoSquarePreview('');
     }
   } else {
-    ['ret-id','ret-name','ret-desc','ret-image','ret-extra-banner'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+    ['ret-id','ret-name','ret-desc','ret-image','ret-extra-banner','ret-logo-square'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
     _showRetExtraBannerPreview('');
+    _showRetLogoSquarePreview('');
     const ord = document.getElementById('ret-order'); if (ord) ord.value = _retailers.length + 1;
     const act = document.getElementById('ret-active'); if (act) act.value = 'true';
   }
-  openMo('retailer-modal');
+  Sheet.open('ret-sheet');
 };
 
-window.closeRetailerModal = () => closeMo('retailer-modal');
+window.closeRetailerModal = () => Sheet.close('ret-sheet');
 
 function _showRetPreview(url) {
   const w = document.getElementById('ret-img-preview');
@@ -2484,26 +2676,32 @@ function _showRetExtraBannerPreview(url) {
   i.src = url; w.style.display = 'block';
 }
 
-document.getElementById('ret-image')?.addEventListener('input', e => _showRetPreview(e.target.value));
-document.getElementById('ret-extra-banner')?.addEventListener('input', e => _showRetExtraBannerPreview(e.target.value));
+function _showRetLogoSquarePreview(url) {
+  const w = document.getElementById('ret-logo-square-preview');
+  const i = document.getElementById('ret-logo-square-preview-img');
+  if (!w || !i) return;
+  if (!url) { w.style.display = 'none'; i.src = ''; return; }
+  i.src = url; w.style.display = 'block';
+}
 
 window.saveRetailer = async function () {
-  const name           = document.getElementById('ret-name')?.value.trim() || '';
-  const cityId         = document.getElementById('ret-city')?.value || '';
-  const imgUrl         = document.getElementById('ret-image')?.value.trim() || '';
-  const extraBannerUrl = document.getElementById('ret-extra-banner')?.value.trim() || '';
-  const desc           = document.getElementById('ret-desc')?.value.trim() || '';
-  const order          = parseInt(document.getElementById('ret-order')?.value || '1');
-  const active         = document.getElementById('ret-active')?.value === 'true';
+  const name            = document.getElementById('ret-name')?.value.trim() || '';
+  const cityId          = document.getElementById('ret-city')?.value || '';
+  const imgUrl          = document.getElementById('ret-image')?.value.trim() || '';
+  const extraBannerUrl  = document.getElementById('ret-extra-banner')?.value.trim() || '';
+  const logoSquareUrl   = document.getElementById('ret-logo-square')?.value.trim() || '';
+  const desc            = document.getElementById('ret-desc')?.value.trim() || '';
+  const order           = parseInt(document.getElementById('ret-order')?.value || '1');
+  const active          = document.getElementById('ret-active')?.value === 'true';
 
   if (!name)   { toast('Введите название ритейлера', 'warn'); return; }
   if (!cityId) { toast('Выберите город', 'warn'); return; }
 
-  const btn = document.querySelector('#retailer-modal .btn-primary');
+  const btn = document.querySelector('#bs-ret-sheet .btn-primary');
   if (btn) { btn.disabled = true; btn.textContent = 'Сохраняем…'; }
 
   try {
-    const data = { name, primaryCityId: cityId, imageUrl: imgUrl, extraBannerUrl, description: desc, order: isNaN(order) ? 1 : order, active, updatedAt: serverTimestamp() };
+    const data = { name, primaryCityId: cityId, imageUrl: imgUrl, extraBannerUrl, logoSquareUrl, description: desc, order: isNaN(order) ? 1 : order, active, updatedAt: serverTimestamp() };
     if (_editRetId) {
       await updateDoc(doc(db, 'retailers', _editRetId), data);
       toast(`Ритейлер «${name}» обновлён`, 'ok');
@@ -2536,21 +2734,56 @@ window.deleteRetailer = async function () {
   } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
 };
 
+function _initLocSheet() {
+  Sheet.define({ id: 'loc-sheet', title: 'Новая точка', zIndex: 900 });
+
+  Sheet.body('loc-sheet').innerHTML = `
+    <div style="padding:20px 18px 8px;display:flex;flex-direction:column;gap:12px">
+      <input type="hidden" id="loc-retailer-id">
+      <input type="hidden" id="loc-id">
+      <div style="padding:10px 12px;background:var(--s2);border-radius:8px;border:1px solid var(--b);font-size:.7rem;color:var(--text2)">
+        Ритейлер: <strong id="loc-retailer-name" style="color:var(--text)">—</strong>
+      </div>
+      <div class="mf">
+        <label class="ml">Город *</label>
+        <select class="mi" id="loc-city"><option value="">— Загружаем города… —</option></select>
+      </div>
+      <div class="mf">
+        <label class="ml">Адрес *</label>
+        <input class="mi" id="loc-address" type="text" placeholder="Напр. ул. Рудаки 42, ТЦ «Мавлон»…">
+      </div>
+      <div class="mr">
+        <div class="mf" style="margin-bottom:0"><label class="ml">Широта (Lat)</label><input class="mi" id="loc-lat" type="number" step="any" placeholder="38.559772"></div>
+        <div class="mf" style="margin-bottom:0"><label class="ml">Долгота (Lng)</label><input class="mi" id="loc-lng" type="number" step="any" placeholder="68.773945"></div>
+      </div>
+      <div style="font-size:.6rem;color:var(--text3);display:flex;align-items:center;gap:5px">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Координаты: Google Maps → ПКМ на точке → «Что здесь?»
+      </div>
+      <div class="modal-foot" style="padding-left:0;padding-right:0">
+        <button class="btn btn-danger btn-sm" id="loc-del-btn" style="display:none;margin-right:auto" onclick="deleteLocation()">Удалить точку</button>
+        <button class="btn btn-secondary" onclick="closeLocationModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="saveLocation()">Сохранить</button>
+      </div>
+    </div>
+  `;
+}
+
 window.openLocationModal = async function (rid, rName, locId = null) {
   _editLocRid = rid; _editLocId = locId;
   await loadRetCities();
 
-  const title  = document.getElementById('loc-modal-title');
+  Sheet.setTitle('loc-sheet', locId ? 'Редактировать точку' : 'Новая точка');
+
   const delBtn = document.getElementById('loc-del-btn');
   const rn     = document.getElementById('loc-retailer-name');
   const ridEl  = document.getElementById('loc-retailer-id');
   const lidEl  = document.getElementById('loc-id');
 
-  if (title)  title.textContent      = locId ? 'Редактировать точку' : 'Новая точка';
-  if (delBtn) delBtn.style.display   = locId ? 'inline-flex' : 'none';
-  if (rn)     rn.textContent         = rName || '';
-  if (ridEl)  ridEl.value            = rid;
-  if (lidEl)  lidEl.value            = locId || '';
+  if (delBtn) delBtn.style.display = locId ? 'inline-flex' : 'none';
+  if (rn)     rn.textContent       = rName || '';
+  if (ridEl)  ridEl.value          = rid;
+  if (lidEl)  lidEl.value          = locId || '';
 
   if (locId) {
     try {
@@ -2569,10 +2802,10 @@ window.openLocationModal = async function (rid, rName, locId = null) {
     fillRetCitySelect('loc-city', r?.primaryCityId || '');
     ['loc-address','loc-lat','loc-lng'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
   }
-  openMo('location-modal');
+  Sheet.open('loc-sheet');
 };
 
-window.closeLocationModal = () => closeMo('location-modal');
+window.closeLocationModal = () => Sheet.close('loc-sheet');
 
 window.saveLocation = async function () {
   const rid     = document.getElementById('loc-retailer-id')?.value || '';
@@ -2589,7 +2822,7 @@ window.saveLocation = async function () {
   const lng = lngRaw ? parseFloat(lngRaw) : null;
   if ((latRaw && isNaN(lat)) || (lngRaw && isNaN(lng))) { toast('Некорректные координаты', 'warn'); return; }
 
-  const btn = document.querySelector('#location-modal .btn-primary');
+  const btn = document.querySelector('#bs-loc-sheet .btn-primary');
   if (btn) { btn.disabled = true; btn.textContent = 'Сохраняем…'; }
 
   try {
@@ -2824,24 +3057,55 @@ window.cityFilter = function (f, btn) {
   renderCities();
 };
 
+function _initCitySheet() {
+  Sheet.define({ id: 'city-sheet', title: 'Новый город', zIndex: 900 });
+
+  Sheet.body('city-sheet').innerHTML = `
+    <div style="padding:20px 18px 8px;display:flex;flex-direction:column;gap:14px">
+      <div class="mf" id="az-id-field">
+        <label class="ml">ID города * <span style="font-weight:400;color:var(--muted2);font-size:.6rem">(латиница, без пробелов — напр. dushanbe)</span></label>
+        <input class="mi" id="az-id" type="text" placeholder="dushanbe">
+      </div>
+      <div class="mf"><label class="ml">Название *</label><input class="mi" id="az-name" type="text" placeholder="Душанбе"></div>
+      <div class="mf"><label class="ml">Регион <span style="font-weight:400;color:var(--muted2);font-size:.6rem">(необязательно)</span></label><input class="mi" id="az-region" type="text" placeholder="Столица, Согдийская область…"></div>
+      <div class="mf"><label class="ml">Порядок отображения *</label><input class="mi" id="az-order" type="number" min="1" placeholder="1"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--s2);border:1px solid var(--b);border-radius:8px">
+        <div>
+          <div style="font-size:.76rem;font-weight:600;color:var(--text)">Город активен</div>
+          <div style="font-size:.62rem;color:var(--muted);margin-top:2px">Выключите — город появится как «Скоро»</div>
+        </div>
+        <label class="tog">
+          <input type="checkbox" id="az-avail-tog" checked>
+          <span class="tog-track"></span>
+          <span class="tog-thumb"></span>
+        </label>
+      </div>
+      <div class="modal-foot" style="padding-left:0;padding-right:0">
+        <button class="btn btn-secondary" onclick="closeCityModal()">Отмена</button>
+        <button class="btn btn-primary" id="az-save-btn" onclick="saveCity()">Сохранить</button>
+      </div>
+    </div>
+  `;
+}
+
 window.openCityModal = function (id = null) {
   _cityEditId = id;
   const c = id ? allCities.find(x => x.id === id) : null;
-  document.getElementById('az-modal-title').textContent = c ? 'Редактировать город' : 'Новый город';
+  Sheet.setTitle('city-sheet', c ? 'Редактировать город' : 'Новый город');
   const idField = document.getElementById('az-id-field');
   const idInput = document.getElementById('az-id');
   if (idField) idField.style.display = c ? 'none' : '';
   if (idInput) { idInput.value = ''; idInput.disabled = !!c; }
-  document.getElementById('az-name').value            = c?.name   || '';
-  document.getElementById('az-region').value          = c?.region || '';
-  document.getElementById('az-order').value           = c?.order  ?? (allCities.length + 1);
-  document.getElementById('az-avail-tog').checked     = c ? c.active !== false : true;
-  document.getElementById('az-modal').classList.add('open');
+  document.getElementById('az-name').value        = c?.name   || '';
+  document.getElementById('az-region').value      = c?.region || '';
+  document.getElementById('az-order').value       = c?.order  ?? (allCities.length + 1);
+  document.getElementById('az-avail-tog').checked = c ? c.active !== false : true;
+  Sheet.open('city-sheet');
   setTimeout(() => document.getElementById(c ? 'az-name' : 'az-id').focus(), 150);
 };
 
 window.closeCityModal = function () {
-  document.getElementById('az-modal').classList.remove('open');
+  Sheet.close('city-sheet');
   _cityEditId = null;
 };
 
@@ -2902,6 +3166,40 @@ let _retCatLocAddr = '';
 let _retCatName  = '';
 let _retCatProds = [];
 
+function _initRetCatSheet() {
+  Sheet.define({ id: 'ret-cat-sheet', title: 'Каталог товаров', zIndex: 900 });
+
+  // Переопределяем body на flex-колонку: тулбар фиксирован, список скроллится
+  const body = Sheet.body('ret-cat-sheet');
+  body.style.cssText = 'overflow:hidden;display:flex;flex-direction:column;padding:0';
+  body.innerHTML = `
+    <div id="ret-cat-store-info"
+      style="padding:8px 16px 4px;font-size:.72rem;font-weight:600;color:var(--text2);flex-shrink:0;border-bottom:1px solid var(--b)"></div>
+    <div style="padding:10px 16px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
+      <input class="mi" id="ret-cat-search"
+        placeholder="Поиск по названию…"
+        oninput="filterRetCatalog()"
+        style="flex:1;min-width:140px;margin:0;height:32px;font-size:.72rem"/>
+      <select class="mi" id="ret-cat-filter" onchange="filterRetCatalog()"
+        style="width:auto;min-width:130px;height:32px;font-size:.72rem;margin:0">
+        <option value="">Все категории</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="openRetProdModal()">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Товар
+      </button>
+    </div>
+    <div id="ret-cat-body"
+      style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px;display:flex;flex-direction:column;gap:8px;padding-bottom:calc(env(safe-area-inset-bottom,0px)+16px)">
+    </div>
+  `;
+}
+
+function _initRetProdSheet() {
+  Sheet.define({ id: 'ret-prod-sheet', title: 'Новый товар', zIndex: 950 });
+  // Тело заполняется динамически в openRetProdModal
+}
+
 window.openRetCatalog = async function (rid, rName, locId, locAddr) {
   _retCatRid     = rid;
   _retCatLocId   = locId;
@@ -2909,14 +3207,14 @@ window.openRetCatalog = async function (rid, rName, locId, locAddr) {
   _retCatName    = rName;
   _retCatProds   = [];
 
-  const titleEl = document.getElementById('ret-cat-title');
-  if (titleEl) titleEl.textContent = locAddr ? `${rName} — ${locAddr}` : rName;
+  const storeInfo = document.getElementById('ret-cat-store-info');
+  if (storeInfo) storeInfo.textContent = locAddr ? `${rName} — ${locAddr}` : rName;
   const search = document.getElementById('ret-cat-search');
   const filter = document.getElementById('ret-cat-filter');
   if (search) search.value = '';
   if (filter) filter.innerHTML = '<option value="">Все категории</option>';
   document.getElementById('ret-cat-body').innerHTML = _retCatSkeleton();
-  openMo('ret-catalog-modal');
+  Sheet.open('ret-cat-sheet');
 
   try {
     const path = locId
@@ -3009,43 +3307,47 @@ window.filterRetCatalog = function () { renderRetCatalog(); };
 
 window.openRetProdModal = function (id = null) {
   const p = id ? _retCatProds.find(x => x.id === id) : null;
-  document.getElementById('m-order-title').textContent =
-    p ? 'Изменить: ' + (p.name || '—') : 'Новый товар';
-  document.getElementById('m-order-body').innerHTML = `
-    <div style="padding:8px 10px;background:var(--s2);border:1px solid var(--b);border-radius:8px;font-size:.62rem;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;gap:6px">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <strong style="color:var(--text)">${escHtml(_retCatName)}</strong>
-      <code style="color:var(--text3);font-size:.58rem">retailers/${_retCatRid}/locations/${_retCatLocId}/catalog/</code>
-    </div>
-    <div class="mf">
-      <label class="ml">Название *</label>
-      <input class="mi" id="rp-nm" value="${escHtml(p?.name || '')}" placeholder="Молоко 1л"/>
-    </div>
-    <div class="mf">
-      <label class="ml">Описание</label>
-      <input class="mi" id="rp-ds" value="${escHtml(p?.description || '')}" placeholder="Краткое описание…"/>
-    </div>
-    <div class="mr">
-      <div class="mf">
-        <label class="ml">Цена (смн) *</label>
-        <input class="mi" type="number" min="0" id="rp-pr" value="${p?.price ?? ''}" placeholder="10"/>
+  Sheet.setTitle('ret-prod-sheet', p ? 'Изменить: ' + (p.name || '—') : 'Новый товар');
+
+  Sheet.body('ret-prod-sheet').innerHTML = `
+    <div style="padding:20px 18px 8px;display:flex;flex-direction:column;gap:12px">
+      <div style="padding:8px 10px;background:var(--s2);border:1px solid var(--b);border-radius:8px;font-size:.62rem;color:var(--text2);display:flex;align-items:center;gap:6px">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <strong style="color:var(--text)">${escHtml(_retCatName)}</strong>
+        <code style="color:var(--text3);font-size:.58rem">retailers/${_retCatRid}/locations/${_retCatLocId}/catalog/</code>
       </div>
       <div class="mf">
-        <label class="ml">Категория</label>
-        <input class="mi" id="rp-ct" value="${escHtml(p?.categoryId || '')}" placeholder="молочное"/>
+        <label class="ml">Название *</label>
+        <input class="mi" id="rp-nm" value="${escHtml(p?.name || '')}" placeholder="Молоко 1л"/>
+      </div>
+      <div class="mf">
+        <label class="ml">Описание</label>
+        <input class="mi" id="rp-ds" value="${escHtml(p?.description || '')}" placeholder="Краткое описание…"/>
+      </div>
+      <div class="mr">
+        <div class="mf">
+          <label class="ml">Цена (смн) *</label>
+          <input class="mi" type="number" min="0" id="rp-pr" value="${p?.price ?? ''}" placeholder="10"/>
+        </div>
+        <div class="mf">
+          <label class="ml">Категория</label>
+          <input class="mi" id="rp-ct" value="${escHtml(p?.categoryId || '')}" placeholder="молочное"/>
+        </div>
+      </div>
+      <div class="mf">
+        <label class="ml">URL изображения</label>
+        <input class="mi" id="rp-im" value="${escHtml(p?.imageUrl || '')}" placeholder="https://…"/>
+      </div>
+      <div class="modal-foot" style="padding-left:0;padding-right:0">
+        ${p ? `<button class="btn btn-danger" style="margin-right:auto" onclick="deleteRetProd('${id}')">Удалить</button>` : ''}
+        <button class="btn btn-secondary" onclick="Sheet.close('ret-prod-sheet')">Отмена</button>
+        <button class="btn btn-primary" onclick="${p ? `saveRetEditProd('${id}')` : 'saveRetNewProd()'}">
+          ${p ? 'Сохранить' : 'Добавить'}
+        </button>
       </div>
     </div>
-    <div class="mf">
-      <label class="ml">URL изображения</label>
-      <input class="mi" id="rp-im" value="${escHtml(p?.imageUrl || '')}" placeholder="https://…"/>
-    </div>`;
-  document.getElementById('m-order-foot').innerHTML = `
-    ${p ? `<button class="btn btn-danger" style="margin-right:auto" onclick="deleteRetProd('${id}')">Удалить</button>` : ''}
-    <button class="btn btn-secondary" onclick="closeMo('order-modal')">Отмена</button>
-    <button class="btn btn-primary" onclick="${p ? `saveRetEditProd('${id}')` : 'saveRetNewProd()'}">
-      ${p ? 'Сохранить' : 'Добавить'}
-    </button>`;
-  openMo('order-modal');
+  `;
+  Sheet.open('ret-prod-sheet');
 };
 
 window.saveRetNewProd = async function () {
@@ -3068,7 +3370,7 @@ window.saveRetNewProd = async function () {
       updatedAt:   serverTimestamp(),
     });
     toast('Товар добавлен', 'ok');
-    closeMo('order-modal');
+    Sheet.close('ret-prod-sheet');
     await openRetCatalog(_retCatRid, _retCatName, _retCatLocId, _retCatLocAddr);
   } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
 };
@@ -3087,7 +3389,7 @@ window.saveRetEditProd = async function (id) {
       updatedAt:   serverTimestamp(),
     });
     toast('Товар обновлён', 'ok');
-    closeMo('order-modal');
+    Sheet.close('ret-prod-sheet');
     await openRetCatalog(_retCatRid, _retCatName, _retCatLocId, _retCatLocAddr);
   } catch (e) { toast('Ошибка: ' + e.message, 'err'); }
 };
@@ -3111,7 +3413,7 @@ window.deleteRetProd = async function (id) {
       : doc(db, 'retailers', _retCatRid, 'catalog', id);
     await deleteDoc(dPath);
     toast('Удалён', 'ok');
-    closeMo('order-modal');
+    Sheet.close('ret-prod-sheet');
     await openRetCatalog(_retCatRid, _retCatName, _retCatLocId, _retCatLocAddr);
   } catch (e) { toast('Ошибка', 'err'); }
 };

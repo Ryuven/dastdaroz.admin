@@ -189,14 +189,14 @@ setInterval(() => {
 // ══════════════════════════════════════════════════════════════
 
 onAuthStateChanged(auth, async (u) => {
-  if (!u) { location.href = 'admin-login.html'; return; }
+  if (!u) { location.href = 'login.html'; return; }
 
   CU = u;
   try {
     const snap = await getDoc(doc(db, 'users', CU.uid));
     if (!snap.exists() || !['admin','support','moderator'].includes(snap.data().role)) {
       await signOut(auth);
-      location.href = 'admin-login.html';
+      location.href = 'login.html';
       return;
     }
     AD = snap.data();
@@ -205,7 +205,7 @@ onAuthStateChanged(auth, async (u) => {
     // Никогда не даём доступ если не удалось подтвердить роль.
     console.error('Auth role check failed:', e);
     await signOut(auth).catch(() => {});
-    location.href = 'admin-login.html';
+    location.href = 'login.html';
     return;
   }
 
@@ -3674,7 +3674,7 @@ window.doLogout = async function () {
   if (unsubChats)    { unsubChats();    unsubChats    = null; }
   if (unsubChatMsgs) { unsubChatMsgs(); unsubChatMsgs = null; }
   await signOut(auth);
-  location.href = 'admin-login.html';
+  location.href = 'login.html';
 };
 
 // ══════════════════════════════════════════════════════════════

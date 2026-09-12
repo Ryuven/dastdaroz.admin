@@ -212,6 +212,12 @@ onAuthStateChanged(auth, async (u) => {
   renderSB();
   startListeners();
   loadAll();
+
+  // Если Android уже передал adminFcmToken до авторизации — сохраняем сейчас
+  if (window._pendingAdminFcmToken) {
+    saveAdminFcmToken(window._pendingAdminFcmToken);
+    window._pendingAdminFcmToken = null;
+  }
 });
 
 // ══════════════════════════════════════════════════════════════
@@ -4010,3 +4016,35 @@ window.fcmSend = async function() {
 window.renderFcmPage = async function() {
   await fcmLoadUsers();
 };
+
+// ══════════════════════════════════════════════════════════════
+// ADMIN FCM TOKEN
+// ══════════════════════════════════════════════════════════════
+
+/**
+ * Вызывается из Android (AdminMainActivity) через evaluateJavascript
+ * Сохраняет adminFcmToken в users/{uid}.adminFcmToken в Firestore
+ */
+window.onAdminFcmToken = function(token) {
+  if (!token) return;
+  if (typeof CU !== 'undefined' && CU) {
+    saveAdminFcmToken(token);
+  } else {
+    window._pendingAdminFcmToken = token;
+  }
+};
+
+async function saveAdminFcmToken(token) {
+  try {
+    const u = auth.currentUser;
+    if (!u || !token) return;
+    await setDoc(
+      doc(db, 'users', u.uid),
+      { adminFcmToken: token, adminFcmUpdatedAt: new Date().toISOString() },
+      { merge: true }
+    );
+    console.log('[FCM Admin] adminFcmToken сохранён в Firestore');
+  } catch (e) {
+    console.warn('[FCM Admin] Не удалось сохранить токен:', e);
+  }
+}

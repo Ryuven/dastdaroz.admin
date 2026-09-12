@@ -259,6 +259,9 @@ function renderSB() {
 
   // Sheet заявок по вакансии
   _initHrAppsSheet();
+
+  // Sheet детали заявки партнёра
+  _initPartnerDetailSheet();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2917,6 +2920,94 @@ function updatePartnerBadge() {
   if (b) { b.textContent = n; b.style.display = n > 0 ? '' : 'none'; }
 }
 
+function _initPartnerDetailSheet() {
+  Sheet.define({ id: 'partner-detail-sheet', title: 'Заявка партнёра', zIndex: 900 });
+  // Тело заполняется динамически в openPartnerDetail
+}
+
+window.openPartnerDetail = function (id) {
+  const a = allPartnerApps.find(x => x.id === id);
+  if (!a) return;
+
+  const isNew       = a.status === 'new';
+  const isContacted = a.status === 'contacted';
+  const sc  = isNew ? 'var(--yellow)' : isContacted ? 'var(--green)' : 'var(--text3)';
+  const sb  = isNew ? 'var(--yellowd)' : isContacted ? 'var(--greend)' : 'var(--muted2)';
+  const sbr = isNew ? 'rgba(245,158,11,.25)' : isContacted ? 'rgba(34,197,94,.2)' : 'var(--b)';
+  const sl  = isNew ? 'Новая' : isContacted ? 'Связались' : 'Архив';
+
+  const raw  = a.createdAt;
+  const date = raw?.toDate
+    ? raw.toDate().toLocaleDateString('ru-RU', { day:'2-digit', month:'short', year:'2-digit', hour:'2-digit', minute:'2-digit' })
+    : raw ? new Date(raw).toLocaleDateString('ru-RU') : '—';
+
+  Sheet.setTitle('partner-detail-sheet', escHtml(a.company || 'Заявка партнёра'));
+
+  Sheet.body('partner-detail-sheet').innerHTML = `
+    <div style="padding:20px 18px 8px;display:flex;flex-direction:column;gap:14px">
+
+      <span class="ostatus" style="align-self:flex-start;color:${sc};background:${sb};border-color:${sbr}">
+        <span class="osdot"></span>${sl}
+      </span>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+
+        ${a.company ? `<div class="pd-row">
+          <div class="pd-label">Компания</div>
+          <div class="pd-val">${escHtml(a.company)}</div>
+        </div>` : ''}
+
+        ${a.restaurant ? `<div class="pd-row">
+          <div class="pd-label">Ресторан / Заведение</div>
+          <div class="pd-val">${escHtml(a.restaurant)}</div>
+        </div>` : ''}
+
+        <div class="pd-row">
+          <div class="pd-label">Адрес</div>
+          <div class="pd-val">${escHtml(a.address || '—')}</div>
+        </div>
+
+        <div class="pd-row">
+          <div class="pd-label">Телефон</div>
+          <div class="pd-val" style="font-family:var(--fm);color:var(--acc2)">
+            ${a.phone ? `<a href="tel:${escHtml(a.phone)}" style="color:inherit;text-decoration:none">${escHtml(a.phone)}</a>` : '—'}
+          </div>
+        </div>
+
+        ${a.phone2 ? `<div class="pd-row">
+          <div class="pd-label">Доп. телефон</div>
+          <div class="pd-val" style="font-family:var(--fm);color:var(--text2)">
+            <a href="tel:${escHtml(a.phone2)}" style="color:inherit;text-decoration:none">${escHtml(a.phone2)}</a>
+          </div>
+        </div>` : ''}
+
+        ${a.comment ? `<div class="pd-row" style="align-items:flex-start">
+          <div class="pd-label" style="padding-top:2px">Комментарий</div>
+          <div class="pd-val" style="white-space:pre-wrap;line-height:1.5">${escHtml(a.comment)}</div>
+        </div>` : ''}
+
+        <div class="pd-row">
+          <div class="pd-label">Дата заявки</div>
+          <div class="pd-val" style="font-size:.68rem;color:var(--text3)">${date}</div>
+        </div>
+
+      </div>
+
+      <div class="modal-foot" style="padding-left:0;padding-right:0;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-danger btn-sm" style="margin-right:auto"
+          onclick="deletePartnerApp('${id}');Sheet.close('partner-detail-sheet')">Удалить</button>
+        ${isNew ? `<button class="btn btn-success btn-sm"
+          onclick="markPartner('${id}','contacted');Sheet.close('partner-detail-sheet')">✓ Связались</button>` : ''}
+        ${isContacted ? `<button class="btn btn-secondary btn-sm"
+          onclick="markPartner('${id}','archived');Sheet.close('partner-detail-sheet')">В архив</button>` : ''}
+        <button class="btn btn-secondary" onclick="Sheet.close('partner-detail-sheet')">Закрыть</button>
+      </div>
+    </div>
+  `;
+
+  Sheet.open('partner-detail-sheet');
+};
+
 function renderPartnerPage() {
   const body = document.getElementById('partner-ob'); if (!body) return;
   const total     = allPartnerApps.length;
@@ -2954,6 +3045,7 @@ function renderPartnerPage() {
       <td><span class="ostatus" style="color:${sc};background:${sb};border-color:${sbr}"><span class="osdot"></span>${sl}</span></td>
       <td class="mono" style="font-size:.58rem;white-space:nowrap">${date}</td>
       <td><div class="oact">
+        <button class="btn btn-secondary btn-sm" onclick="openPartnerDetail('${a.id}')">Детали</button>
         ${isNew ? `<button class="btn btn-success btn-sm" onclick="markPartner('${a.id}','contacted')">✓ Связались</button>` : ''}
         ${a.status === 'contacted' ? `<button class="btn btn-secondary btn-sm" onclick="markPartner('${a.id}','archived')">Архив</button>` : ''}
         <button class="btn btn-danger btn-sm" onclick="deletePartnerApp('${a.id}')">✕</button>
@@ -3438,6 +3530,8 @@ const PAGE_TITLES = {
   hr:                   'HR / Вакансии',
   ads:                  'Реклама',
   partners:             'Партнерство',
+  'tg-bot':             'Telegram Бот',
+  fcm:                  'Push-уведомления',
 };
 
 window.goPage = function (page) {
@@ -3459,6 +3553,7 @@ window.goPage = function (page) {
   if (page === 'ads')               renderAdsPage();
   if (page === 'partners')          renderPartnerPage();
   if (page === 'tg-bot')            renderTgBotPage();
+  if (page === 'fcm')               renderFcmPage();
   if (page === 'addresses')         loadAZones();
   if (page === 'delivery-services') loadDeliveryServices();
 
@@ -3692,4 +3787,226 @@ window.sendBroadcast = async function () {
 
   btn.disabled = false;
   btn.innerHTML = '📢 Отправить всем';
+};
+
+// ══════════════════════════════════════════════════════════════
+// FCM PUSH УВЕДОМЛЕНИЯ
+// ══════════════════════════════════════════════════════════════
+
+const FCM_API = 'https://api.dastdaroz.shop/api/notifications/send';
+const FCM_SECRET = 'dastdaroz_broadcast_secret';
+
+let fcmMode = 'all';         // 'all' | 'user'
+let fcmSelectedUser = null;  // { uid, name, phone, fcmToken }
+let fcmAllUsers = [];        // кэш пользователей
+
+// Переключение режима всем / конкретному
+window.fcmSetMode = function(mode) {
+  fcmMode = mode;
+  document.getElementById('fcm-kpi-mode').textContent = mode === 'all' ? 'Всем' : 'Конкретному';
+
+  const allBtn  = document.getElementById('fcm-mode-all');
+  const userBtn = document.getElementById('fcm-mode-user');
+  const userSec = document.getElementById('fcm-user-section');
+
+  if (mode === 'all') {
+    allBtn.style.background  = 'var(--green)';
+    allBtn.style.color       = '#fff';
+    userBtn.style.background = '';
+    userBtn.style.color      = '';
+    userSec.style.display    = 'none';
+    fcmClearUser();
+  } else {
+    userBtn.style.background = 'var(--green)';
+    userBtn.style.color      = '#fff';
+    allBtn.style.background  = '';
+    allBtn.style.color       = '';
+    userSec.style.display    = '';
+  }
+};
+
+// Поиск пользователя
+window.fcmSearchUser = function(q) {
+  const results = document.getElementById('fcm-user-results');
+  if (!q.trim()) { results.style.display = 'none'; return; }
+
+  const filtered = fcmAllUsers.filter(u =>
+    u.name.toLowerCase().includes(q.toLowerCase()) ||
+    (u.phone && u.phone.includes(q))
+  ).slice(0, 8);
+
+  if (!filtered.length) {
+    results.style.display = '';
+    results.innerHTML = '<div style="padding:10px 12px;font-size:.75rem;color:var(--text2)">Не найдено</div>';
+    return;
+  }
+
+  results.style.display = '';
+  results.innerHTML = filtered.map(u => `
+    <div onclick="fcmSelectUser('${u.uid}')"
+      style="padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--b);transition:background .15s"
+      onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background=''">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--s3);overflow:hidden;flex-shrink:0">
+        ${u.avatar ? `<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover"/>` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:.65rem">${u.name[0]||'?'}</div>`}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.78rem;font-weight:500">${u.name}</div>
+        <div style="font-size:.7rem;color:var(--text2)">${u.phone || '—'} ${u.fcmToken ? '📱' : '❌'}</div>
+      </div>
+    </div>
+  `).join('');
+};
+
+// Выбор пользователя
+window.fcmSelectUser = function(uid) {
+  const u = fcmAllUsers.find(x => x.uid === uid);
+  if (!u) return;
+  fcmSelectedUser = u;
+
+  document.getElementById('fcm-user-search').value = '';
+  document.getElementById('fcm-user-results').style.display = 'none';
+
+  const sel = document.getElementById('fcm-user-selected');
+  sel.style.display = 'flex';
+  document.getElementById('fcm-sel-name').textContent  = u.name;
+  document.getElementById('fcm-sel-phone').textContent = u.phone || '—';
+
+  const av = document.getElementById('fcm-sel-avatar');
+  av.innerHTML = u.avatar
+    ? `<img src="${u.avatar}" style="width:32px;height:32px;border-radius:50%;object-fit:cover"/>`
+    : (u.name[0] || '?');
+
+  if (!u.fcmToken) {
+    document.getElementById('fcm-result').style.display = '';
+    document.getElementById('fcm-result').innerHTML = '<div style="color:var(--yellow)">⚠️ У этого пользователя нет FCM токена — уведомление не дойдёт</div>';
+  } else {
+    document.getElementById('fcm-result').style.display = 'none';
+  }
+};
+
+// Очистить выбранного пользователя
+window.fcmClearUser = function() {
+  fcmSelectedUser = null;
+  document.getElementById('fcm-user-selected').style.display = 'none';
+  document.getElementById('fcm-user-search').value = '';
+  document.getElementById('fcm-user-results').style.display = 'none';
+  document.getElementById('fcm-result').style.display = 'none';
+};
+
+// Загрузка пользователей с токенами
+window.fcmLoadUsers = async function() {
+  const list = document.getElementById('fcm-users-list');
+  list.innerHTML = '<div class="pload"><div class="spin"></div></div>';
+
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    fcmAllUsers = [];
+    snap.forEach(d => {
+      const u = d.data();
+      fcmAllUsers.push({
+        uid:      d.id,
+        name:     u.displayName || u.name || '—',
+        phone:    u.phone || u.phoneNumber || '',
+        avatar:   u.avatarUrl || u.photoURL || '',
+        fcmToken: u.fcmToken || '',
+      });
+    });
+
+    const withToken = fcmAllUsers.filter(u => u.fcmToken);
+    document.getElementById('fcm-kpi-users').textContent = withToken.length;
+
+    if (!fcmAllUsers.length) {
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text2);font-size:.78rem">Пользователей нет</div>';
+      return;
+    }
+
+    list.innerHTML = fcmAllUsers.map(u => `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--b);cursor:pointer"
+        onclick="fcmSetMode('user');fcmSelectUser('${u.uid}')"
+        onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background=''">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--s3);overflow:hidden;flex-shrink:0">
+          ${u.avatar ? `<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover"/>` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:.7rem">${(u.name||'?')[0]}</div>`}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.78rem;font-weight:500">${u.name}</div>
+          <div style="font-size:.7rem;color:var(--text2)">${u.phone || '—'}</div>
+        </div>
+        <div style="font-size:.65rem;padding:3px 8px;border-radius:99px;background:${u.fcmToken ? 'var(--greend)' : 'var(--redd)'};color:${u.fcmToken ? 'var(--green)' : 'var(--red)'}">
+          ${u.fcmToken ? '📱 Токен есть' : '❌ Нет токена'}
+        </div>
+      </div>
+    `).join('');
+
+  } catch (e) {
+    console.error('fcmLoadUsers:', e);
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--red);font-size:.78rem">Ошибка загрузки</div>';
+  }
+};
+
+// Отправка уведомления
+window.fcmSend = async function() {
+  const title    = document.getElementById('fcm-title').value.trim();
+  const body     = document.getElementById('fcm-body').value.trim();
+  const priority = document.querySelector('input[name="fcm-priority"]:checked')?.value || 'high';
+  const btn      = document.getElementById('fcm-send-btn');
+  const res      = document.getElementById('fcm-result');
+
+  if (!title) { toast('Введи заголовок', 'err'); return; }
+  if (!body)  { toast('Введи текст уведомления', 'err'); return; }
+
+  if (fcmMode === 'user') {
+    if (!fcmSelectedUser) { toast('Выбери пользователя', 'err'); return; }
+    if (!fcmSelectedUser.fcmToken) { toast('У пользователя нет FCM токена', 'err'); return; }
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Отправляем…';
+  res.style.display = '';
+  res.innerHTML = '<div style="color:var(--text2)">⏳ Отправка…</div>';
+
+  try {
+    const payload = { title, body, priority };
+    if (fcmMode === 'all') {
+      payload.topic = 'all';
+    } else {
+      payload.token = fcmSelectedUser.fcmToken;
+    }
+
+    const response = await fetch(FCM_API, {
+      method:  'POST',
+      headers: {
+        'Content-Type':       'application/json',
+        'x-broadcast-secret': FCM_SECRET,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Ошибка сервера');
+
+    const who = fcmMode === 'all' ? 'всем пользователям' : fcmSelectedUser.name;
+    res.innerHTML = `<div style="color:var(--green)">✅ Отправлено ${who}!</div>`;
+    toast('Уведомление отправлено!', 'ok');
+
+    // Обновляем KPI последней рассылки
+    document.getElementById('fcm-kpi-last').textContent     = title.slice(0, 15) + (title.length > 15 ? '…' : '');
+    document.getElementById('fcm-kpi-last-date').textContent = new Date().toLocaleString('ru');
+
+    // Очищаем форму
+    document.getElementById('fcm-title').value = '';
+    document.getElementById('fcm-body').value  = '';
+
+  } catch (e) {
+    console.error('fcmSend:', e);
+    res.innerHTML = `<div style="color:var(--red)">❌ Ошибка: ${e.message}</div>`;
+    toast('Ошибка отправки', 'err');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🔔 Отправить';
+};
+
+// Инициализация страницы FCM
+window.renderFcmPage = async function() {
+  await fcmLoadUsers();
 };

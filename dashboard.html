@@ -579,6 +579,9 @@ body::after { display: none; }
 .modal-x:hover { background: var(--s2); color: var(--text); }
 .modal-body    { padding: 20px 22px; overflow-y: auto; flex: 1; }
 .modal-foot    { padding: 14px 22px; border-top: 1px solid var(--b); display: flex; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
+.pd-row        { display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--s2);border:1px solid var(--b);border-radius:8px }
+.pd-label      { font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);min-width:110px;flex-shrink:0 }
+.pd-val        { font-size:.78rem;font-weight:500;color:var(--text);flex:1;word-break:break-word }
 
 /* Form fields */
 .mf { margin-bottom: 12px; }
@@ -926,6 +929,11 @@ textarea.mi     { resize: vertical; min-height: 76px; }
         <svg width="13" height="13" viewBox="0 0 24 24" fill="#2196f3"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.01 9.47c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.873.751z"/></svg>
         Telegram Бот
         <span class="ni-badge info" id="sb-tg-users-b" style="display:none">0</span>
+      </button>
+
+      <button class="ni" data-page="fcm" onclick="goPage('fcm')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        Push-уведомления
       </button>
 
       <div class="nav-grp">Система</div>
@@ -1519,6 +1527,124 @@ textarea.mi     { resize: vertical; min-height: 76px; }
           <div class="panel">
             <div class="panel-head"><div class="panel-title">👥 Пользователи бота</div></div>
             <div id="tg-users-list" style="max-height:420px;overflow-y:auto">
+              <div class="pload"><div class="spin"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── FCM PUSH ── -->
+      <div class="page" id="page-fcm">
+        <div class="sh">
+          <div>
+            <div class="sh-tag">Уведомления</div>
+            <div class="sh-title">Push-<em>рассылка</em></div>
+          </div>
+        </div>
+
+        <!-- KPI -->
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px">
+          <div class="kpi acc">
+            <div class="kpi-label">Пользователей с токеном</div>
+            <div class="kpi-val" id="fcm-kpi-users">—</div>
+            <div class="kpi-sub">Получат уведомление</div>
+            <div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+          </div>
+          <div class="kpi green">
+            <div class="kpi-label">Последняя рассылка</div>
+            <div class="kpi-val" id="fcm-kpi-last">—</div>
+            <div class="kpi-sub" id="fcm-kpi-last-date">Не было</div>
+            <div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+          </div>
+          <div class="kpi yellow">
+            <div class="kpi-label">Режим</div>
+            <div class="kpi-val" id="fcm-kpi-mode">Всем</div>
+            <div class="kpi-sub">Текущий режим отправки</div>
+            <div class="kpi-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <!-- Форма отправки -->
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">🔔 Отправить уведомление</div></div>
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px">
+
+              <!-- Режим: всем / конкретному -->
+              <div>
+                <label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:8px">Кому отправить</label>
+                <div style="display:flex;gap:8px">
+                  <button id="fcm-mode-all" class="btn btn-sm" onclick="fcmSetMode('all')" style="flex:1;background:var(--green);color:#fff">
+                    👥 Всем
+                  </button>
+                  <button id="fcm-mode-user" class="btn btn-secondary btn-sm" onclick="fcmSetMode('user')" style="flex:1">
+                    👤 Конкретному
+                  </button>
+                </div>
+              </div>
+
+              <!-- Поиск пользователя (скрыт по умолчанию) -->
+              <div id="fcm-user-section" style="display:none">
+                <label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px">Пользователь</label>
+                <input type="text" id="fcm-user-search" placeholder="Введи имя или телефон…"
+                  oninput="fcmSearchUser(this.value)"
+                  style="width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:10px;background:var(--s2);color:var(--text);font-size:.8rem;font-family:inherit;outline:none"/>
+                <div id="fcm-user-results" style="margin-top:6px;max-height:160px;overflow-y:auto;border-radius:10px;border:1px solid var(--b);display:none"></div>
+                <div id="fcm-user-selected" style="display:none;margin-top:8px;padding:10px 12px;background:var(--s2);border-radius:10px;border:1px solid var(--b);font-size:.78rem;display:flex;align-items:center;gap:10px">
+                  <div style="width:32px;height:32px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0" id="fcm-sel-avatar"></div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-weight:600;font-size:.78rem" id="fcm-sel-name">—</div>
+                    <div style="color:var(--text2);font-size:.7rem" id="fcm-sel-phone">—</div>
+                  </div>
+                  <button onclick="fcmClearUser()" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px">✕</button>
+                </div>
+              </div>
+
+              <!-- Заголовок -->
+              <div>
+                <label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px">Заголовок</label>
+                <input type="text" id="fcm-title" placeholder="Например: Новый заказ 🛒"
+                  style="width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:10px;background:var(--s2);color:var(--text);font-size:.8rem;font-family:inherit;outline:none"/>
+              </div>
+
+              <!-- Текст -->
+              <div>
+                <label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px">Текст уведомления</label>
+                <textarea id="fcm-body" rows="3" placeholder="Введи текст…"
+                  style="width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:10px;background:var(--s2);color:var(--text);font-size:.8rem;resize:vertical;font-family:inherit;outline:none"></textarea>
+              </div>
+
+              <!-- Приоритет -->
+              <div>
+                <label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px">Приоритет</label>
+                <div style="display:flex;gap:8px">
+                  <label style="font-size:.75rem;display:flex;align-items:center;gap:5px;cursor:pointer;padding:7px 12px;border:1px solid var(--b);border-radius:8px;flex:1;justify-content:center">
+                    <input type="radio" name="fcm-priority" value="high" checked> 🔴 Высокий
+                  </label>
+                  <label style="font-size:.75rem;display:flex;align-items:center;gap:5px;cursor:pointer;padding:7px 12px;border:1px solid var(--b);border-radius:8px;flex:1;justify-content:center">
+                    <input type="radio" name="fcm-priority" value="normal"> 🟡 Обычный
+                  </label>
+                </div>
+              </div>
+
+              <!-- Кнопка -->
+              <button class="btn btn-sm" id="fcm-send-btn" onclick="fcmSend()"
+                style="background:var(--green);color:#fff;padding:12px;font-size:.85rem;font-weight:600">
+                🔔 Отправить
+              </button>
+
+              <!-- Результат -->
+              <div id="fcm-result" style="display:none;font-size:.78rem"></div>
+            </div>
+          </div>
+
+          <!-- Список пользователей с токенами -->
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">📱 Устройства с токеном</div>
+              <button class="btn btn-secondary btn-sm" onclick="fcmLoadUsers()">Обновить</button>
+            </div>
+            <div id="fcm-users-list" style="max-height:520px;overflow-y:auto">
               <div class="pload"><div class="spin"></div></div>
             </div>
           </div>

@@ -1655,6 +1655,16 @@ textarea.mi     { resize: vertical; min-height: 76px; }
   </div><!-- /main -->
 </div><!-- /app -->
 
+<script>
+// ✅ ФИКС: определяем window.onAdminFcmToken СИНХРОННО при парсинге HTML,
+// до загрузки app.js (module). Android вызывает эту функцию из onPageFinished —
+// если она не определена, вызов тихо падает и токен теряется.
+// Здесь просто сохраняем токен; app.js заберёт его через _pendingAdminFcmToken
+// в onAuthStateChanged и сохранит в Firestore.
+window.onAdminFcmToken = function(t) {
+  if (t) window._pendingAdminFcmToken = t;
+};
+</script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -248,6 +248,9 @@ function renderSB() {
   // Sheet создания / редактирования точки
   _initLocSheet();
 
+  // Sheet режима работы точки
+  _initWorkingHoursSheet();
+
   // Sheet каталога товаров точки
   _initRetCatSheet();
 
@@ -2547,6 +2550,36 @@ async function loadLocationsPanel(rid) {
   }
 }
 
+// ── Режим работы: вспомогательные утилиты ──────────────────────
+
+function _locIsOpenNow(loc) {
+  if (loc.isManuallyClosed) return false;
+  if (loc.noSchedule) return true;
+  if (loc.workingHours && loc.workingHours.from && loc.workingHours.to) {
+    const now = new Date();
+    const cur = now.getHours() * 60 + now.getMinutes();
+    const [fh, fm] = loc.workingHours.from.split(':').map(Number);
+    const [th, tm] = loc.workingHours.to.split(':').map(Number);
+    const f = fh * 60 + fm, t = th * 60 + tm;
+    return f <= t ? cur >= f && cur < t : cur >= f || cur < t;
+  }
+  return true;
+}
+
+function _locStatusBadge(loc) {
+  if (loc.isManuallyClosed) {
+    return `<span class="loc-status-badge loc-status-closed">● Закрыто вручную</span>`;
+  }
+  if (loc.noSchedule) {
+    return `<span class="loc-status-badge loc-status-open">● Круглосуточно</span>`;
+  }
+  if (loc.workingHours && loc.workingHours.from && loc.workingHours.to) {
+    const open = _locIsOpenNow(loc);
+    return `<span class="loc-status-badge ${open ? 'loc-status-open' : 'loc-status-closed'}">${open ? '● Открыто' : '● Закрыто'} · ${loc.workingHours.from}–${loc.workingHours.to}</span>`;
+  }
+  return `<span class="loc-status-badge loc-status-open">● Открыто</span>`;
+}
+
 function renderLocationsPanel(rid, locs) {
   const el = document.getElementById(`ret-locs-list-${rid}`); if (!el) return;
   if (!locs.length) {
@@ -2555,26 +2588,41 @@ function renderLocationsPanel(rid, locs) {
   }
   const rName = _retailers.find(r => r.id === rid)?.name || '';
   el.innerHTML = locs.map(loc => {
-    const cName  = _retCities.find(c => c.id === loc.cityId)?.name || loc.cityId || '—';
-    const coords = (loc.lat && loc.lng) ? `${(+loc.lat).toFixed(5)}, ${(+loc.lng).toFixed(5)}` : '';
-    return `<div class="ret-loc-row" style="cursor:pointer" onclick="openRetCatalog('${rid}','${escHtml(rName)}','${loc.id}','${escHtml(loc.address||'')}')">
-      <div class="ret-loc-ico">
+    const cName    = _retCities.find(c => c.id === loc.cityId)?.name || loc.cityId || '—';
+    const coords   = (loc.lat && loc.lng) ? `${(+loc.lat).toFixed(5)}, ${(+loc.lng).toFixed(5)}` : '';
+    const isClosed = loc.isManuallyClosed === true;
+    const badge    = _locStatusBadge(loc);
+    const closeBtnLabel = isClosed ? 'Открыть' : 'Закрыть';
+    const closeBtnClass = isClosed ? 'btn-success' : 'btn-warning';
+    const closeIcon = isClosed
+      ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12l5 5L20 7"/></svg>`
+      : `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+    return `<div class="ret-loc-row" style="flex-wrap:wrap;cursor:pointer" onclick="openRetCatalog('${rid}','${escHtml(rName)}','${loc.id}','${escHtml(loc.address||'')}')">
+      <div class="ret-loc-ico" style="${isClosed ? 'background:var(--redd);border-color:rgba(244,63,94,.2);color:var(--red)' : ''}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
       </div>
       <div class="ret-loc-body">
         <div class="ret-loc-addr">${escHtml(loc.address || '—')}</div>
         <div class="ret-loc-meta">${escHtml(cName)}${coords ? ' · ' + coords : ''}</div>
+        <div style="margin-top:4px">${badge}</div>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openRetCatalog('${rid}','${escHtml(rName)}','${loc.id}','${escHtml(loc.address||'')}')" title="Каталог товаров">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      </button>
-      <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openLocationModal('${rid}','${escHtml(rName)}','${loc.id}')" title="Редактировать точку">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </button>
+      <div style="display:flex;gap:5px;flex-shrink:0">
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openRetCatalog('${rid}','${escHtml(rName)}','${loc.id}','${escHtml(loc.address||'')}')" title="Каталог">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openWorkingHoursModal('${rid}','${loc.id}')" title="Режим работы">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </button>
+        <button class="btn ${closeBtnClass} btn-sm" onclick="event.stopPropagation();quickToggleClose('${rid}','${loc.id}',${isClosed})" title="${closeBtnLabel}">
+          ${closeIcon}
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openLocationModal('${rid}','${escHtml(rName)}','${loc.id}')" title="Редактировать">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+      </div>
     </div>`;
   }).join('');
 }
-
 function _initRetSheet() {
   Sheet.define({ id: 'ret-sheet', title: 'Новый ритейлер', zIndex: 900 });
 
@@ -4048,3 +4096,176 @@ async function saveAdminFcmToken(token) {
     console.warn('[FCM Admin] Не удалось сохранить токен:', e);
   }
 }
+
+
+// ══════════════════════════════════════════════════════════════
+//  WORKING HOURS — режим работы точки ритейлера
+// ══════════════════════════════════════════════════════════════
+
+let _editHoursRid   = null;
+let _editHoursLocId = null;
+
+function _whToggleUI() {
+  const cb    = document.getElementById('wh-manual-close');
+  const track = document.getElementById('wh-mc-track');
+  const thumb = document.getElementById('wh-mc-thumb');
+  if (!cb || !track || !thumb) return;
+  if (cb.checked) {
+    track.style.background    = 'var(--red)';
+    track.style.borderColor   = 'rgba(244,63,94,.35)';
+    thumb.style.transform     = 'translateX(20px)';
+    thumb.style.background    = '#fff';
+  } else {
+    track.style.background    = 'var(--s3)';
+    track.style.borderColor   = 'var(--b)';
+    thumb.style.transform     = '';
+    thumb.style.background    = 'var(--text3)';
+  }
+}
+
+function _whToggleScheduleUI() {
+  const ns  = document.getElementById('wh-no-schedule');
+  const fr  = document.getElementById('wh-from');
+  const to  = document.getElementById('wh-to');
+  if (!ns || !fr || !to) return;
+  fr.disabled = ns.checked;
+  to.disabled = ns.checked;
+  fr.style.opacity = ns.checked ? '.4' : '';
+  to.style.opacity = ns.checked ? '.4' : '';
+}
+
+function _initWorkingHoursSheet() {
+  Sheet.define({ id: 'wh-sheet', title: 'Режим работы точки', zIndex: 950 });
+  Sheet.body('wh-sheet').innerHTML = `
+    <div style="padding:20px 18px 8px;display:flex;flex-direction:column;gap:14px">
+      <input type="hidden" id="wh-rid">
+      <input type="hidden" id="wh-loc-id">
+
+      <!-- Info -->
+      <div style="padding:10px 12px;background:var(--s2);border-radius:8px;border:1px solid var(--b);font-size:.7rem;color:var(--text2)">
+        Точка: <strong id="wh-loc-addr" style="color:var(--text)">—</strong>
+      </div>
+
+      <!-- Manual close toggle -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--redd);border:1px solid rgba(244,63,94,.18);border-radius:10px;gap:12px">
+        <div style="flex:1">
+          <div style="font-size:.76rem;font-weight:700;color:var(--red)">Принудительно закрыть точку</div>
+          <div style="font-size:.62rem;color:var(--text3);margin-top:3px;line-height:1.4">Точка будет недоступна для заказов вне зависимости от расписания. Используйте для технических работ, выходных и т.д.</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;cursor:pointer">
+          <input type="checkbox" id="wh-manual-close" style="opacity:0;width:0;height:0" onchange="_whToggleUI()">
+          <span id="wh-mc-track" style="position:absolute;inset:0;background:var(--s3);border-radius:12px;border:1px solid var(--b);transition:.2s">
+            <span id="wh-mc-thumb" style="position:absolute;height:18px;width:18px;left:2px;bottom:2px;background:var(--text3);border-radius:50%;transition:.2s"></span>
+          </span>
+        </label>
+      </div>
+
+      <!-- Working hours -->
+      <div>
+        <label class="ml" style="margin-bottom:10px;display:block">Расписание работы</label>
+        <div style="margin-bottom:10px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.72rem;color:var(--text2)">
+            <input type="checkbox" id="wh-no-schedule" style="width:15px;height:15px;cursor:pointer;accent-color:var(--acc2)" onchange="_whToggleScheduleUI()">
+            Круглосуточно (без ограничений по времени)
+          </label>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="mf" style="margin-bottom:0;flex:1">
+            <label class="ml" style="font-size:.6rem">Открытие</label>
+            <input class="mi" id="wh-from" type="time" value="09:00">
+          </div>
+          <div style="font-size:1.1rem;color:var(--text3);padding-top:14px;user-select:none">—</div>
+          <div class="mf" style="margin-bottom:0;flex:1">
+            <label class="ml" style="font-size:.6rem">Закрытие</label>
+            <input class="mi" id="wh-to" type="time" value="22:00">
+          </div>
+        </div>
+        <div style="font-size:.6rem;color:var(--text3);margin-top:7px;display:flex;align-items:flex-start;gap:4px;line-height:1.5">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Если ни расписание, ни круглосуточный режим не выбраны — точка считается всегда открытой.
+          Для ночного режима (например, 22:00–06:00) просто укажите время — пересечение суток поддерживается.
+        </div>
+      </div>
+
+      <div class="modal-foot" style="padding-left:0;padding-right:0">
+        <button class="btn btn-secondary" onclick="Sheet.close('wh-sheet')">Отмена</button>
+        <button class="btn btn-primary" onclick="saveWorkingHours()">Сохранить</button>
+      </div>
+    </div>
+  `;
+}
+
+window.openWorkingHoursModal = async function (rid, locId) {
+  _editHoursRid   = rid;
+  _editHoursLocId = locId;
+  try {
+    const snap = await getDoc(doc(db, 'retailers', rid, 'locations', locId));
+    if (!snap.exists()) { toast('Точка не найдена', 'err'); return; }
+    const l = snap.data();
+    const rName = _retailers.find(r => r.id === rid)?.name || '';
+
+    const setVal = (id, val) => { const e = document.getElementById(id); if (e) e.value = val; };
+    setVal('wh-rid',    rid);
+    setVal('wh-loc-id', locId);
+
+    const addrEl = document.getElementById('wh-loc-addr');
+    if (addrEl) addrEl.textContent = (rName ? rName + ' · ' : '') + (l.address || locId);
+
+    const cb = document.getElementById('wh-manual-close');
+    if (cb) { cb.checked = l.isManuallyClosed === true; _whToggleUI(); }
+
+    const ns = document.getElementById('wh-no-schedule');
+    if (ns) { ns.checked = l.noSchedule === true; _whToggleScheduleUI(); }
+
+    setVal('wh-from', l.workingHours?.from || '09:00');
+    setVal('wh-to',   l.workingHours?.to   || '22:00');
+
+    Sheet.open('wh-sheet');
+  } catch (e) { toast('Ошибка загрузки: ' + e.message, 'err'); }
+};
+
+window.saveWorkingHours = async function () {
+  const rid    = document.getElementById('wh-rid')?.value    || '';
+  const locId  = document.getElementById('wh-loc-id')?.value || '';
+  if (!rid || !locId) return;
+
+  const isManuallyClosed = document.getElementById('wh-manual-close')?.checked   ?? false;
+  const noSchedule       = document.getElementById('wh-no-schedule')?.checked     ?? false;
+  const from             = document.getElementById('wh-from')?.value               || '09:00';
+  const to               = document.getElementById('wh-to')?.value                 || '22:00';
+
+  const btn = document.querySelector('#bs-wh-sheet .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Сохраняем…'; }
+
+  try {
+    const data = {
+      isManuallyClosed,
+      noSchedule,
+      workingHours: (noSchedule || isManuallyClosed) ? null : { from, to },
+      updatedAt: serverTimestamp(),
+    };
+    await updateDoc(doc(db, 'retailers', rid, 'locations', locId), data);
+    toast('Режим работы сохранён ✓', 'ok');
+    Sheet.close('wh-sheet');
+    await loadLocationsPanel(rid);
+  } catch (e) {
+    toast('Ошибка: ' + e.message, 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Сохранить'; }
+  }
+};
+
+// Быстрое закрытие / открытие точки (без модального окна)
+window.quickToggleClose = async function (rid, locId, currentlyClosed) {
+  const willClose = !currentlyClosed;
+  try {
+    await updateDoc(doc(db, 'retailers', rid, 'locations', locId), {
+      isManuallyClosed: willClose,
+      updatedAt: serverTimestamp(),
+    });
+    toast(willClose ? '🔴 Точка закрыта' : '🟢 Точка открыта', willClose ? 'warn' : 'ok');
+    await loadLocationsPanel(rid);
+  } catch (e) {
+    toast('Ошибка: ' + e.message, 'err');
+  }
+};
